@@ -461,3 +461,35 @@ def test_recursive_filelist_cycle_reports_complete_source_chain(
         f"    {top_filelist}:1 -> {child_filelist}\n"
         f"    {child_filelist}:1 -> {top_filelist}"
     )
+
+
+def test_nested_missing_source_reports_complete_source_chain(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    middle_filelist = tmp_path / "middle.f"
+    leaf_filelist = tmp_path / "leaf.f"
+    missing_source = tmp_path / "missing.sv"
+    top_filelist.write_text("-F middle.f\n", encoding="utf-8")
+    middle_filelist.write_text("-F leaf.f\n", encoding="utf-8")
+    leaf_filelist.write_text("missing.sv\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "source file does not exist\n"
+        "  source chain:\n"
+        f"    {top_filelist}:1 -> {middle_filelist}\n"
+        f"    {middle_filelist}:1 -> {leaf_filelist}\n"
+        f"  at: {leaf_filelist}:1\n"
+        "  input: missing.sv\n"
+        f"  resolved: {missing_source}"
+    )

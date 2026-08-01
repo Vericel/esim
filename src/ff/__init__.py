@@ -32,6 +32,13 @@ def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
     return Path(os.path.abspath(path))
 
 
+def _source_chain_section(source_chain: tuple[str, ...]) -> str:
+    if not source_chain:
+        return ""
+    rendered_entries = "\n".join(f"    {entry}" for entry in source_chain)
+    return f"  source chain:\n{rendered_entries}\n"
+
+
 def _flatten_lines(
     filelist: Path,
     path_base: Path,
@@ -206,6 +213,7 @@ def _flatten_lines(
         if not resolved_source.is_file():
             raise FlattenError(
                 "source file does not exist\n"
+                f"{_source_chain_section(source_chain)}"
                 f"  at: {filelist}:{line_number}\n"
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}"
