@@ -410,3 +410,28 @@ def test_uppercase_f_recursively_uses_each_filelist_directory(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
+
+def test_lowercase_f_recursively_uses_invocation_working_directory(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    working_directory = tmp_path / "build"
+    source = working_directory / "rtl" / "top.sv"
+    source.parent.mkdir(parents=True)
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = working_directory / "child.f"
+    child_filelist.write_text("rtl/top.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "lists" / "top.f"
+    top_filelist.parent.mkdir()
+    top_filelist.write_text("-f child.f\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=working_directory,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"

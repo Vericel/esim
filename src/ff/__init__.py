@@ -156,8 +156,21 @@ def _flatten_lines(
                 f"  input: {stripped}\n"
                 "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
             )
-        if len(tokens) == 2 and tokens[0] == "-F":
-            child_filelist = _absolute_logical_path(Path(tokens[1]), path_base)
+        if len(tokens) == 2 and tokens[0] in {"-f", "-F"}:
+            child_reference_base = (
+                request.working_directory
+                if tokens[0] == "-f"
+                else filelist.parent
+            )
+            child_content_base = (
+                request.working_directory
+                if tokens[0] == "-f"
+                else None
+            )
+            child_filelist = _absolute_logical_path(
+                Path(tokens[1]),
+                child_reference_base,
+            )
             if not child_filelist.is_file():
                 raise FlattenError(
                     "filelist does not exist\n"
@@ -168,7 +181,7 @@ def _flatten_lines(
             flattened_lines.extend(
                 _flatten_lines(
                     child_filelist,
-                    child_filelist.parent,
+                    child_content_base or child_filelist.parent,
                     request,
                 )
             )
