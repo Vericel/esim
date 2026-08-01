@@ -435,3 +435,29 @@ def test_lowercase_f_recursively_uses_invocation_working_directory(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
+
+def test_recursive_filelist_cycle_reports_complete_source_chain(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    child_filelist = tmp_path / "child.f"
+    top_filelist.write_text("-F child.f\n", encoding="utf-8")
+    child_filelist.write_text("-F top.f\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "filelist include cycle\n"
+        "  source chain:\n"
+        f"    {top_filelist}:1 -> {child_filelist}\n"
+        f"    {child_filelist}:1 -> {top_filelist}"
+    )

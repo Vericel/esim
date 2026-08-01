@@ -36,6 +36,8 @@ def _flatten_lines(
     filelist: Path,
     path_base: Path,
     request: FlattenRequest,
+    filelist_stack: tuple[Path, ...],
+    source_chain: tuple[str, ...],
 ) -> list[str]:
     content = filelist.read_text(encoding="utf-8")
     flattened_lines = []
@@ -178,11 +180,25 @@ def _flatten_lines(
                     f"  input: {line}\n"
                     f"  resolved: {child_filelist}"
                 )
+            child_identity = child_filelist.resolve()
+            reference = f"{filelist}:{line_number} -> {child_filelist}"
+            next_source_chain = source_chain + (reference,)
+            if child_identity in filelist_stack:
+                rendered_source_chain = "\n".join(
+                    f"    {entry}" for entry in next_source_chain
+                )
+                raise FlattenError(
+                    "filelist include cycle\n"
+                    "  source chain:\n"
+                    f"{rendered_source_chain}"
+                )
             flattened_lines.extend(
                 _flatten_lines(
                     child_filelist,
                     child_content_base or child_filelist.parent,
                     request,
+                    filelist_stack + (child_identity,),
+                    next_source_chain,
                 )
             )
             continue
@@ -218,6 +234,8 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         request.top_filelist,
         request.top_filelist.parent,
         request,
+        (request.top_filelist.resolve(),),
+        (),
     )
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
