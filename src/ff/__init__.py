@@ -33,6 +33,25 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     condition_open_lines = []
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
+        tokens = stripped.split()
+        expected_condition_usage = {
+            "`ifdef": "`ifdef MACRO",
+            "`ifndef": "`ifndef MACRO",
+            "`elsif": "`elsif MACRO",
+            "`else": "`else",
+            "`endif": "`endif",
+        }
+        if tokens and tokens[0] in expected_condition_usage:
+            expected_token_count = (
+                1 if tokens[0] in {"`else", "`endif"} else 2
+            )
+            if len(tokens) != expected_token_count:
+                raise FlattenError(
+                    "invalid conditional directive syntax\n"
+                    f"  at: {request.top_filelist}:{line_number}\n"
+                    f"  input: {stripped}\n"
+                    f"  expected: {expected_condition_usage[tokens[0]]}"
+                )
         if stripped.startswith("`ifdef "):
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (

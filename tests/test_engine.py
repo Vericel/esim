@@ -280,3 +280,41 @@ def test_condition_rejects_branch_directives_after_else(
         f"unexpected {directive_name} after `else\n"
         f"  at: {top_filelist}:3"
     )
+
+
+@pytest.mark.parametrize(
+    ("content", "line_number", "input_line", "expected_usage"),
+    [
+        ("`ifdef\n", 1, "`ifdef", "`ifdef MACRO"),
+        ("`ifndef FPGA EXTRA\n", 1, "`ifndef FPGA EXTRA", "`ifndef MACRO"),
+        ("`ifdef FPGA\n`elsif\n`endif\n", 2, "`elsif", "`elsif MACRO"),
+        ("`ifdef FPGA\n`else EXTRA\n`endif\n", 2, "`else EXTRA", "`else"),
+        ("`ifdef FPGA\n`endif EXTRA\n`endif\n", 2, "`endif EXTRA", "`endif"),
+    ],
+)
+def test_condition_directives_reject_wrong_argument_counts(
+    tmp_path: Path,
+    content: str,
+    line_number: int,
+    input_line: str,
+    expected_usage: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(content, encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "invalid conditional directive syntax\n"
+        f"  at: {top_filelist}:{line_number}\n"
+        f"  input: {input_line}\n"
+        f"  expected: {expected_usage}"
+    )
