@@ -42,6 +42,9 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                 active_states[-1] and macro not in request.predefined_macros
             )
             continue
+        if stripped == "`else":
+            active_states[-1] = active_states[-2] and not active_states[-1]
+            continue
         if stripped == "`endif":
             active_states.pop()
             continue
