@@ -51,6 +51,11 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`elsif "):
+            if len(active_states) == 1:
+                raise FlattenError(
+                    "unexpected `elsif without a matching condition\n"
+                    f"  at: {request.top_filelist}:{line_number}"
+                )
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
                 active_states[-2]
@@ -63,6 +68,11 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
             continue
         if stripped == "`else":
+            if len(active_states) == 1:
+                raise FlattenError(
+                    "unexpected `else without a matching condition\n"
+                    f"  at: {request.top_filelist}:{line_number}"
+                )
             branch_selected = (
                 active_states[-2] and not branch_taken_states[-1]
             )

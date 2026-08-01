@@ -224,3 +224,28 @@ def test_unclosed_condition_at_eof_reports_its_opening_line(tmp_path: Path) -> N
         "unterminated conditional block\n"
         f"  opened at: {top_filelist}:1"
     )
+
+
+@pytest.mark.parametrize("directive", ["`else", "`elsif FPGA"])
+def test_branch_continuation_without_condition_reports_structured_error(
+    tmp_path: Path,
+    directive: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{directive}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    directive_name = directive.split()[0]
+    assert str(caught.value) == (
+        f"unexpected {directive_name} without a matching condition\n"
+        f"  at: {top_filelist}:1"
+    )
