@@ -51,10 +51,24 @@ def _split_trailing_line_comment(line: str) -> tuple[str, Optional[str]]:
     return line, None
 
 
-def _expand_existing_environment_variables(value: str) -> str:
+def _expand_environment_variables(
+    value: str,
+    filelist: Path,
+    line_number: int,
+    source_chain: tuple[str, ...],
+) -> str:
     def replace(match: re.Match[str]) -> str:
         name = match.group(1) or match.group(2)
-        return os.environ.get(name, match.group(0))
+        if name not in os.environ:
+            raise FlattenError(
+                "environment variable is not set\n"
+                f"{_source_chain_section(source_chain)}"
+                f"  at: {filelist}:{line_number}\n"
+                f"  input: {value}\n"
+                f"  variable: {name}\n"
+                f"  suggestion: export {name} before running ff"
+            )
+        return os.environ[name]
 
     return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, value)
 
@@ -235,7 +249,12 @@ def _flatten_lines(
                 )
             )
             continue
-        expanded_source = _expand_existing_environment_variables(stripped)
+        expanded_source = _expand_environment_variables(
+            stripped,
+            filelist,
+            line_number,
+            source_chain,
+        )
         resolved_source = _absolute_logical_path(Path(expanded_source), path_base)
         if not resolved_source.is_file():
             raise FlattenError(

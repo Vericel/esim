@@ -609,3 +609,30 @@ def test_source_path_expands_standard_environment_variable_forms(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
+
+def test_missing_environment_variable_reports_its_name_and_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    monkeypatch.delenv("DV_HOME", raising=False)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("$DV_HOME/rtl/top.sv\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "environment variable is not set\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: $DV_HOME/rtl/top.sv\n"
+        "  variable: DV_HOME\n"
+        "  suggestion: export DV_HOME before running ff"
+    )
