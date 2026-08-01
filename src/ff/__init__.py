@@ -224,7 +224,7 @@ def _flatten_lines(
                 )
             )
             continue
-        resolved_source = _absolute_logical_path(Path(line), path_base)
+        resolved_source = _absolute_logical_path(Path(stripped), path_base)
         if not resolved_source.is_file():
             raise FlattenError(
                 "source file does not exist\n"
@@ -233,7 +233,10 @@ def _flatten_lines(
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}"
             )
-        flattened_lines.append(str(resolved_source))
+        rendered_source = str(resolved_source)
+        if trailing_comment is not None:
+            rendered_source = f"{rendered_source} {trailing_comment}"
+        flattened_lines.append(rendered_source)
     if condition_open_lines:
         raise FlattenError(
             "unterminated conditional block\n"

@@ -554,3 +554,29 @@ def test_filelist_reference_trailing_comment_is_promoted_before_expansion(
         "// expanded child sources\n"
         f"{source}\n"
     )
+
+
+def test_source_trailing_comment_follows_normalized_absolute_path(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "rtl" / "top.sv"
+    source.parent.mkdir()
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "rtl/top.sv // primary source\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{source} // primary source\n"
+    )
