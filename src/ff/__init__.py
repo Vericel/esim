@@ -29,6 +29,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     flattened_lines = []
     active_states = [True]
     branch_taken_states = [False]
+    else_seen_states = [False]
     condition_open_lines = []
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
@@ -39,6 +40,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
             active_states.append(branch_selected)
             branch_taken_states.append(branch_selected)
+            else_seen_states.append(False)
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`ifndef "):
@@ -48,12 +50,18 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
             active_states.append(branch_selected)
             branch_taken_states.append(branch_selected)
+            else_seen_states.append(False)
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`elsif "):
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `elsif without a matching condition\n"
+                    f"  at: {request.top_filelist}:{line_number}"
+                )
+            if else_seen_states[-1]:
+                raise FlattenError(
+                    "unexpected `elsif after `else\n"
                     f"  at: {request.top_filelist}:{line_number}"
                 )
             macro = stripped.split(maxsplit=1)[1]
@@ -73,6 +81,12 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                     "unexpected `else without a matching condition\n"
                     f"  at: {request.top_filelist}:{line_number}"
                 )
+            if else_seen_states[-1]:
+                raise FlattenError(
+                    "unexpected `else after `else\n"
+                    f"  at: {request.top_filelist}:{line_number}"
+                )
+            else_seen_states[-1] = True
             branch_selected = (
                 active_states[-2] and not branch_taken_states[-1]
             )
@@ -89,6 +103,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                 )
             active_states.pop()
             branch_taken_states.pop()
+            else_seen_states.pop()
             condition_open_lines.pop()
             continue
         if not active_states[-1]:

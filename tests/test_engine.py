@@ -249,3 +249,34 @@ def test_branch_continuation_without_condition_reports_structured_error(
         f"unexpected {directive_name} without a matching condition\n"
         f"  at: {top_filelist}:1"
     )
+
+
+@pytest.mark.parametrize("directive", ["`else", "`elsif ASIC"])
+def test_condition_rejects_branch_directives_after_else(
+    tmp_path: Path,
+    directive: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "`ifdef FPGA\n"
+        "`else\n"
+        f"{directive}\n"
+        "`endif\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    directive_name = directive.split()[0]
+    assert str(caught.value) == (
+        f"unexpected {directive_name} after `else\n"
+        f"  at: {top_filelist}:3"
+    )
