@@ -39,6 +39,15 @@ def _source_chain_section(source_chain: tuple[str, ...]) -> str:
     return f"  source chain:\n{rendered_entries}\n"
 
 
+def _split_trailing_line_comment(line: str) -> tuple[str, Optional[str]]:
+    for index in range(len(line) - 1):
+        if line[index : index + 2] != "//":
+            continue
+        if index == 0 or line[index - 1].isspace():
+            return line[:index].rstrip(), line[index:]
+    return line, None
+
+
 def _flatten_lines(
     filelist: Path,
     path_base: Path,
@@ -53,7 +62,8 @@ def _flatten_lines(
     else_seen_states = [False]
     condition_open_lines = []
     for line_number, line in enumerate(content.splitlines(), start=1):
-        stripped = line.strip()
+        entry, trailing_comment = _split_trailing_line_comment(line)
+        stripped = entry.strip()
         tokens = stripped.split()
         expected_condition_usage = {
             "`ifdef": "`ifdef MACRO",
@@ -202,6 +212,8 @@ def _flatten_lines(
                     "  source chain:\n"
                     f"{rendered_source_chain}"
                 )
+            if trailing_comment is not None:
+                flattened_lines.append(trailing_comment)
             flattened_lines.extend(
                 _flatten_lines(
                     child_filelist,

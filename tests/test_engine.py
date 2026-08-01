@@ -526,3 +526,31 @@ def test_active_blank_lines_and_line_comments_preserve_source_order(
         "  // between sources\n"
         f"{second_source}\n"
     )
+
+
+def test_filelist_reference_trailing_comment_is_promoted_before_expansion(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("top.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "-F child.f // expanded child sources\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "// expanded child sources\n"
+        f"{source}\n"
+    )
