@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import os
 from pathlib import Path
 from typing import FrozenSet, Optional
 
@@ -21,7 +22,16 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         request.working_directory / "flattened.f"
     )
     content = request.top_filelist.read_text(encoding="utf-8")
-    output_filelist.write_text(content, encoding="utf-8")
+    flattened_lines = []
+    for line in content.splitlines():
+        source = Path(line)
+        if not source.is_absolute():
+            source = request.top_filelist.parent / source
+        flattened_lines.append(os.path.abspath(source))
+    flattened_content = "\n".join(flattened_lines)
+    if flattened_lines:
+        flattened_content += "\n"
+    output_filelist.write_text(flattened_content, encoding="utf-8")
     return FlattenResult(output_filelist=output_filelist)
 
 
