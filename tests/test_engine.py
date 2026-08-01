@@ -362,3 +362,25 @@ def test_condition_rejects_invalid_macro_name(tmp_path: Path) -> None:
         "  macro: 1BAD\n"
         "  expected: [A-Za-z_][A-Za-z0-9_$]*"
     )
+
+
+def test_active_unknown_backtick_directive_is_rejected(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("`define FPGA\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "unsupported backtick directive\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: `define FPGA\n"
+        "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
+    )

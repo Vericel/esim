@@ -149,6 +149,13 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             continue
         if not active_states[-1]:
             continue
+        if stripped.startswith("`"):
+            raise FlattenError(
+                "unsupported backtick directive\n"
+                f"  at: {request.top_filelist}:{line_number}\n"
+                f"  input: {stripped}\n"
+                "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
+            )
         source = Path(line)
         if not source.is_absolute():
             source = request.top_filelist.parent / source
