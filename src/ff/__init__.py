@@ -1,7 +1,12 @@
 from dataclasses import dataclass, field
 import os
 from pathlib import Path
+import re
 from typing import FrozenSet, Optional
+
+
+_MACRO_NAME_SYNTAX = r"[A-Za-z_][A-Za-z0-9_$]*"
+_MACRO_NAME_PATTERN = re.compile(_MACRO_NAME_SYNTAX)
 
 
 class FlattenError(Exception):
@@ -22,6 +27,13 @@ class FlattenResult:
 
 
 def flatten_filelist(request: FlattenRequest) -> FlattenResult:
+    for macro in sorted(request.predefined_macros):
+        if _MACRO_NAME_PATTERN.fullmatch(macro) is None:
+            raise FlattenError(
+                "invalid predefined macro name\n"
+                f"  macro: {macro}\n"
+                f"  expected: {_MACRO_NAME_SYNTAX}"
+            )
     output_filelist = request.output_filelist or (
         request.working_directory / "flattened.f"
     )
@@ -51,6 +63,16 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                     f"  at: {request.top_filelist}:{line_number}\n"
                     f"  input: {stripped}\n"
                     f"  expected: {expected_condition_usage[tokens[0]]}"
+                )
+            if (
+                expected_token_count == 2
+                and _MACRO_NAME_PATTERN.fullmatch(tokens[1]) is None
+            ):
+                raise FlattenError(
+                    "invalid conditional macro name\n"
+                    f"  at: {request.top_filelist}:{line_number}\n"
+                    f"  macro: {tokens[1]}\n"
+                    f"  expected: {_MACRO_NAME_SYNTAX}"
                 )
         if stripped.startswith("`ifdef "):
             macro = stripped.split(maxsplit=1)[1]

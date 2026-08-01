@@ -318,3 +318,47 @@ def test_condition_directives_reject_wrong_argument_counts(
         f"  input: {input_line}\n"
         f"  expected: {expected_usage}"
     )
+
+
+def test_engine_rejects_invalid_predefined_macro_name(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                predefined_macros=frozenset({"WIDTH=32"}),
+            )
+        )
+
+    assert str(caught.value) == (
+        "invalid predefined macro name\n"
+        "  macro: WIDTH=32\n"
+        "  expected: [A-Za-z_][A-Za-z0-9_$]*"
+    )
+
+
+def test_condition_rejects_invalid_macro_name(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("`ifdef 1BAD\n`endif\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "invalid conditional macro name\n"
+        f"  at: {top_filelist}:1\n"
+        "  macro: 1BAD\n"
+        "  expected: [A-Za-z_][A-Za-z0-9_$]*"
+    )
