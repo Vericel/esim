@@ -72,3 +72,27 @@ def test_missing_source_reports_resolved_path_and_origin(tmp_path: Path) -> None
         "  input: ../rtl/missing.sv\n"
         f"  resolved: {resolved}"
     )
+
+
+def test_ifdef_keeps_branch_for_predefined_macro(tmp_path: Path) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "rtl" / "fpga.sv"
+    source.parent.mkdir()
+    source.write_text("module fpga; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "lists" / "top.f"
+    top_filelist.parent.mkdir()
+    top_filelist.write_text(
+        "`ifdef FPGA\n../rtl/fpga.sv\n`endif\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            predefined_macros=frozenset({"FPGA"}),
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"

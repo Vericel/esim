@@ -27,7 +27,20 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     )
     content = request.top_filelist.read_text(encoding="utf-8")
     flattened_lines = []
+    active_states = [True]
     for line_number, line in enumerate(content.splitlines(), start=1):
+        stripped = line.strip()
+        if stripped.startswith("`ifdef "):
+            macro = stripped.split(maxsplit=1)[1]
+            active_states.append(
+                active_states[-1] and macro in request.predefined_macros
+            )
+            continue
+        if stripped == "`endif":
+            active_states.pop()
+            continue
+        if not active_states[-1]:
+            continue
         source = Path(line)
         if not source.is_absolute():
             source = request.top_filelist.parent / source
