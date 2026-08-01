@@ -69,6 +69,11 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
             continue
         if stripped == "`endif":
+            if len(active_states) == 1:
+                raise FlattenError(
+                    "unexpected `endif without a matching condition\n"
+                    f"  at: {request.top_filelist}:{line_number}"
+                )
             active_states.pop()
             branch_taken_states.pop()
             continue

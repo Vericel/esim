@@ -184,3 +184,23 @@ def test_elsif_keeps_first_matching_alternative_branch(tmp_path: Path) -> None:
     assert result.output_filelist.read_text(encoding="utf-8") == (
         f"{rtl_dir / 'asic.sv'}\n"
     )
+
+
+def test_unmatched_endif_reports_structured_filelist_error(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("`endif\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "unexpected `endif without a matching condition\n"
+        f"  at: {top_filelist}:1"
+    )
