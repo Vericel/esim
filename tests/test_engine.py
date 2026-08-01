@@ -148,3 +148,39 @@ def test_else_keeps_fallback_branch_when_ifdef_is_not_selected(tmp_path: Path) -
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{asic_source}\n"
+
+
+def test_elsif_keeps_first_matching_alternative_branch(tmp_path: Path) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    rtl_dir = tmp_path / "rtl"
+    rtl_dir.mkdir()
+    for name in ("fpga.sv", "asic.sv", "generic.sv"):
+        (rtl_dir / name).write_text(
+            f"module {Path(name).stem}; endmodule\n",
+            encoding="utf-8",
+        )
+    top_filelist = tmp_path / "lists" / "top.f"
+    top_filelist.parent.mkdir()
+    top_filelist.write_text(
+        "`ifdef FPGA\n"
+        "../rtl/fpga.sv\n"
+        "`elsif ASIC\n"
+        "../rtl/asic.sv\n"
+        "`else\n"
+        "../rtl/generic.sv\n"
+        "`endif\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            predefined_macros=frozenset({"ASIC"}),
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{rtl_dir / 'asic.sv'}\n"
+    )
