@@ -96,3 +96,26 @@ def test_ifdef_keeps_branch_for_predefined_macro(tmp_path: Path) -> None:
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
+
+def test_ifndef_keeps_branch_for_missing_macro(tmp_path: Path) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "rtl" / "asic.sv"
+    source.parent.mkdir()
+    source.write_text("module asic; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "lists" / "top.f"
+    top_filelist.parent.mkdir()
+    top_filelist.write_text(
+        "`ifndef FPGA\n../rtl/asic.sv\n`endif\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"

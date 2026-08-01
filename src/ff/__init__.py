@@ -36,6 +36,12 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                 active_states[-1] and macro in request.predefined_macros
             )
             continue
+        if stripped.startswith("`ifndef "):
+            macro = stripped.split(maxsplit=1)[1]
+            active_states.append(
+                active_states[-1] and macro not in request.predefined_macros
+            )
+            continue
         if stripped == "`endif":
             active_states.pop()
             continue
