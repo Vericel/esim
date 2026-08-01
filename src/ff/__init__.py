@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import FrozenSet, Optional
 
 
+class FlattenError(Exception):
+    pass
+
+
 @dataclass(frozen=True)
 class FlattenRequest:
     top_filelist: Path
@@ -23,11 +27,19 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     )
     content = request.top_filelist.read_text(encoding="utf-8")
     flattened_lines = []
-    for line in content.splitlines():
+    for line_number, line in enumerate(content.splitlines(), start=1):
         source = Path(line)
         if not source.is_absolute():
             source = request.top_filelist.parent / source
-        flattened_lines.append(os.path.abspath(source))
+        resolved_source = Path(os.path.abspath(source))
+        if not resolved_source.is_file():
+            raise FlattenError(
+                "source file does not exist\n"
+                f"  at: {request.top_filelist}:{line_number}\n"
+                f"  input: {line}\n"
+                f"  resolved: {resolved_source}"
+            )
+        flattened_lines.append(str(resolved_source))
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"
@@ -35,4 +47,9 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     return FlattenResult(output_filelist=output_filelist)
 
 
-__all__ = ["FlattenRequest", "FlattenResult", "flatten_filelist"]
+__all__ = [
+    "FlattenError",
+    "FlattenRequest",
+    "FlattenResult",
+    "flatten_filelist",
+]
