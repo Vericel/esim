@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Verilog/SystemVerilog filelist flattener"
 requires-python = ">=3.9"
 
+[project.scripts]
+ff = "ff.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
