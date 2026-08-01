@@ -7,6 +7,9 @@ from typing import FrozenSet, Optional
 
 _MACRO_NAME_SYNTAX = r"[A-Za-z_][A-Za-z0-9_$]*"
 _MACRO_NAME_PATTERN = re.compile(_MACRO_NAME_SYNTAX)
+_ENVIRONMENT_VARIABLE_PATTERN = re.compile(
+    r"\$(?:([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})"
+)
 
 
 class FlattenError(Exception):
@@ -46,6 +49,14 @@ def _split_trailing_line_comment(line: str) -> tuple[str, Optional[str]]:
         if index == 0 or line[index - 1].isspace():
             return line[:index].rstrip(), line[index:]
     return line, None
+
+
+def _expand_existing_environment_variables(value: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1) or match.group(2)
+        return os.environ.get(name, match.group(0))
+
+    return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, value)
 
 
 def _flatten_lines(
@@ -224,7 +235,8 @@ def _flatten_lines(
                 )
             )
             continue
-        resolved_source = _absolute_logical_path(Path(stripped), path_base)
+        expanded_source = _expand_existing_environment_variables(stripped)
+        resolved_source = _absolute_logical_path(Path(expanded_source), path_base)
         if not resolved_source.is_file():
             raise FlattenError(
                 "source file does not exist\n"

@@ -580,3 +580,32 @@ def test_source_trailing_comment_follows_normalized_absolute_path(
     assert result.output_filelist.read_text(encoding="utf-8") == (
         f"{source} // primary source\n"
     )
+
+
+@pytest.mark.parametrize(
+    "entry",
+    ["$PROJ_DIR/rtl/top.sv", "${PROJ_DIR}/rtl/top.sv"],
+)
+def test_source_path_expands_standard_environment_variable_forms(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    entry: str,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    project_directory = tmp_path / "project"
+    source = project_directory / "rtl" / "top.sv"
+    source.parent.mkdir(parents=True)
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    monkeypatch.setenv("PROJ_DIR", str(project_directory))
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
