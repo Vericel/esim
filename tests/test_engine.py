@@ -204,3 +204,23 @@ def test_unmatched_endif_reports_structured_filelist_error(tmp_path: Path) -> No
         "unexpected `endif without a matching condition\n"
         f"  at: {top_filelist}:1"
     )
+
+
+def test_unclosed_condition_at_eof_reports_its_opening_line(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("`ifdef FPGA\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "unterminated conditional block\n"
+        f"  opened at: {top_filelist}:1"
+    )

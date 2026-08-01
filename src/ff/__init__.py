@@ -29,6 +29,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     flattened_lines = []
     active_states = [True]
     branch_taken_states = [False]
+    condition_open_lines = []
     for line_number, line in enumerate(content.splitlines(), start=1):
         stripped = line.strip()
         if stripped.startswith("`ifdef "):
@@ -38,6 +39,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
             active_states.append(branch_selected)
             branch_taken_states.append(branch_selected)
+            condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`ifndef "):
             macro = stripped.split(maxsplit=1)[1]
@@ -46,6 +48,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
             active_states.append(branch_selected)
             branch_taken_states.append(branch_selected)
+            condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`elsif "):
             macro = stripped.split(maxsplit=1)[1]
@@ -76,6 +79,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                 )
             active_states.pop()
             branch_taken_states.pop()
+            condition_open_lines.pop()
             continue
         if not active_states[-1]:
             continue
@@ -91,6 +95,11 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                 f"  resolved: {resolved_source}"
             )
         flattened_lines.append(str(resolved_source))
+    if condition_open_lines:
+        raise FlattenError(
+            "unterminated conditional block\n"
+            f"  opened at: {request.top_filelist}:{condition_open_lines[-1]}"
+        )
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"
