@@ -9,6 +9,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="ff")
     parser.add_argument("input", type=Path)
     parser.add_argument("-o", "--output", type=Path)
+    parser.add_argument("-d", "--define", nargs="+", action="append", default=[])
     args = parser.parse_args(argv)
 
     working_directory = Path.cwd()
@@ -21,6 +22,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             top_filelist=args.input,
             working_directory=working_directory,
             output_filelist=output_filelist,
+            predefined_macros=frozenset(
+                macro for macro_group in args.define for macro in macro_group
+            ),
         )
     )
     return 0
