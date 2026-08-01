@@ -158,6 +158,9 @@ def _flatten_lines(
             continue
         if not active_states[-1]:
             continue
+        if not stripped or stripped.startswith("//"):
+            flattened_lines.append(line)
+            continue
         if stripped.startswith("`"):
             raise FlattenError(
                 "unsupported backtick directive\n"

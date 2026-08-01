@@ -493,3 +493,36 @@ def test_nested_missing_source_reports_complete_source_chain(
         "  input: missing.sv\n"
         f"  resolved: {missing_source}"
     )
+
+
+def test_active_blank_lines_and_line_comments_preserve_source_order(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    first_source = tmp_path / "first.sv"
+    first_source.write_text("module first; endmodule\n", encoding="utf-8")
+    second_source = tmp_path / "second.sv"
+    second_source.write_text("module second; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "first.sv\n"
+        "\n"
+        "  // between sources\n"
+        "second.sv\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{first_source}\n"
+        "\n"
+        "  // between sources\n"
+        f"{second_source}\n"
+    )
