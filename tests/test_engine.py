@@ -384,3 +384,29 @@ def test_active_unknown_backtick_directive_is_rejected(tmp_path: Path) -> None:
         "  input: `define FPGA\n"
         "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
     )
+
+
+def test_uppercase_f_recursively_uses_each_filelist_directory(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "rtl" / "top.sv"
+    source.parent.mkdir()
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "lists" / "sub" / "child.f"
+    child_filelist.parent.mkdir(parents=True)
+    child_filelist.write_text("../../rtl/top.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "lists" / "top.f"
+    top_filelist.write_text("-F sub/child.f\n", encoding="utf-8")
+    working_directory = tmp_path / "build"
+    working_directory.mkdir()
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=working_directory,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"

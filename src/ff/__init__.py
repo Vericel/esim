@@ -26,18 +26,18 @@ class FlattenResult:
     output_filelist: Path
 
 
-def flatten_filelist(request: FlattenRequest) -> FlattenResult:
-    for macro in sorted(request.predefined_macros):
-        if _MACRO_NAME_PATTERN.fullmatch(macro) is None:
-            raise FlattenError(
-                "invalid predefined macro name\n"
-                f"  macro: {macro}\n"
-                f"  expected: {_MACRO_NAME_SYNTAX}"
-            )
-    output_filelist = request.output_filelist or (
-        request.working_directory / "flattened.f"
-    )
-    content = request.top_filelist.read_text(encoding="utf-8")
+def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
+    if not path.is_absolute():
+        path = base_directory / path
+    return Path(os.path.abspath(path))
+
+
+def _flatten_lines(
+    filelist: Path,
+    path_base: Path,
+    request: FlattenRequest,
+) -> list[str]:
+    content = filelist.read_text(encoding="utf-8")
     flattened_lines = []
     active_states = [True]
     branch_taken_states = [False]
@@ -60,7 +60,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             if len(tokens) != expected_token_count:
                 raise FlattenError(
                     "invalid conditional directive syntax\n"
-                    f"  at: {request.top_filelist}:{line_number}\n"
+                    f"  at: {filelist}:{line_number}\n"
                     f"  input: {stripped}\n"
                     f"  expected: {expected_condition_usage[tokens[0]]}"
                 )
@@ -70,7 +70,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             ):
                 raise FlattenError(
                     "invalid conditional macro name\n"
-                    f"  at: {request.top_filelist}:{line_number}\n"
+                    f"  at: {filelist}:{line_number}\n"
                     f"  macro: {tokens[1]}\n"
                     f"  expected: {_MACRO_NAME_SYNTAX}"
                 )
@@ -98,12 +98,12 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `elsif without a matching condition\n"
-                    f"  at: {request.top_filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}"
                 )
             if else_seen_states[-1]:
                 raise FlattenError(
                     "unexpected `elsif after `else\n"
-                    f"  at: {request.top_filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}"
                 )
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
@@ -120,12 +120,12 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `else without a matching condition\n"
-                    f"  at: {request.top_filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}"
                 )
             if else_seen_states[-1]:
                 raise FlattenError(
                     "unexpected `else after `else\n"
-                    f"  at: {request.top_filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}"
                 )
             else_seen_states[-1] = True
             branch_selected = (
@@ -140,7 +140,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `endif without a matching condition\n"
-                    f"  at: {request.top_filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}"
                 )
             active_states.pop()
             branch_taken_states.pop()
@@ -152,18 +152,32 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         if stripped.startswith("`"):
             raise FlattenError(
                 "unsupported backtick directive\n"
-                f"  at: {request.top_filelist}:{line_number}\n"
+                f"  at: {filelist}:{line_number}\n"
                 f"  input: {stripped}\n"
                 "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
             )
-        source = Path(line)
-        if not source.is_absolute():
-            source = request.top_filelist.parent / source
-        resolved_source = Path(os.path.abspath(source))
+        if len(tokens) == 2 and tokens[0] == "-F":
+            child_filelist = _absolute_logical_path(Path(tokens[1]), path_base)
+            if not child_filelist.is_file():
+                raise FlattenError(
+                    "filelist does not exist\n"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {line}\n"
+                    f"  resolved: {child_filelist}"
+                )
+            flattened_lines.extend(
+                _flatten_lines(
+                    child_filelist,
+                    child_filelist.parent,
+                    request,
+                )
+            )
+            continue
+        resolved_source = _absolute_logical_path(Path(line), path_base)
         if not resolved_source.is_file():
             raise FlattenError(
                 "source file does not exist\n"
-                f"  at: {request.top_filelist}:{line_number}\n"
+                f"  at: {filelist}:{line_number}\n"
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}"
             )
@@ -171,8 +185,27 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     if condition_open_lines:
         raise FlattenError(
             "unterminated conditional block\n"
-            f"  opened at: {request.top_filelist}:{condition_open_lines[-1]}"
+            f"  opened at: {filelist}:{condition_open_lines[-1]}"
         )
+    return flattened_lines
+
+
+def flatten_filelist(request: FlattenRequest) -> FlattenResult:
+    for macro in sorted(request.predefined_macros):
+        if _MACRO_NAME_PATTERN.fullmatch(macro) is None:
+            raise FlattenError(
+                "invalid predefined macro name\n"
+                f"  macro: {macro}\n"
+                f"  expected: {_MACRO_NAME_SYNTAX}"
+            )
+    output_filelist = request.output_filelist or (
+        request.working_directory / "flattened.f"
+    )
+    flattened_lines = _flatten_lines(
+        request.top_filelist,
+        request.top_filelist.parent,
+        request,
+    )
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"
