@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import os
 from pathlib import Path
 import re
+import stat
 import tempfile
 from typing import FrozenSet, Optional
 
@@ -438,6 +439,15 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"
+    preserved_output_mode = None
+    if (
+        output_filelist.exists()
+        and not output_filelist.is_symlink()
+        and output_filelist.is_file()
+    ):
+        preserved_output_mode = (
+            stat.S_IMODE(output_filelist.stat().st_mode) & 0o666
+        )
     temporary_fd, temporary_name = tempfile.mkstemp(
         prefix=f".{output_filelist.name}.",
         dir=output_filelist.parent,
@@ -446,6 +456,8 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     temporary_output = Path(temporary_name)
     try:
         temporary_output.write_text(flattened_content, encoding="utf-8")
+        if preserved_output_mode is not None:
+            temporary_output.chmod(preserved_output_mode)
         os.replace(temporary_output, output_filelist)
     finally:
         if temporary_output.exists():

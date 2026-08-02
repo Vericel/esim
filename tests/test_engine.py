@@ -945,3 +945,27 @@ def test_success_atomically_replaces_existing_output_inode(tmp_path: Path) -> No
 
     assert output_filelist.read_text(encoding="utf-8") == f"{source}\n"
     assert output_filelist.stat().st_ino != old_inode
+
+
+def test_replacing_regular_output_preserves_rw_bits_and_clears_execute(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+    output_filelist.write_text("old content\n", encoding="utf-8")
+    output_filelist.chmod(0o765)
+
+    flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            output_filelist=output_filelist,
+        )
+    )
+
+    assert output_filelist.stat().st_mode & 0o777 == 0o664
