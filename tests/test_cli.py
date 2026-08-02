@@ -167,3 +167,43 @@ def test_cli_debug_emits_trace_to_terminal_without_creating_log(
     assert "flattened.f" in terminal
     assert not (tmp_path / "ff.log").exists()
     assert not (tmp_path / "app.log").exists()
+
+
+def test_cli_debug_and_custom_log_receive_the_same_trace_levels(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+    log_file = tmp_path / "logs" / "trace.log"
+    log_file.parent.mkdir()
+
+    completed = subprocess.run(
+        [
+            str(ff_command),
+            str(top_filelist),
+            "--debug",
+            "-l",
+            str(log_file),
+        ],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    terminal = completed.stdout + completed.stderr
+    log_content = log_file.read_text(encoding="utf-8")
+    assert completed.returncode == 0
+    for level, message in (
+        ("DEBUG", "flattening input:"),
+        ("INFO", "flattened output:"),
+    ):
+        assert level in terminal
+        assert message in terminal
+        assert level in log_content
+        assert message in log_content
+    assert "Log Summary" not in terminal
+    assert "Log Summary" not in log_content
