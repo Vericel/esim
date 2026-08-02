@@ -1090,3 +1090,30 @@ def test_source_path_rejects_whitespace_even_when_file_exists(
         "  input: with space.sv\n"
         "  suggestion: use a path without spaces or tabs"
     )
+
+
+@pytest.mark.parametrize("entry", ["*.sv", "top?.sv", "top[01].sv"])
+def test_source_path_rejects_glob_metacharacters_even_when_file_exists(
+    tmp_path: Path,
+    entry: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    (tmp_path / entry).write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "glob patterns are not supported in paths\n"
+        f"  at: {top_filelist}:1\n"
+        f"  input: {entry}\n"
+        "  suggestion: list each path explicitly"
+    )

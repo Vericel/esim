@@ -410,6 +410,18 @@ def _flatten_lines(
                 f"  input: {stripped}\n"
                 "  suggestion: use a path without spaces or tabs"
             )
+        if (
+            "*" in stripped
+            or "?" in stripped
+            or ("[" in stripped and "]" in stripped)
+        ):
+            raise FlattenError(
+                "glob patterns are not supported in paths\n"
+                f"{_source_chain_section(source_chain)}"
+                f"  at: {filelist}:{line_number}\n"
+                f"  input: {stripped}\n"
+                "  suggestion: list each path explicitly"
+            )
         expanded_source = _expand_environment_variables(
             stripped,
             filelist,
