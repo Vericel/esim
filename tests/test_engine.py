@@ -1043,3 +1043,24 @@ def test_utf8_bom_and_crlf_input_renders_utf8_lf_without_bom(
     )
 
     assert result.output_filelist.read_bytes() == f"{source}\n".encode("utf-8")
+
+
+def test_non_utf8_filelist_reports_structured_error(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_bytes(b"top.sv\xff\n")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "filelist is not valid UTF-8\n"
+        f"  input: {top_filelist}\n"
+        "  suggestion: convert the filelist to UTF-8"
+    )

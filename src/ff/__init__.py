@@ -107,7 +107,15 @@ def _flatten_lines(
     source_chain: tuple[str, ...],
     input_filelists: dict[Path, Path],
 ) -> list[str]:
-    content = filelist.read_text(encoding="utf-8-sig")
+    try:
+        content = filelist.read_text(encoding="utf-8-sig")
+    except UnicodeDecodeError as error:
+        raise FlattenError(
+            "filelist is not valid UTF-8\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  input: {filelist}\n"
+            "  suggestion: convert the filelist to UTF-8"
+        ) from error
     flattened_lines = []
     active_states = [True]
     branch_taken_states = [False]
