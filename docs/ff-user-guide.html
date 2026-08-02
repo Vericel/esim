@@ -31,7 +31,6 @@
     }
 
     html {
-      scroll-behavior: smooth;
       scroll-padding-top: 1rem;
     }
 
@@ -560,9 +559,10 @@
 
       .sidebar ul {
         display: flex;
+        flex-wrap: wrap;
         gap: 0.25rem;
         padding-bottom: 0.25rem;
-        overflow-x: auto;
+        overflow: visible;
       }
 
       .sidebar li {
