@@ -887,3 +887,38 @@ def test_unknown_simulator_options_pass_through_without_defining_ff_macros(
         "-sverilog\n"
         f"{source}\n"
     )
+
+
+@pytest.mark.parametrize(
+    ("entry", "expected_usage"),
+    [
+        ("-f", "-f PATH"),
+        ("-F child.f extra.f", "-F PATH"),
+        ("-v=models.v", "-v PATH"),
+        ("-ylibraries", "-y PATH"),
+    ],
+)
+def test_recognized_path_options_require_one_separated_argument(
+    tmp_path: Path,
+    entry: str,
+    expected_usage: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "invalid path option syntax\n"
+        f"  at: {top_filelist}:1\n"
+        f"  input: {entry}\n"
+        f"  expected: {expected_usage}"
+    )

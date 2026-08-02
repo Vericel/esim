@@ -227,6 +227,27 @@ def _flatten_lines(
                 f"  input: {stripped}\n"
                 "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
             )
+        path_option_usage = {
+            "-f": "-f PATH",
+            "-F": "-F PATH",
+            "-v": "-v PATH",
+            "-y": "-y PATH",
+        }
+        for option, expected_usage in path_option_usage.items():
+            separated_form = bool(tokens) and tokens[0] == option
+            compact_form = (
+                stripped.startswith(option)
+                and stripped != option
+                and not stripped.startswith(f"{option} ")
+            )
+            if (separated_form and len(tokens) != 2) or compact_form:
+                raise FlattenError(
+                    "invalid path option syntax\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {stripped}\n"
+                    f"  expected: {expected_usage}"
+                )
         if len(tokens) == 2 and tokens[0] in {"-f", "-F"}:
             child_reference_base = (
                 request.working_directory
