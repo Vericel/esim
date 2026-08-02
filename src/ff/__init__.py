@@ -228,6 +228,14 @@ def _flatten_lines(
             continue
         if not active_states[-1]:
             continue
+        if stripped.endswith("\\"):
+            raise FlattenError(
+                "backslash line continuation is not supported\n"
+                f"{_source_chain_section(source_chain)}"
+                f"  at: {filelist}:{line_number}\n"
+                f"  input: {stripped}\n"
+                "  suggestion: put one complete logical entry on each line"
+            )
         if not stripped or stripped.startswith("//"):
             flattened_lines.append(line)
             continue

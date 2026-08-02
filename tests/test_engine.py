@@ -1117,3 +1117,25 @@ def test_source_path_rejects_glob_metacharacters_even_when_file_exists(
         f"  input: {entry}\n"
         "  suggestion: list each path explicitly"
     )
+
+
+def test_backslash_line_continuation_is_rejected_explicitly(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv \\\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "backslash line continuation is not supported\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: top.sv \\\n"
+        "  suggestion: put one complete logical entry on each line"
+    )
