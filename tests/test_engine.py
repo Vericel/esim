@@ -1269,6 +1269,33 @@ def test_new_output_permissions_respect_process_umask(tmp_path: Path) -> None:
     assert output_filelist.stat().st_mode & 0o777 == 0o640
 
 
+def test_output_parent_directory_must_already_exist(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "missing" / "flattened.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert str(caught.value) == (
+        "output parent directory does not exist\n"
+        f"  output: {output_filelist}\n"
+        f"  parent: {output_filelist.parent}\n"
+        "  suggestion: create the parent directory or choose another output"
+    )
+    assert not output_filelist.parent.exists()
+
+
 def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 

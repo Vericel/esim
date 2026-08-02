@@ -646,9 +646,17 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             f"  input: {top_filelist}\n"
             "  suggestion: grant read permission to the filelist"
         )
-    output_filelist = request.output_filelist or (
-        request.working_directory / "flattened.f"
+    output_filelist = _absolute_logical_path(
+        request.output_filelist or Path("flattened.f"),
+        request.working_directory,
     )
+    if not output_filelist.parent.exists():
+        raise FlattenError(
+            "output parent directory does not exist\n"
+            f"  output: {output_filelist}\n"
+            f"  parent: {output_filelist.parent}\n"
+            "  suggestion: create the parent directory or choose another output"
+        )
     top_filelist_identity = top_filelist.resolve()
     input_filelists = {top_filelist_identity: top_filelist}
     flattened_lines = _flatten_lines(
