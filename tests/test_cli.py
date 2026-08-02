@@ -258,3 +258,35 @@ def test_cli_requires_input_to_be_the_first_argument(tmp_path: Path) -> None:
     assert completed.stdout == ""
     assert "INPUT must be the first argument" in completed.stderr
     assert not (tmp_path / "out.f").exists()
+
+
+def test_cli_rejects_log_and_flattened_output_identity_conflict(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+    artifact = tmp_path / "artifact.f"
+
+    completed = subprocess.run(
+        [
+            str(ff_command),
+            str(top_filelist),
+            "-o",
+            str(artifact),
+            "-l",
+            str(artifact),
+        ],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    assert "log path conflicts with flattened output" in (
+        completed.stdout + completed.stderr
+    )
+    assert not artifact.exists()

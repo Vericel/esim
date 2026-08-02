@@ -15,6 +15,12 @@ def _publish_log(temporary_log: Path, log_file: Path) -> None:
     os.replace(temporary_log, log_file)
 
 
+def _paths_share_identity(first: Path, second: Path) -> bool:
+    if first == second:
+        return True
+    return first.exists() and second.exists() and first.resolve() == second.resolve()
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="ff")
     parser.add_argument("input", type=Path)
@@ -41,6 +47,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if log_file is not None:
         if not log_file.is_absolute():
             log_file = working_directory / log_file
+        effective_output = output_filelist or working_directory / "flattened.f"
+        if _paths_share_identity(log_file, effective_output):
+            print(
+                "log path conflicts with flattened output\n"
+                f"  log: {log_file}\n"
+                f"  output: {effective_output}\n"
+                "  suggestion: choose different log and output paths",
+                file=sys.stderr,
+            )
+            return 1
         temporary_fd, temporary_name = tempfile.mkstemp(
             prefix=f".{log_file.name}.",
             dir=log_file.parent,
