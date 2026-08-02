@@ -87,6 +87,8 @@ def _logical_entries(
         first_line = physical_lines[line_index]
         entry, trailing_comment = _split_trailing_comment(first_line)
         original_lines = [first_line]
+        block_comment_closing_line = first_line
+        block_comment_closing_line_number = line_number
         if (
             trailing_comment is not None
             and trailing_comment.startswith("/*")
@@ -107,6 +109,18 @@ def _logical_entries(
                 original_lines.append(next_line)
                 comment_lines.append(next_line)
             trailing_comment = "\n".join(comment_lines)
+            block_comment_closing_line = comment_lines[-1]
+            block_comment_closing_line_number = line_index + 1
+        if trailing_comment is not None and trailing_comment.startswith("/*"):
+            content_after_comment = block_comment_closing_line.split("*/", 1)[1]
+            if content_after_comment.strip():
+                raise FlattenError(
+                    "content after block comment is not supported\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{block_comment_closing_line_number}\n"
+                    f"  input: {block_comment_closing_line}\n"
+                    "  suggestion: put the next logical entry on a separate line"
+                )
         entries.append(
             (
                 line_number,
