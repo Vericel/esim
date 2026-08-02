@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -1092,6 +1093,30 @@ def test_replacing_regular_output_preserves_rw_bits_and_clears_execute(
     )
 
     assert output_filelist.stat().st_mode & 0o777 == 0o664
+
+
+def test_new_output_permissions_respect_process_umask(tmp_path: Path) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "new.f"
+
+    previous_umask = os.umask(0o027)
+    try:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+    finally:
+        os.umask(previous_umask)
+
+    assert output_filelist.stat().st_mode & 0o777 == 0o640
 
 
 def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:

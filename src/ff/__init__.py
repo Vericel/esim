@@ -610,6 +610,13 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         preserved_output_mode = (
             stat.S_IMODE(output_filelist.stat().st_mode) & 0o666
         )
+    current_umask = os.umask(0)
+    os.umask(current_umask)
+    output_mode = (
+        preserved_output_mode
+        if preserved_output_mode is not None
+        else 0o666 & ~current_umask
+    )
     temporary_fd, temporary_name = tempfile.mkstemp(
         prefix=f".{output_filelist.name}.",
         dir=output_filelist.parent,
@@ -618,8 +625,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     temporary_output = Path(temporary_name)
     try:
         temporary_output.write_text(flattened_content, encoding="utf-8")
-        if preserved_output_mode is not None:
-            temporary_output.chmod(preserved_output_mode)
+        temporary_output.chmod(output_mode)
         os.replace(temporary_output, output_filelist)
     finally:
         if temporary_output.exists():
