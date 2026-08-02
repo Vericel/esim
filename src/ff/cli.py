@@ -22,7 +22,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("-d", "--define", nargs="+", action="append", default=[])
     parser.add_argument("-l", "--log", nargs="?", const=Path("ff.log"), type=Path)
     parser.add_argument("--debug", action="store_true")
-    args = parser.parse_args(argv)
+    arguments = list(argv) if argv is not None else sys.argv[1:]
+    if (
+        arguments
+        and arguments[0].startswith("-")
+        and arguments[0] not in {"-h", "--help"}
+    ):
+        parser.error("INPUT must be the first argument")
+    args = parser.parse_args(arguments)
 
     working_directory = Path.cwd()
     output_filelist = args.output

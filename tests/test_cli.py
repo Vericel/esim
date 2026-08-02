@@ -239,3 +239,22 @@ def test_cli_controlled_failure_publishes_overwritten_fatal_log(
     assert "Traceback" not in terminal
     assert log_file.stat().st_ino != old_inode
     assert not (tmp_path / "flattened.f").exists()
+
+
+def test_cli_requires_input_to_be_the_first_argument(tmp_path: Path) -> None:
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), "-o", "out.f", str(top_filelist)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 2
+    assert completed.stdout == ""
+    assert "INPUT must be the first argument" in completed.stderr
+    assert not (tmp_path / "out.f").exists()
