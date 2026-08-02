@@ -410,9 +410,19 @@ def _flatten_lines(
             if not child_filelist.is_file():
                 raise FlattenError(
                     "filelist does not exist\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}\n"
                     f"  input: {line}\n"
                     f"  resolved: {child_filelist}"
+                )
+            if not _has_read_permission(child_filelist):
+                raise FlattenError(
+                    "filelist is not readable\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {line}\n"
+                    f"  resolved: {child_filelist}\n"
+                    "  suggestion: grant read permission to the filelist"
                 )
             child_identity = child_filelist.resolve()
             input_filelists.setdefault(child_identity, child_filelist)
@@ -458,6 +468,15 @@ def _flatten_lines(
                     f"  at: {filelist}:{line_number}\n"
                     f"  input: {line}\n"
                     f"  resolved: {library_file}"
+                )
+            if not _has_read_permission(library_file):
+                raise FlattenError(
+                    "library file is not readable\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {line}\n"
+                    f"  resolved: {library_file}\n"
+                    "  suggestion: grant read permission to the library file"
                 )
             rendered_library = f"-v {library_file}"
             if trailing_comment is not None:

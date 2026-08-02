@@ -592,6 +592,34 @@ def test_nested_missing_source_reports_complete_source_chain(
     )
 
 
+def test_unreadable_child_filelist_reports_its_reference(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("", encoding="utf-8")
+    child_filelist.chmod(0)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F child.f\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "filelist is not readable\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: -F child.f\n"
+        f"  resolved: {child_filelist}\n"
+        "  suggestion: grant read permission to the filelist"
+    )
+
+
 def test_active_blank_lines_and_line_comments_preserve_source_order(
     tmp_path: Path,
 ) -> None:
@@ -986,6 +1014,32 @@ def test_v_library_file_is_expanded_and_rendered_as_absolute(
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
         f"-v {library_file}\n"
+    )
+
+
+def test_unreadable_v_library_file_is_rejected(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    library_file = tmp_path / "models.v"
+    library_file.write_text("module model; endmodule\n", encoding="utf-8")
+    library_file.chmod(0)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-v models.v\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "library file is not readable\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: -v models.v\n"
+        f"  resolved: {library_file}\n"
+        "  suggestion: grant read permission to the library file"
     )
 
 
