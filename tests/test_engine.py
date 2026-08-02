@@ -1712,6 +1712,59 @@ def test_all_recognized_path_entries_reject_glob_metacharacters(
     assert f"  input: {literal_name}" in str(caught.value)
 
 
+def test_environment_expansion_cannot_introduce_path_whitespace(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    project_directory = tmp_path / "project with space"
+    source = project_directory / "top.sv"
+    source.parent.mkdir()
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    monkeypatch.setenv("PROJ_DIR", str(project_directory))
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("$PROJ_DIR/top.sv\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "path contains whitespace\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: $PROJ_DIR/top.sv\n"
+        f"  expanded: {source}\n"
+        "  suggestion: use paths without spaces or tabs"
+    )
+
+
+def test_incdir_path_rejects_literal_whitespace_even_when_directory_exists(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    include_directory = tmp_path / "include dir"
+    include_directory.mkdir()
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("+incdir+include dir\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert "path contains whitespace" in str(caught.value)
+    assert "  input: include dir" in str(caught.value)
+
+
 def test_backslash_line_continuation_is_rejected_explicitly(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 

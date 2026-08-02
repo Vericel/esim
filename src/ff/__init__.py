@@ -198,6 +198,18 @@ def _expand_path_value(
         line_number,
         source_chain,
     )
+    if any(character.isspace() for character in expanded_value):
+        expanded_section = (
+            f"  expanded: {expanded_value}\n" if expanded_value != value else ""
+        )
+        raise FlattenError(
+            "path contains whitespace\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  at: {filelist}:{line_number}\n"
+            f"  input: {value}\n"
+            f"{expanded_section}"
+            "  suggestion: use paths without spaces or tabs"
+        )
     invalid_value = next(
         (
             candidate
