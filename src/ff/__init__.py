@@ -329,6 +329,32 @@ def _flatten_lines(
                 )
             flattened_lines.append(rendered_library_directory)
             continue
+        if stripped.startswith("+incdir+"):
+            include_directories = []
+            for directory_entry in stripped[len("+incdir+") :].split("+"):
+                expanded_include_directory = _expand_environment_variables(
+                    directory_entry,
+                    filelist,
+                    line_number,
+                    source_chain,
+                )
+                include_directory = _absolute_logical_path(
+                    Path(expanded_include_directory),
+                    path_base,
+                )
+                if not include_directory.is_dir():
+                    raise FlattenError(
+                        "include directory does not exist\n"
+                        f"{_source_chain_section(source_chain)}"
+                        f"  at: {filelist}:{line_number}\n"
+                        f"  input: {line}\n"
+                        f"  resolved: {include_directory}"
+                    )
+                include_directories.append(f"+incdir+{include_directory}")
+            if trailing_comment is not None:
+                flattened_lines.append(trailing_comment)
+            flattened_lines.extend(include_directories)
+            continue
         expanded_source = _expand_environment_variables(
             stripped,
             filelist,

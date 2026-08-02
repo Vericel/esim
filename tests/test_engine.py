@@ -791,3 +791,37 @@ def test_y_library_directory_is_expanded_and_rendered_as_absolute(
     assert result.output_filelist.read_text(encoding="utf-8") == (
         f"-y {library_directory}\n"
     )
+
+
+def test_incdir_splits_directories_preserving_order_duplicates_and_comment(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    include_root = tmp_path / "include"
+    first_directory = include_root / "first"
+    first_directory.mkdir(parents=True)
+    second_directory = include_root / "second"
+    second_directory.mkdir()
+    monkeypatch.setenv("INC_ROOT", str(include_root))
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "+incdir+$INC_ROOT/first+$INC_ROOT/second+$INC_ROOT/first "
+        "// include search order\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "// include search order\n"
+        f"+incdir+{first_directory}\n"
+        f"+incdir+{second_directory}\n"
+        f"+incdir+{first_directory}\n"
+    )
