@@ -238,8 +238,14 @@ def _flatten_lines(
                 if tokens[0] == "-f"
                 else None
             )
+            expanded_child_reference = _expand_environment_variables(
+                tokens[1],
+                filelist,
+                line_number,
+                source_chain,
+            )
             child_filelist = _absolute_logical_path(
-                Path(tokens[1]),
+                Path(expanded_child_reference),
                 child_reference_base,
             )
             if not child_filelist.is_file():

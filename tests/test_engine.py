@@ -715,3 +715,29 @@ def test_environment_expansion_cycle_reports_expansion_chain(
         "  expansion chain: ROOT_A -> ROOT_B -> ROOT_A\n"
         "  suggestion: remove the recursive environment variable reference"
     )
+
+
+def test_filelist_reference_path_expands_environment_variables(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    lists_directory = tmp_path / "lists"
+    lists_directory.mkdir()
+    source = lists_directory / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = lists_directory / "child.f"
+    child_filelist.write_text("top.sv\n", encoding="utf-8")
+    monkeypatch.setenv("LISTS_DIR", str(lists_directory))
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F $LISTS_DIR/child.f\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
