@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import stat
 import tempfile
-from typing import FrozenSet, Optional
+from typing import FrozenSet, Optional, Protocol
 
 
 _MACRO_NAME_SYNTAX = r"[A-Za-z_][A-Za-z0-9_$]*"
@@ -21,6 +21,11 @@ class FlattenError(Exception):
         self.log_publish_safe = log_publish_safe
 
 
+class _DebugLogger(Protocol):
+    def debug(self, message: str) -> None:
+        ...
+
+
 @dataclass(frozen=True)
 class FlattenRequest:
     top_filelist: Path
@@ -28,6 +33,7 @@ class FlattenRequest:
     output_filelist: Optional[Path] = None
     predefined_macros: FrozenSet[str] = field(default_factory=frozenset)
     log_file: Optional[Path] = None
+    logger: Optional[_DebugLogger] = None
 
 
 @dataclass(frozen=True)
@@ -243,6 +249,8 @@ def _flatten_lines(
     source_chain: tuple[str, ...],
     input_filelists: dict[Path, Path],
 ) -> list[str]:
+    if request.logger is not None:
+        request.logger.debug(f"reading filelist: {filelist}")
     try:
         content = filelist.read_text(encoding="utf-8-sig")
     except UnicodeDecodeError as error:
@@ -468,6 +476,11 @@ def _flatten_lines(
                     "  source chain:\n"
                     f"{rendered_source_chain}"
                 )
+            if request.logger is not None:
+                request.logger.debug(
+                    f"expanding filelist: {filelist}:{line_number} -> "
+                    f"{child_filelist}"
+                )
             if trailing_comment is not None:
                 flattened_lines.append(trailing_comment)
             annotation = _symlink_target_annotation(child_filelist)
@@ -634,6 +647,10 @@ def _flatten_lines(
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}\n"
                 "  suggestion: grant read permission to the source file"
+            )
+        if request.logger is not None:
+            request.logger.debug(
+                f"resolved source: {filelist}:{line_number} -> {resolved_source}"
             )
         annotation = _symlink_target_annotation(resolved_source)
         if annotation is not None:

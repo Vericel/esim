@@ -171,6 +171,39 @@ def test_cli_debug_emits_trace_to_terminal_without_creating_log(
     assert not (tmp_path / "app.log").exists()
 
 
+def test_cli_debug_traces_recursive_filelist_and_source_resolution(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "rtl" / "top.sv"
+    source.parent.mkdir()
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "lists" / "child.f"
+    child_filelist.parent.mkdir()
+    child_filelist.write_text("../rtl/top.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F lists/child.f\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "--debug"],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    terminal = completed.stdout + completed.stderr
+    assert completed.returncode == 0
+    for trace_message in (
+        "reading filelist:",
+        "expanding filelist:",
+        "resolved source:",
+    ):
+        assert trace_message in terminal
+    assert "child.f" in terminal
+    assert "top.sv" in terminal
+
+
 def test_cli_debug_and_custom_log_receive_the_same_trace_levels(
     tmp_path: Path,
 ) -> None:

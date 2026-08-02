@@ -136,6 +136,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     for macro in macro_group
                 ),
                 log_file=log_file,
+                logger=log,
             )
         )
     except FlattenError as error:
