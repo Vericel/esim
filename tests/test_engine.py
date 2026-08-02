@@ -855,3 +855,35 @@ def test_incdir_rejects_empty_directory_segments(
         f"  input: {entry}\n"
         "  suggestion: provide a non-empty directory after every + separator"
     )
+
+
+def test_unknown_simulator_options_pass_through_without_defining_ff_macros(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "generic.sv"
+    source.write_text("module generic; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "+define+FPGA\n"
+        "-sverilog\n"
+        "`ifdef FPGA\n"
+        "missing-fpga.sv\n"
+        "`endif\n"
+        "generic.sv\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "+define+FPGA\n"
+        "-sverilog\n"
+        f"{source}\n"
+    )

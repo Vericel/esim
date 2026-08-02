@@ -365,6 +365,9 @@ def _flatten_lines(
                 flattened_lines.append(trailing_comment)
             flattened_lines.extend(include_directories)
             continue
+        if stripped.startswith(("-", "+")):
+            flattened_lines.append(line)
+            continue
         expanded_source = _expand_environment_variables(
             stripped,
             filelist,
