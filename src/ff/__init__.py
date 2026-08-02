@@ -57,30 +57,44 @@ def _expand_environment_variables(
     line_number: int,
     source_chain: tuple[str, ...],
 ) -> str:
-    def replace(match: re.Match[str]) -> str:
-        name = match.group(1) or match.group(2)
-        if name not in os.environ:
-            raise FlattenError(
-                "environment variable is not set\n"
-                f"{_source_chain_section(source_chain)}"
-                f"  at: {filelist}:{line_number}\n"
-                f"  input: {value}\n"
-                f"  variable: {name}\n"
-                f"  suggestion: export {name} before running ff"
-            )
-        if not os.environ[name]:
-            raise FlattenError(
-                "environment variable is empty\n"
-                f"{_source_chain_section(source_chain)}"
-                f"  at: {filelist}:{line_number}\n"
-                f"  input: {value}\n"
-                f"  variable: {name}\n"
-                f"  suggestion: export {name} with a non-empty value "
-                "before running ff"
-            )
-        return os.environ[name]
+    def expand(current_value: str, expansion_chain: tuple[str, ...]) -> str:
+        def replace(match: re.Match[str]) -> str:
+            name = match.group(1) or match.group(2)
+            if name in expansion_chain:
+                cycle = expansion_chain + (name,)
+                raise FlattenError(
+                    "environment variable expansion cycle\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {value}\n"
+                    f"  expansion chain: {' -> '.join(cycle)}\n"
+                    "  suggestion: remove the recursive environment "
+                    "variable reference"
+                )
+            if name not in os.environ:
+                raise FlattenError(
+                    "environment variable is not set\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {value}\n"
+                    f"  variable: {name}\n"
+                    f"  suggestion: export {name} before running ff"
+                )
+            if not os.environ[name]:
+                raise FlattenError(
+                    "environment variable is empty\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {value}\n"
+                    f"  variable: {name}\n"
+                    f"  suggestion: export {name} with a non-empty value "
+                    "before running ff"
+                )
+            return expand(os.environ[name], expansion_chain + (name,))
 
-    return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, value)
+        return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, current_value)
+
+    return expand(value, ())
 
 
 def _flatten_lines(
