@@ -12,6 +12,7 @@ _MACRO_NAME_PATTERN = re.compile(_MACRO_NAME_SYNTAX)
 _ENVIRONMENT_VARIABLE_PATTERN = re.compile(
     r"\$(?:([A-Za-z_][A-Za-z0-9_]*)|\{([A-Za-z_][A-Za-z0-9_]*)\})"
 )
+_WINDOWS_DRIVE_PATH_PATTERN = re.compile(r"^[A-Za-z]:[\\/]")
 
 
 class FlattenError(Exception):
@@ -142,6 +143,43 @@ def _expand_environment_variables(
         return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, current_value)
 
     return expand(value, ())
+
+
+def _expand_path_value(
+    value: str,
+    filelist: Path,
+    line_number: int,
+    source_chain: tuple[str, ...],
+) -> str:
+    expanded_value = _expand_environment_variables(
+        value,
+        filelist,
+        line_number,
+        source_chain,
+    )
+    invalid_value = next(
+        (
+            candidate
+            for candidate in (value, expanded_value)
+            if _WINDOWS_DRIVE_PATH_PATTERN.match(candidate)
+            or candidate.startswith("\\\\")
+            or candidate.startswith("//")
+        ),
+        None,
+    )
+    if invalid_value is not None:
+        expanded_section = (
+            f"  expanded: {expanded_value}\n" if expanded_value != value else ""
+        )
+        raise FlattenError(
+            "non-POSIX path syntax is not supported\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  at: {filelist}:{line_number}\n"
+            f"  input: {value}\n"
+            f"{expanded_section}"
+            "  suggestion: use a Linux/POSIX path such as /mnt/c/project"
+        )
+    return expanded_value
 
 
 def _flatten_lines(
@@ -329,7 +367,7 @@ def _flatten_lines(
                 if tokens[0] == "-f"
                 else None
             )
-            expanded_child_reference = _expand_environment_variables(
+            expanded_child_reference = _expand_path_value(
                 tokens[1],
                 filelist,
                 line_number,
@@ -373,7 +411,7 @@ def _flatten_lines(
             )
             continue
         if len(tokens) == 2 and tokens[0] == "-v":
-            expanded_library = _expand_environment_variables(
+            expanded_library = _expand_path_value(
                 tokens[1],
                 filelist,
                 line_number,
@@ -397,7 +435,7 @@ def _flatten_lines(
             flattened_lines.append(rendered_library)
             continue
         if len(tokens) == 2 and tokens[0] == "-y":
-            expanded_library_directory = _expand_environment_variables(
+            expanded_library_directory = _expand_path_value(
                 tokens[1],
                 filelist,
                 line_number,
@@ -435,7 +473,7 @@ def _flatten_lines(
                     "every + separator"
                 )
             for directory_entry in directory_entries:
-                expanded_include_directory = _expand_environment_variables(
+                expanded_include_directory = _expand_path_value(
                     directory_entry,
                     filelist,
                     line_number,
@@ -481,7 +519,7 @@ def _flatten_lines(
                 f"  input: {stripped}\n"
                 "  suggestion: list each path explicitly"
             )
-        expanded_source = _expand_environment_variables(
+        expanded_source = _expand_path_value(
             stripped,
             filelist,
             line_number,

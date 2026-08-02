@@ -1262,3 +1262,32 @@ def test_backslash_line_continuation_is_rejected_explicitly(tmp_path: Path) -> N
         "  input: top.sv \\\n"
         "  suggestion: put one complete logical entry on each line"
     )
+
+
+@pytest.mark.parametrize(
+    "entry",
+    [r"C:\project\rtl\top.sv", r"\\server\share\top.sv"],
+)
+def test_source_path_rejects_non_posix_path_syntax(
+    tmp_path: Path,
+    entry: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "non-POSIX path syntax is not supported\n"
+        f"  at: {top_filelist}:1\n"
+        f"  input: {entry}\n"
+        "  suggestion: use a Linux/POSIX path such as /mnt/c/project"
+    )
