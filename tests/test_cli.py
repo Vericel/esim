@@ -110,3 +110,31 @@ def test_cli_reports_flatten_error_without_python_traceback(tmp_path: Path) -> N
         f"  resolved: {tmp_path / 'missing.sv'}\n",
     )
     assert not (tmp_path / "flattened.f").exists()
+
+
+def test_cli_log_flag_without_path_atomically_publishes_ff_log(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "-l"],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    log_file = tmp_path / "ff.log"
+    assert (
+        completed.returncode,
+        completed.stdout,
+        completed.stderr,
+        log_file.exists(),
+        log_file.read_text(encoding="utf-8") if log_file.exists() else None,
+        (tmp_path / "app.log").exists(),
+    ) == (0, "", "", True, "", False)
