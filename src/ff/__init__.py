@@ -409,6 +409,9 @@ def _flatten_lines(
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}"
             )
+        physical_source = resolved_source.resolve()
+        if physical_source != resolved_source:
+            flattened_lines.append(f"// symlink target: {physical_source}")
         rendered_source = str(resolved_source)
         if trailing_comment is not None:
             rendered_source = f"{rendered_source} {trailing_comment}"

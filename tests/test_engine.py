@@ -996,3 +996,30 @@ def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
         "  suggestion: choose a different output path"
     )
     assert top_filelist.read_text(encoding="utf-8") == original_content
+
+
+def test_symlinked_source_keeps_logical_path_with_physical_target_comment(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    physical_source = tmp_path / "physical" / "top.sv"
+    physical_source.parent.mkdir()
+    physical_source.write_text("module top; endmodule\n", encoding="utf-8")
+    logical_source = tmp_path / "logical" / "top.sv"
+    logical_source.parent.mkdir()
+    logical_source.symlink_to(physical_source)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("logical/top.sv\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"// symlink target: {physical_source}\n"
+        f"{logical_source}\n"
+    )
