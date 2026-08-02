@@ -138,3 +138,32 @@ def test_cli_log_flag_without_path_atomically_publishes_ff_log(
         log_file.read_text(encoding="utf-8") if log_file.exists() else None,
         (tmp_path / "app.log").exists(),
     ) == (0, "", "", True, "", False)
+
+
+def test_cli_debug_emits_trace_to_terminal_without_creating_log(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "--debug"],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    terminal = completed.stdout + completed.stderr
+    assert completed.returncode == 0
+    assert "DEBUG" in terminal
+    assert "flattening input:" in terminal
+    assert "top.f" in terminal
+    assert "INFO" in terminal
+    assert "flattened output:" in terminal
+    assert "flattened.f" in terminal
+    assert not (tmp_path / "ff.log").exists()
+    assert not (tmp_path / "app.log").exists()

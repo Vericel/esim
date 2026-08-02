@@ -21,6 +21,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("-o", "--output", type=Path)
     parser.add_argument("-d", "--define", nargs="+", action="append", default=[])
     parser.add_argument("-l", "--log", nargs="?", const=Path("ff.log"), type=Path)
+    parser.add_argument("--debug", action="store_true")
     args = parser.parse_args(argv)
 
     working_directory = Path.cwd()
@@ -39,16 +40,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
         os.close(temporary_fd)
         temporary_log = Path(temporary_name)
-        get_logger(
+    log = None
+    if args.debug or temporary_log is not None:
+        log = get_logger(
             __name__,
-            level=logging.WARNING,
+            level=logging.DEBUG if args.debug else logging.WARNING,
             show_summary=False,
-            gen_log=True,
-            log_file=str(temporary_log),
+            gen_log=temporary_log is not None,
+            log_file=str(temporary_log) if temporary_log is not None else None,
         )
 
     try:
-        flatten_filelist(
+        if log is not None:
+            log.debug(f"flattening input: {args.input}")
+        result = flatten_filelist(
             FlattenRequest(
                 top_filelist=args.input,
                 working_directory=working_directory,
@@ -61,11 +66,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
         )
     except FlattenError as error:
-        print(error, file=sys.stderr)
+        if log is None:
+            print(error, file=sys.stderr)
+        else:
+            try:
+                log.fatal(str(error))
+            except SystemExit:
+                pass
         if temporary_log is not None:
-            logging.getLogger(__name__).error(str(error))
             _publish_log(temporary_log, log_file)
         return 1
+    if log is not None:
+        log.info(f"flattened output: {result.output_filelist}")
     if temporary_log is not None:
         _publish_log(temporary_log, log_file)
     return 0
