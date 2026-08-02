@@ -1905,3 +1905,29 @@ def test_source_path_rejects_shell_expansion_syntax(
         f"  input: {entry}\n"
         "  supported: $NAME and ${NAME}"
     )
+
+
+@pytest.mark.parametrize("entry", ["$9BAD/top.sv", "$/top.sv"])
+def test_source_path_rejects_malformed_environment_references(
+    tmp_path: Path,
+    entry: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "invalid environment variable syntax in path\n"
+        f"  at: {top_filelist}:1\n"
+        f"  input: {entry}\n"
+        "  supported: $NAME and ${NAME}"
+    )

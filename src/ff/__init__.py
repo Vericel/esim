@@ -212,12 +212,29 @@ def _expand_path_value(
             f"  input: {value}\n"
             "  supported: $NAME and ${NAME}"
         )
+    if "$" in _ENVIRONMENT_VARIABLE_PATTERN.sub("", value):
+        raise FlattenError(
+            "invalid environment variable syntax in path\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  at: {filelist}:{line_number}\n"
+            f"  input: {value}\n"
+            "  supported: $NAME and ${NAME}"
+        )
     expanded_value = _expand_environment_variables(
         value,
         filelist,
         line_number,
         source_chain,
     )
+    if "$" in _ENVIRONMENT_VARIABLE_PATTERN.sub("", expanded_value):
+        raise FlattenError(
+            "invalid environment variable syntax in path\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  at: {filelist}:{line_number}\n"
+            f"  input: {value}\n"
+            f"  expanded: {expanded_value}\n"
+            "  supported: $NAME and ${NAME}"
+        )
     if any(character.isspace() for character in expanded_value):
         expanded_section = (
             f"  expanded: {expanded_value}\n" if expanded_value != value else ""
