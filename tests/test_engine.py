@@ -825,3 +825,33 @@ def test_incdir_splits_directories_preserving_order_duplicates_and_comment(
         f"+incdir+{second_directory}\n"
         f"+incdir+{first_directory}\n"
     )
+
+
+@pytest.mark.parametrize(
+    "entry",
+    ["+incdir+", "+incdir++include", "+incdir+include+"],
+)
+def test_incdir_rejects_empty_directory_segments(
+    tmp_path: Path,
+    entry: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    (tmp_path / "include").mkdir()
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "invalid +incdir+ syntax\n"
+        f"  at: {top_filelist}:1\n"
+        f"  input: {entry}\n"
+        "  suggestion: provide a non-empty directory after every + separator"
+    )

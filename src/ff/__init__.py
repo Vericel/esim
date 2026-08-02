@@ -331,7 +331,17 @@ def _flatten_lines(
             continue
         if stripped.startswith("+incdir+"):
             include_directories = []
-            for directory_entry in stripped[len("+incdir+") :].split("+"):
+            directory_entries = stripped[len("+incdir+") :].split("+")
+            if any(not directory_entry for directory_entry in directory_entries):
+                raise FlattenError(
+                    "invalid +incdir+ syntax\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {stripped}\n"
+                    "  suggestion: provide a non-empty directory after "
+                    "every + separator"
+                )
+            for directory_entry in directory_entries:
                 expanded_include_directory = _expand_environment_variables(
                     directory_entry,
                     filelist,
