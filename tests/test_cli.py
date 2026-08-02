@@ -371,3 +371,25 @@ def test_cli_replaces_log_symlink_node_without_touching_target(
     assert not log_file.is_symlink()
     assert log_file.read_text(encoding="utf-8") == ""
     assert log_target.read_text(encoding="utf-8") == "target stays\n"
+
+
+def test_cli_reports_missing_log_parent_without_traceback(tmp_path: Path) -> None:
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("", encoding="utf-8")
+    log_file = tmp_path / "missing" / "ff.log"
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "-l", str(log_file)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    assert completed.stdout == ""
+    assert "log parent directory does not exist" in completed.stderr
+    assert str(log_file.parent) in completed.stderr
+    assert "Traceback" not in completed.stderr
+    assert not (tmp_path / "flattened.f").exists()

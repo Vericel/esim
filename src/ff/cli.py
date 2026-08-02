@@ -47,6 +47,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if log_file is not None:
         if not log_file.is_absolute():
             log_file = working_directory / log_file
+        if not log_file.parent.exists():
+            print(
+                "log parent directory does not exist\n"
+                f"  log: {log_file}\n"
+                f"  parent: {log_file.parent}\n"
+                "  suggestion: create the parent directory or choose another log",
+                file=sys.stderr,
+            )
+            return 1
         effective_output = output_filelist or working_directory / "flattened.f"
         if _paths_share_identity(log_file, effective_output):
             print(
