@@ -279,6 +279,30 @@ def _flatten_lines(
                 )
             )
             continue
+        if len(tokens) == 2 and tokens[0] == "-v":
+            expanded_library = _expand_environment_variables(
+                tokens[1],
+                filelist,
+                line_number,
+                source_chain,
+            )
+            library_file = _absolute_logical_path(
+                Path(expanded_library),
+                path_base,
+            )
+            if not library_file.is_file():
+                raise FlattenError(
+                    "library file does not exist\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {line}\n"
+                    f"  resolved: {library_file}"
+                )
+            rendered_library = f"-v {library_file}"
+            if trailing_comment is not None:
+                rendered_library = f"{rendered_library} {trailing_comment}"
+            flattened_lines.append(rendered_library)
+            continue
         expanded_source = _expand_environment_variables(
             stripped,
             filelist,

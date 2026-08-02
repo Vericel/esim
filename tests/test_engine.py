@@ -741,3 +741,29 @@ def test_filelist_reference_path_expands_environment_variables(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
+
+def test_v_library_file_is_expanded_and_rendered_as_absolute(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    library_directory = tmp_path / "libraries"
+    library_directory.mkdir()
+    library_file = library_directory / "models.v"
+    library_file.write_text("module model; endmodule\n", encoding="utf-8")
+    monkeypatch.setenv("LIB_DIR", str(library_directory))
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-v $LIB_DIR/models.v\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"-v {library_file}\n"
+    )
