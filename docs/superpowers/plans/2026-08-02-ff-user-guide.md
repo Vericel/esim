@@ -166,11 +166,11 @@ For conditions, nested filelists, environment variables, and logging, include ex
 - [ ] **Step 4: Validate HTML syntax and offline boundaries**
 
 ```bash
-xmllint --html --noout docs/ff-user-guide.html
+xmllint --noout docs/ff-user-guide.html
 rg -n 'https?://|src=|<script|<link' docs/ff-user-guide.html
 ```
 
-Expected: `xmllint` exits 0; resource scan returns no matches.
+Expected: XML well-formed checking exits 0; resource scan returns no matches. HTML5 void elements use XML-compatible self-closing syntax so this check is silent.
 
 Run a one-time standard-library `HTMLParser` audit that collects all IDs and fragment links. Confirm IDs are unique, every `href` beginning with `#` resolves to an ID, and all required IDs from Step 2 are present.
 
@@ -213,7 +213,7 @@ Use Chrome print preview. Confirm the sidebar is hidden, main content uses print
 
 ```bash
 git diff --check
-xmllint --html --noout docs/ff-user-guide.html
+xmllint --noout docs/ff-user-guide.html
 /mnt/c/Users/majin/Documents/EDA仿真脚本开发/.venv/bin/python -m compileall -q src
 /mnt/c/Users/majin/Documents/EDA仿真脚本开发/.venv/bin/pytest -q
 ```

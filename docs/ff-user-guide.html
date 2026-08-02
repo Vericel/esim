@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="ff Verilog/SystemVerilog filelist 展平工具使用指南" />
+  <title>ff User Guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --accent: #0f766e;
+      --accent-deep: #115e59;
+      --accent-soft: #ccfbf1;
+      --ink: #17202a;
+      --muted: #52616b;
+      --line: #d6e0e0;
+      --surface: #ffffff;
+      --page: #f3f7f6;
+      --code: #102a2a;
+      --code-ink: #d8f3ef;
+      --note: #eff6ff;
+      --note-line: #2563eb;
+      --warn: #fff7ed;
+      --warn-line: #c2410c;
+      --shadow: 0 12px 36px rgba(28, 56, 54, 0.08);
+      --radius: 0.8rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 1rem;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 1.72;
+      overflow-wrap: anywhere;
+    }
+
+    a {
+      color: var(--accent-deep);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.18em;
+    }
+
+    a:hover {
+      color: var(--accent);
+    }
+
+    a:focus-visible {
+      outline: 3px solid #2dd4bf;
+      outline-offset: 3px;
+      border-radius: 0.2rem;
+    }
+
+    code,
+    kbd,
+    pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    code {
+      padding: 0.1em 0.32em;
+      border-radius: 0.28rem;
+      background: #e7efee;
+      font-size: 0.92em;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      color: var(--code-ink);
+      background: var(--code);
+      border-radius: 0.55rem;
+      line-height: 1.55;
+      tab-size: 2;
+      white-space: pre;
+    }
+
+    pre code {
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      font-size: 0.9rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 18rem minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 2rem 1.4rem;
+      overflow-y: auto;
+      color: #d6ebe7;
+      background: #123331;
+      border-right: 1px solid #204b47;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 1.8rem;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 2.5rem;
+      height: 2.5rem;
+      place-items: center;
+      color: #123331;
+      background: #5eead4;
+      border-radius: 0.65rem;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-weight: 800;
+      letter-spacing: -0.08em;
+    }
+
+    .brand-text {
+      display: block;
+      font-size: 1rem;
+      font-weight: 750;
+      line-height: 1.25;
+    }
+
+    .brand-text small {
+      display: block;
+      margin-top: 0.16rem;
+      color: #95c7bf;
+      font-size: 0.74rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-label {
+      margin: 1.5rem 0 0.55rem;
+      color: #7fb5ad;
+      font-size: 0.7rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .sidebar ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .sidebar li + li {
+      margin-top: 0.15rem;
+    }
+
+    .sidebar a:not(.brand) {
+      display: block;
+      padding: 0.43rem 0.62rem;
+      color: #cae2de;
+      border-radius: 0.4rem;
+      text-decoration: none;
+      font-size: 0.88rem;
+    }
+
+    .sidebar a:not(.brand):hover,
+    .sidebar a:not(.brand):focus-visible {
+      color: #ffffff;
+      background: #1b4a46;
+    }
+
+    .sidebar-foot {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      color: #8abbb4;
+      border-top: 1px solid #28524e;
+      font-size: 0.75rem;
+    }
+
+    .content {
+      width: min(100%, 79rem);
+      padding: 3.8rem clamp(1.4rem, 5vw, 5rem) 6rem;
+    }
+
+    .hero {
+      position: relative;
+      padding: clamp(2rem, 5vw, 4rem);
+      overflow: hidden;
+      color: #e6fffb;
+      background: linear-gradient(135deg, #123331 0%, #0f5e57 100%);
+      border-radius: 1.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      position: absolute;
+      right: -4rem;
+      bottom: -6rem;
+      width: 18rem;
+      height: 18rem;
+      content: "";
+      background: rgba(94, 234, 212, 0.1);
+      border: 1px solid rgba(153, 246, 228, 0.2);
+      border-radius: 50%;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.62rem;
+      color: #bff8ee;
+      background: rgba(94, 234, 212, 0.12);
+      border: 1px solid rgba(153, 246, 228, 0.35);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+    }
+
+    .hero h1 {
+      margin: 0.7rem 0 0.5rem;
+      color: #ffffff;
+      font-size: clamp(2.3rem, 6vw, 4.8rem);
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+    }
+
+    .hero .subtitle {
+      max-width: 44rem;
+      margin: 0;
+      color: #ccece7;
+      font-size: clamp(1rem, 2.1vw, 1.24rem);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.5rem;
+      margin: 1.7rem 0 0;
+      color: #a9d8d1;
+      font-size: 0.85rem;
+    }
+
+    section {
+      margin-top: 4.5rem;
+      scroll-margin-top: 1rem;
+    }
+
+    .section-kicker {
+      margin: 0 0 0.2rem;
+      color: var(--accent);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h2,
+    h3,
+    h4 {
+      color: #183431;
+      line-height: 1.28;
+      text-wrap: balance;
+    }
+
+    h2 {
+      margin: 0 0 0.9rem;
+      font-size: clamp(1.65rem, 3.6vw, 2.35rem);
+      letter-spacing: -0.025em;
+    }
+
+    h3 {
+      margin: 2.2rem 0 0.65rem;
+      font-size: 1.28rem;
+    }
+
+    h4 {
+      margin: 1.4rem 0 0.45rem;
+      font-size: 1rem;
+    }
+
+    p,
+    li {
+      max-width: 72ch;
+    }
+
+    .lead {
+      margin-top: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.35rem;
+    }
+
+    li + li {
+      margin-top: 0.35rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.3rem;
+    }
+
+    .card {
+      padding: 1.15rem;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 18px rgba(29, 61, 57, 0.04);
+    }
+
+    .card strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: #173e3a;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.91rem;
+    }
+
+    .note,
+    .warning {
+      position: relative;
+      margin: 1.25rem 0;
+      padding: 1rem 1.1rem 1rem 3.4rem;
+      border-radius: 0.65rem;
+    }
+
+    .note {
+      background: var(--note);
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid var(--note-line);
+    }
+
+    .warning {
+      background: var(--warn);
+      border: 1px solid #fed7aa;
+      border-left: 4px solid var(--warn-line);
+    }
+
+    .note::before,
+    .warning::before {
+      position: absolute;
+      top: 1rem;
+      left: 0.9rem;
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+    }
+
+    .note::before {
+      color: var(--note-line);
+      content: "提示";
+    }
+
+    .warning::before {
+      color: var(--warn-line);
+      content: "注意";
+    }
+
+    .note p,
+    .warning p {
+      margin: 0;
+    }
+
+    .example {
+      margin: 1.35rem 0 1.8rem;
+      padding: 1rem;
+      background: #e9f2f0;
+      border: 1px solid #c7d9d6;
+      border-radius: var(--radius);
+    }
+
+    .example-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 0.8rem;
+      color: #244743;
+      font-weight: 800;
+    }
+
+    .example-step + .example-step {
+      margin-top: 0.8rem;
+    }
+
+    .example-label {
+      display: inline-block;
+      margin: 0 0 0.35rem;
+      color: #315b56;
+      font-size: 0.72rem;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .table-wrap {
+      width: 100%;
+      margin: 1.1rem 0 1.5rem;
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%;
+      min-width: 42rem;
+      border-collapse: collapse;
+      font-size: 0.91rem;
+    }
+
+    caption {
+      padding: 0.85rem 1rem;
+      color: #31514d;
+      background: #edf4f3;
+      border-bottom: 1px solid var(--line);
+      font-weight: 780;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding: 0.78rem 0.9rem;
+      border-bottom: 1px solid #e5eceb;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #294b47;
+      background: #f8fbfa;
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .rule-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem 1.5rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rule-list li {
+      position: relative;
+      margin: 0;
+      padding-left: 1.35rem;
+    }
+
+    .rule-list li::before {
+      position: absolute;
+      top: 0.62em;
+      left: 0;
+      width: 0.48rem;
+      height: 0.48rem;
+      content: "";
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .checklist {
+      padding: 0;
+      list-style: none;
+      counter-reset: checks;
+    }
+
+    .checklist li {
+      position: relative;
+      padding: 0.75rem 0.9rem 0.75rem 3rem;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 0.55rem;
+      counter-increment: checks;
+    }
+
+    .checklist li::before {
+      position: absolute;
+      top: 0.7rem;
+      left: 0.8rem;
+      display: grid;
+      width: 1.5rem;
+      height: 1.5rem;
+      place-items: center;
+      color: #ffffff;
+      background: var(--accent);
+      border-radius: 50%;
+      content: counter(checks);
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .checklist li + li {
+      margin-top: 0.55rem;
+    }
+
+    .footer {
+      margin-top: 5rem;
+      padding-top: 1.5rem;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 1040px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .rule-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        display: block;
+      }
+
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        padding: 1.2rem;
+      }
+
+      .brand {
+        margin-bottom: 0.8rem;
+      }
+
+      .nav-label,
+      .sidebar-foot {
+        display: none;
+      }
+
+      .sidebar ul {
+        display: flex;
+        gap: 0.25rem;
+        padding-bottom: 0.25rem;
+        overflow-x: auto;
+      }
+
+      .sidebar li {
+        flex: 0 0 auto;
+      }
+
+      .sidebar li + li {
+        margin-top: 0;
+      }
+
+      .sidebar a:not(.brand) {
+        padding: 0.38rem 0.55rem;
+        white-space: nowrap;
+      }
+
+      .content {
+        padding: 1.4rem 1rem 4rem;
+      }
+
+      .hero {
+        border-radius: 0.85rem;
+      }
+
+      section {
+        margin-top: 3.5rem;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        font-size: 15px;
+      }
+
+      .hero {
+        padding: 1.55rem 1.25rem;
+      }
+
+      .note,
+      .warning {
+        padding: 2.5rem 0.9rem 0.9rem;
+      }
+
+      .note::before,
+      .warning::before {
+        top: 0.75rem;
+      }
+
+      .example {
+        padding: 0.75rem;
+      }
+    }
+
+    @media print {
+      body {
+        color: #000000;
+        background: #ffffff;
+        font-size: 10pt;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        width: auto;
+        max-width: none;
+        padding: 0;
+      }
+
+      .hero {
+        color: #000000;
+        background: #ffffff;
+        border: 2px solid #000000;
+        box-shadow: none;
+      }
+
+      .hero h1,
+      .hero .subtitle,
+      .hero-meta,
+      .badge {
+        color: #000000;
+      }
+
+      .badge {
+        border-color: #000000;
+      }
+
+      section,
+      h2,
+      h3,
+      h4,
+      .card,
+      .note,
+      .warning,
+      .example,
+      pre,
+      table {
+        break-inside: avoid;
+      }
+
+      h2,
+      h3,
+      h4 {
+        break-after: avoid;
+      }
+
+      pre {
+        color: #000000;
+        background: #f4f4f4;
+        border: 1px solid #777777;
+        white-space: pre-wrap;
+      }
+
+      a {
+        color: #000000;
+      }
+
+      a[href]:not([href^="#"])::after {
+        content: " (" attr(href) ")";
+        font-size: 0.85em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" aria-label="章节导航">
+      <a class="brand" href="#top">
+        <span class="brand-mark">ff</span>
+        <span class="brand-text">User Guide<small>FILELIST FLATTENER</small></span>
+      </a>
+      <p class="nav-label">上手</p>
+      <ul>
+        <li><a href="#overview">01 · 了解 ff</a></li>
+        <li><a href="#install">02 · 安装</a></li>
+        <li><a href="#quick-start">03 · 快速开始</a></li>
+        <li><a href="#cli">04 · CLI 参数</a></li>
+      </ul>
+      <p class="nav-label">Filelist 规则</p>
+      <ul>
+        <li><a href="#conditions">05 · 条件指令</a></li>
+        <li><a href="#nested-filelists">06 · 嵌套 filelist</a></li>
+        <li><a href="#environment">07 · 环境变量</a></li>
+        <li><a href="#comments-paths">08 · 注释与路径</a></li>
+      </ul>
+      <p class="nav-label">产物与排错</p>
+      <ul>
+        <li><a href="#output-safety">09 · 输出安全</a></li>
+        <li><a href="#logging-errors">10 · 日志与错误</a></li>
+        <li><a href="#reference">11 · 规则速查</a></li>
+      </ul>
+      <p class="sidebar-foot">ff 0.1 · Python 3.9+<br />文档日期 2026-08-02</p>
+    </nav>
+
+    <main class="content" id="top">
+      <header class="hero">
+        <span class="badge">ff 0.1 · 中文用户指南</span>
+        <h1>Filelist，<br />展平之后更清楚。</h1>
+        <p class="subtitle">
+          从一份顶层 Verilog/SystemVerilog filelist 出发，处理条件分支、
+          嵌套引用、环境变量和路径，生成可查阅、可调试的绝对路径 flat filelist。
+        </p>
+        <p class="hero-meta">
+          <span>输入：顶层 filelist</span>
+          <span>输出：UTF-8 + LF 纯文本</span>
+          <span>平台：Linux / POSIX</span>
+        </p>
+      </header>
+
+      <section id="overview">
+        <p class="section-kicker">01 · Overview</p>
+        <h2>了解 ff</h2>
+        <p class="lead">
+          <code>ff</code> 是 filelist 预处理工具。它把分散在多层 filelist 中的有效条目按原顺序
+          展开，并将自己识别的路径规范化为绝对路径。
+        </p>
+
+        <div class="cards">
+          <article class="card">
+            <strong>处理什么</strong>
+            <p>条件指令、<code>-f/-F</code> 嵌套、环境变量、注释以及已识别的路径选项。</p>
+          </article>
+          <article class="card">
+            <strong>产生什么</strong>
+            <p>一份语义等价的纯文本 flat filelist，作为权威持久化产物。</p>
+          </article>
+          <article class="card">
+            <strong>不处理什么</strong>
+            <p>第一版不考虑 mixed-language 或 logical library，也不生成 JSON、依赖文件或 source map。</p>
+          </article>
+        </div>
+
+        <div class="note">
+          <p><strong>一个重要边界：</strong><code>ff</code> 只预处理 Verilog/SystemVerilog flat filelist，不替代仿真器解析其他选项。</p>
+        </div>
+      </section>
+
+      <section id="install">
+        <p class="section-kicker">02 · Install</p>
+        <h2>从离线 wheelhouse 安装</h2>
+        <p class="lead">
+          ff 需要 Python 3.9 或更高版本。在目标 EDA 机器上，建议使用准备好的本地 wheelhouse，
+          安装过程不访问网络。
+        </p>
+
+        <pre><code>python3 -m pip install \
+  --no-index \
+  --find-links ./wheelhouse \
+  esim==0.1.0</code></pre>
+
+        <h3>wheelhouse 需包含</h3>
+        <ul class="rule-list">
+          <li><code>esim</code> 0.1.0 wheel</li>
+          <li><code>botticelle-onelog</code> 0.1.x wheel</li>
+          <li>Rich wheel</li>
+          <li>Rich 的传递依赖 wheel</li>
+        </ul>
+
+        <p>安装后检查 CLI 是否可用：</p>
+        <pre><code>ff --help</code></pre>
+      </section>
+
+      <section id="quick-start">
+        <p class="section-kicker">03 · Quick start</p>
+        <h2>第一次展平</h2>
+        <p class="lead">
+          给 <code>ff</code> 一份顶层 filelist。如果不指定 <code>-o</code>，它会在当前工作目录生成
+          <code>./flattened.f</code>。
+        </p>
+
+        <div class="example">
+          <p class="example-title">示例：默认输出</p>
+          <div class="example-step">
+            <span class="example-label">输入 · /proj/tb/top.f</span>
+            <pre><code>../rtl/top.sv
++incdir+../rtl/include</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">命令</span>
+            <pre><code>cd /proj/tb/run
+ff /proj/tb/top.f</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果 · /proj/tb/run/flattened.f</span>
+            <pre><code>/proj/rtl/top.sv
++incdir+/proj/rtl/include</code></pre>
+          </div>
+        </div>
+
+        <h3>指定输出和宏</h3>
+        <pre><code>ff /proj/tb/testbench.f -o testbench.f -d MACRO_1 MACRO_2</code></pre>
+        <p>
+          相对输出 <code>testbench.f</code> 以当前工作目录为基准。<code>MACRO_1</code> 和
+          <code>MACRO_2</code> 作为“已定义”标记，用来选择条件分支。
+        </p>
+      </section>
+
+      <section id="cli">
+        <p class="section-kicker">04 · Command line</p>
+        <h2>CLI 参数</h2>
+        <p class="lead"><code>ff</code> 的命令格式是 <code>ff INPUT [OPTIONS]</code>。<strong>INPUT 必须是第一个参数</strong>。</p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>CLI 选项</caption>
+            <thead>
+              <tr><th>参数</th><th>是否必需</th><th>行为</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>INPUT</code></td><td>是</td><td>顶层 filelist，必须位于所有选项之前。</td></tr>
+              <tr><td><code>-o</code>, <code>--output</code></td><td>否</td><td>输出路径；默认为当前目录的 <code>./flattened.f</code>。</td></tr>
+              <tr><td><code>-d</code>, <code>--define</code></td><td>否</td><td>一次接收一个或多个无值宏，可重复指定。</td></tr>
+              <tr><td><code>-l</code>, <code>--log</code></td><td>否</td><td>启用日志；不带路径时写 <code>./ff.log</code>，也可紧跟自定义路径。</td></tr>
+              <tr><td><code>--debug</code></td><td>否</td><td>将 DEBUG/trace 信息打印到终端；与 <code>-l</code> 同用时也写入日志。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>输出路径</h3>
+        <ul>
+          <li>显式的相对输出路径以 ff 启动时的当前工作目录为基准。</li>
+          <li>输出父目录必须已存在；<code>ff</code> 不自动创建目录。</li>
+        </ul>
+
+        <h3>预定义宏</h3>
+        <pre><code>ff top.f -d FPGA USE_DDR
+ff top.f -d FPGA -d USE_DDR
+ff top.f --define FPGA --define USE_DDR</code></pre>
+        <ul>
+          <li>所有 <code>-d/--define</code> 值合并为集合，重复宏去重，名字区分大小写。</li>
+          <li>宏名匹配 <code>[A-Za-z_][A-Za-z0-9_$]*</code>。</li>
+          <li>只支持无值的“已定义/未定义”标记，不支持 <code>WIDTH=32</code>，也不用逗号分隔。</li>
+          <li>filelist 中的 <code>+define+</code> 是仿真器选项，ff 原样透传，不会改变宏集合。</li>
+        </ul>
+
+        <h3>退出码</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>进程退出状态</caption>
+            <thead><tr><th>退出码</th><th>含义</th><th>建议</th></tr></thead>
+            <tbody>
+              <tr><td><code>0</code></td><td>成功</td><td>继续使用展平后的 filelist。</td></tr>
+              <tr><td><code>1</code></td><td>filelist 处理失败</td><td>根据 source chain 和修复建议修正输入。</td></tr>
+              <tr><td><code>2</code></td><td>CLI 用法错误</td><td>检查 INPUT 顺序和选项参数。</td></tr>
+              <tr><td><code>3</code></td><td>ff 内部程序错误</td><td>保留日志和重现条件，交给工具维护者。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="conditions">
+        <p class="section-kicker">05 · Conditions</p>
+        <h2>条件指令</h2>
+        <p class="lead">
+          ff 根据 <code>-d/--define</code> 传入的宏选择活动分支。支持任意层级嵌套，
+          但只做条件筛选，不执行宏文本替换。
+        </p>
+
+        <pre><code>`ifdef MACRO
+`ifndef MACRO
+`elsif MACRO
+`else
+`endif</code></pre>
+
+        <div class="example">
+          <p class="example-title">示例：选中 MACRO_1 分支</p>
+          <div class="example-step">
+            <span class="example-label">输入 · /proj/tb/top.f</span>
+            <pre><code>`ifdef MACRO_1
+../rtl/fast_top.sv
+`elsif MACRO_2
+../rtl/safe_top.sv
+`else
+../rtl/default_top.sv
+`endif</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">命令</span>
+            <pre><code>ff /proj/tb/top.f -d MACRO_1</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>/proj/rtl/fast_top.sv</code></pre>
+          </div>
+        </div>
+
+        <h3>指令语法</h3>
+        <ul>
+          <li>指令必须是行内第一个非空白内容，指令名和宏名都区分大小写。</li>
+          <li>允许尾部注释；去除注释后不得出现多余 token。</li>
+          <li>条件指令自身和它的尾注释不写入输出。</li>
+          <li>未知反引号指令一律报错，不会当作仿真器选项透传。</li>
+        </ul>
+
+        <h3>未选中分支</h3>
+        <p>
+          未选中分支仍会检查条件嵌套是否合法，但不展开环境变量、不读取子 filelist、
+          不验证其他内容或路径，其中的注释也不保留。
+        </p>
+
+        <div class="warning">
+          <p>缺少或多余宏名、无匹配的 <code>`else</code>/<code>`elsif</code>/<code>`endif</code>、重复 <code>`else</code>、<code>`else</code> 后出现 <code>`elsif</code>，以及 EOF 时未闭合，都是错误。</p>
+        </div>
+      </section>
+
+      <section id="nested-filelists">
+        <p class="section-kicker">06 · Nested filelists</p>
+        <h2>嵌套 filelist 与路径基准</h2>
+        <p class="lead">
+          <code>-f</code> 和 <code>-F</code> 都会递归展开子 filelist，输出中不再保留引用行。
+          两者的关键差异是相对路径的基准目录。
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>相对路径基准</caption>
+            <thead><tr><th>场景</th><th>子 filelist 路径基准</th><th>子 filelist 内容基准</th></tr></thead>
+            <tbody>
+              <tr><td>顶层 filelist</td><td>由 CLI INPUT 定位</td><td>顶层 filelist 的逻辑所在目录（<code>-F</code> 式）</td></tr>
+              <tr><td><code>-f child.f</code></td><td>ff 启动时的当前工作目录</td><td>同一当前工作目录</td></tr>
+              <tr><td><code>-F child.f</code></td><td>当前 filelist 的逻辑所在目录</td><td>被引用 filelist 的逻辑所在目录</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="example">
+          <p class="example-title">示例：<code>-F</code> 跟随当前 filelist</p>
+          <div class="example-step">
+            <span class="example-label">输入</span>
+            <pre><code># /proj/tb/top.f
+-F blocks/core.f
+
+# /proj/tb/blocks/core.f
+../../rtl/core.sv</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">命令</span>
+            <pre><code>cd /proj/tb/run
+ff /proj/tb/top.f</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>/proj/rtl/core.sv</code></pre>
+          </div>
+        </div>
+
+        <h3>循环与重复</h3>
+        <ul>
+          <li>ff 使用当前引用栈检测递归循环，真实路径身份相同的循环会失败。</li>
+          <li>同一 filelist 在不同分支或位置被多次引用不等于循环，每次都按位置展开。</li>
+          <li>重复源码和选项也保留原顺序与次数，不自动去重。</li>
+          <li>启用 DEBUG 时，ff 可以提示重复条目的来源，但不改变输出。</li>
+          <li><code>-f/-F</code> 行的尾部注释会提升为展开内容之前的独立注释。</li>
+        </ul>
+      </section>
+
+      <section id="environment">
+        <p class="section-kicker">07 · Environment</p>
+        <h2>环境变量展开</h2>
+        <p class="lead">
+          路径中可使用 <code>$NAME</code> 或 <code>${NAME}</code>。两种写法语义相同；花括号写法
+          用于在变量名后紧接其他字符时明确边界。
+        </p>
+
+        <div class="example">
+          <p class="example-title">示例：同一条目展开多个变量</p>
+          <div class="example-step">
+            <span class="example-label">输入</span>
+            <pre><code>$PROJ_DIR/rtl/top.sv
++incdir+${DV_HOME}/include</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">命令</span>
+            <pre><code>export PROJ_DIR=/proj
+export DV_HOME=/proj/tb
+ff /proj/tb/top.f</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>/proj/rtl/top.sv
++incdir+/proj/tb/include</code></pre>
+          </div>
+        </div>
+
+        <h3>展开规则</h3>
+        <ul>
+          <li>变量名匹配 <code>[A-Za-z_][A-Za-z0-9_]*</code>。</li>
+          <li>支持同一路径中的多个变量，也支持变量值中继续引用变量，直到完全展开。</li>
+          <li>用于普通源码、<code>-f/-F</code>、<code>-v/-y</code> 和 <code>+incdir+</code> 路径。</li>
+          <li>展开后仍是相对路径时，沿用该 logical entry 原本的路径基准。</li>
+        </ul>
+
+        <div class="warning">
+          <p>任一层变量缺失、值为空或出现循环引用都会失败。错误会同时展示 source chain 和 environment expansion chain。</p>
+        </div>
+
+        <p>不支持 shell 扩展：<code>${NAME:-default}</code>、<code>$(command)</code>、反引号命令、<code>~</code> 和 <code>~user</code> 都会被拒绝。</p>
+      </section>
+
+      <section id="comments-paths">
+        <p class="section-kicker">08 · Entries</p>
+        <h2>注释、路径与透传选项</h2>
+        <p class="lead">
+          filelist 以“一个物理行对应一个 logical entry”为基本约束。普通源码行只能包含
+          一个路径，所有路径都不得包含空格或制表符。
+        </p>
+
+        <h3>注释</h3>
+        <ul>
+          <li>支持 <code>//</code> 行注释和不可嵌套的 <code>/* ... */</code> 块注释。</li>
+          <li>尾部注释前必须至少有一个空白字符；路径 token 中的 <code>//</code> 不是注释。</li>
+          <li>块注释可跨行，但必须在同一 filelist 内闭合，不跨 <code>-f/-F</code> 边界。</li>
+          <li>活动分支的原始注释和空行保留；非活动分支的注释删除。</li>
+          <li>普通路径条目的尾部注释保留在规范化路径后。</li>
+          <li><code>-f/-F</code> 的尾部注释提升为展开内容前的独立注释。</li>
+          <li>多目录 <code>+incdir+</code> 的尾部注释提升为拆分组之前的独立注释。</li>
+          <li>除 symlink target annotation 外，ff 不主动增加其他注释。</li>
+        </ul>
+
+        <h3>可识别路径条目</h3>
+        <p>普通非选项 token 都是源码路径，ff 不使用文件扩展名白名单。</p>
+        <div class="table-wrap">
+          <table>
+            <caption>ff 会绝对化并验证的条目</caption>
+            <thead><tr><th>形式</th><th>参数</th><th>输出行为</th></tr></thead>
+            <tbody>
+              <tr><td><code>source/path</code></td><td>任意非选项 token</td><td>必须是可读普通文件，输出绝对路径。</td></tr>
+              <tr><td><code>-f child.f</code></td><td>单个分离参数</td><td>按 CWD 基准递归展开，引用行消失。</td></tr>
+              <tr><td><code>-F child.f</code></td><td>单个分离参数</td><td>按当前 filelist 基准递归展开，引用行消失。</td></tr>
+              <tr><td><code>-v library.v</code></td><td>单个分离参数</td><td>文件必须存在且可读，保留 <code>-v</code> 并绝对化路径。</td></tr>
+              <tr><td><code>-y library_dir</code></td><td>单个分离参数</td><td>目录必须存在，保留 <code>-y</code> 并绝对化路径。</td></tr>
+              <tr><td><code>+incdir+dir1+dir2</code></td><td>一个或多个非空目录</td><td>每个目录拆成独立行，保留顺序和重复项。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="example">
+          <p class="example-title">示例：拆分多目录 <code>+incdir+</code></p>
+          <div class="example-step">
+            <span class="example-label">输入</span>
+            <pre><code>+incdir+../rtl/include+../tb/include  // common headers</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>// common headers
++incdir+/proj/rtl/include
++incdir+/proj/tb/include</code></pre>
+          </div>
+        </div>
+
+        <h3>透传与拒绝</h3>
+        <p>其他仿真器选项原样透传。“未知”不等于“非法”，ff 不猜测透传选项中可能隐含的路径。</p>
+        <div class="warning">
+          <p>不支持反斜杠续行、引号包裹的含空白路径、<code>*</code>/<code>?</code>/<code>[...]</code> glob、紧凑或等号形式的 <code>-f/-F/-v/-y</code>、Windows 盘符和 UNC 路径。<code>/mnt/c/...</code> 是合法 POSIX 路径。</p>
+        </div>
+      </section>
+
+      <section id="output-safety">
+        <p class="section-kicker">09 · Output safety</p>
+        <h2>路径规范化与安全输出</h2>
+        <p class="lead">
+          ff 在展平、校验和渲染全部成功后才发布输出。任何失败都不会留下半成品，
+          原有输出保持不变。
+        </p>
+
+        <h3>逻辑路径与真实身份</h3>
+        <ul>
+          <li>已识别路径消除 <code>.</code>、<code>..</code> 和重复分隔符，并输出绝对路径。</li>
+          <li>输出保留 symlink 的逻辑路径，不用物理路径取代仿真器看到的 token。</li>
+          <li>存在性、循环和输入/输出冲突检查使用 symlink 解析后的真实文件身份。</li>
+          <li>经过 symlink 的条目前会增加 <strong>symlink target</strong> 注释，写明最终物理路径。</li>
+          <li>损坏 symlink 按“路径不存在”报错；未选中分支中的路径不验证。</li>
+        </ul>
+
+        <div class="example">
+          <p class="example-title">示例：保留 symlink 逻辑路径</p>
+          <div class="example-step">
+            <span class="example-label">输入</span>
+            <pre><code>/proj/rtl/current/top.sv
+# current -&gt; /releases/rtl-42</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>// symlink target: /releases/rtl-42/top.sv
+/proj/rtl/current/top.sv</code></pre>
+          </div>
+        </div>
+
+        <h3>文件和目录校验</h3>
+        <ul>
+          <li>顶层/子 filelist、普通源码和 <code>-v</code> 参数必须是可读普通文件。</li>
+          <li><code>+incdir+</code> 和 <code>-y</code> 参数必须是已存在目录。</li>
+          <li>输出不得与顶层或任一子 filelist 指向同一真实文件。</li>
+        </ul>
+
+        <h3>编码和原子替换</h3>
+        <ul>
+          <li>输入必须是 UTF-8，允许 UTF-8 BOM，接受 LF 或 CRLF。</li>
+          <li>输出固定为无 BOM 的 UTF-8 + LF，文件末尾保留一个换行。</li>
+          <li>输出先写同目录临时文件，全部成功后再原子替换目标。</li>
+          <li>成功时总是替换旧输出，即使内容不变也不保留旧 inode/mtime。</li>
+          <li>输出目标是 symlink 时，替换 symlink 节点为普通文件，不修改 symlink target。</li>
+        </ul>
+
+        <h3>权限与并发</h3>
+        <ul>
+          <li>替换已有普通文件时，保留读写权限但清除可执行位。</li>
+          <li>新文件权限是 <code>0666 &amp; ~umask</code>。</li>
+          <li>ff 不实现输出进程锁；同路径并发写入时，<strong>最后完成的成功调用获胜</strong>。</li>
+          <li>筛选后没有源码路径仍可成功；DEBUG 可提示零源码条目。</li>
+        </ul>
+      </section>
+
+      <section id="logging-errors">
+        <p class="section-kicker">10 · Diagnostics</p>
+        <h2>日志与错误排查</h2>
+        <p class="lead">
+          默认保持安静；需要留存失败现场时启用 <code>-l</code>，需要看到递归读取和路径解析过程时
+          增加 <code>--debug</code>。onelog summary 始终关闭。
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <caption>日志组合</caption>
+            <thead><tr><th>命令形式</th><th>终端</th><th>日志文件</th></tr></thead>
+            <tbody>
+              <tr><td><code>ff top.f</code></td><td>WARNING / ERROR</td><td>不生成</td></tr>
+              <tr><td><code>ff top.f -l</code></td><td>WARNING / ERROR</td><td><code>./ff.log</code>，记录 WARNING / ERROR</td></tr>
+              <tr><td><code>ff top.f -l ./my.log</code></td><td>WARNING / ERROR</td><td><code>./my.log</code>，记录 WARNING / ERROR</td></tr>
+              <tr><td><code>ff top.f --debug</code></td><td>INFO / WARNING / ERROR / DEBUG trace</td><td>不生成</td></tr>
+              <tr><td><code>ff top.f --debug -l</code></td><td>完整 DEBUG 级别</td><td><code>./ff.log</code>，与终端同等级</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="example">
+          <p class="example-title">示例：记录递归 trace</p>
+          <div class="example-step">
+            <span class="example-label">输入</span>
+            <pre><code>/proj/tb/top.f
+└─ -F blocks/core.f
+   └─ ../../rtl/core.sv</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">命令</span>
+            <pre><code>ff /proj/tb/top.f --debug -l /proj/tb/run/ff.log</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>DEBUG reading filelist: /proj/tb/top.f
+DEBUG reading filelist: /proj/tb/blocks/core.f
+DEBUG resolved source: /proj/tb/blocks/core.f:1 -&gt; /proj/rtl/core.sv
+INFO  flattened output: /proj/tb/run/flattened.f</code></pre>
+          </div>
+        </div>
+
+        <h3>日志文件安全</h3>
+        <ul>
+          <li>每次 invocation 覆盖旧日志，不追加。</li>
+          <li>日志先写同目录临时文件，在成功或可控失败时都发布到目标。</li>
+          <li>日志不得与输出或任一输入 filelist 是同一真实文件。</li>
+          <li>日志目标是 symlink 时，替换 symlink 节点，不修改 target。</li>
+        </ul>
+
+        <h3>如何读错误</h3>
+        <p>
+          解析、条件、环境变量和路径错误都展示完整 <strong>source chain</strong>。
+          错误包含原始条目、解析结果、行号和可行修复建议。
+        </p>
+
+        <p>
+          可预期的 filelist 失败由 CLI 以 <strong>FATAL</strong> 报告并返回退出码 <code>1</code>，
+          不暴露 Python traceback；未预期的工具内部失败返回 <code>3</code>。
+        </p>
+
+        <pre><code>FATAL source file does not exist: /proj/rtl/missing.sv
+source chain:
+  /proj/tb/top.f:8
+  /proj/tb/blocks/core.f:12
+suggestion: check the path or define the macro that selects another branch</code></pre>
+
+        <ol class="checklist">
+          <li>先看退出码：<code>1</code> 是输入问题，<code>2</code> 是参数问题，<code>3</code> 才是工具内部问题。</li>
+          <li>沿 source chain 从顶层 filelist 走到出错行，不要只看最后一个路径。</li>
+          <li>环境变量错误再检查 expansion chain，确认每一层都存在且非空。</li>
+          <li>需要观察读取和解析步骤时，重跑 <code>--debug -l</code> 并保留日志。</li>
+          <li>确认输出和日志没有与任一输入 filelist 指向同一真实文件。</li>
+        </ol>
+      </section>
+
+      <section id="reference">
+        <p class="section-kicker">11 · Reference</p>
+        <h2>规则速查</h2>
+        <p class="lead">用于查证最常用的输入形式、路径基准和限制。</p>
+
+        <h3>支持的 filelist 元素</h3>
+        <div class="table-wrap">
+          <table>
+            <caption>功能概览</caption>
+            <thead><tr><th>类别</th><th>支持</th><th>主要约束</th></tr></thead>
+            <tbody>
+              <tr><td>条件</td><td><code>`ifdef</code> <code>`ifndef</code> <code>`elsif</code> <code>`else</code> <code>`endif</code></td><td>只筛选，不做宏文本替换。</td></tr>
+              <tr><td>嵌套</td><td><code>-f</code> <code>-F</code></td><td>选项后只允许一个分离路径参数。</td></tr>
+              <tr><td>环境变量</td><td><code>$NAME</code> <code>${NAME}</code></td><td>递归展开；缺失、空值、循环都失败。</td></tr>
+              <tr><td>路径</td><td>source、<code>-v</code>、<code>-y</code>、<code>+incdir+</code></td><td>校验存在性/类型并绝对化。</td></tr>
+              <tr><td>注释</td><td><code>//</code> 和 <code>/* ... */</code></td><td>块注释不可嵌套，不跨 filelist。</td></tr>
+              <tr><td>其他选项</td><td>原样透传</td><td>ff 不猜测其内部的路径语义。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>路径基准一句话记忆</h3>
+        <div class="cards">
+          <article class="card">
+            <strong>顶层内容</strong>
+            <p>以顶层 filelist 的逻辑所在目录为基准。</p>
+          </article>
+          <article class="card">
+            <strong><code>-f</code></strong>
+            <p>以 ff 启动时工作目录为基准。</p>
+          </article>
+          <article class="card">
+            <strong><code>-F</code></strong>
+            <p>以当前 filelist 的逻辑所在目录为基准。</p>
+          </article>
+        </div>
+
+        <h3>明确不支持</h3>
+        <ul class="rule-list">
+          <li>mixed-language 和 logical library</li>
+          <li>带值宏，例如 <code>WIDTH=32</code></li>
+          <li>条件以外的反引号指令</li>
+          <li>反斜杠续行</li>
+          <li>含空白或用引号包裹的路径</li>
+          <li><code>*</code>、<code>?</code>、<code>[...]</code> glob</li>
+          <li><code>${NAME:-default}</code> 和其他 shell 扩展</li>
+          <li><code>$(command)</code>、反引号命令、<code>~</code></li>
+          <li>Windows 盘符和 UNC 路径</li>
+          <li>输出进程锁和自动创建父目录</li>
+        </ul>
+
+        <div class="note">
+          <p>需要对照实现验收时，请查阅同目录的 <a href="ff-requirements.md">ff 需求与行为契约</a>。</p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>ff User Guide · 面向 ff CLI 用户 · 最后更新 2026-08-02</p>
+        <p><a href="../README.md">返回 README</a> · <a href="#top">回到顶部</a></p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
