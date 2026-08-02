@@ -44,9 +44,9 @@ def _source_chain_section(source_chain: tuple[str, ...]) -> str:
     return f"  source chain:\n{rendered_entries}\n"
 
 
-def _split_trailing_line_comment(line: str) -> tuple[str, Optional[str]]:
+def _split_trailing_comment(line: str) -> tuple[str, Optional[str]]:
     for index in range(len(line) - 1):
-        if line[index : index + 2] != "//":
+        if line[index : index + 2] not in {"//", "/*"}:
             continue
         if index == 0 or line[index - 1].isspace():
             return line[:index].rstrip(), line[index:]
@@ -122,16 +122,26 @@ def _flatten_lines(
     else_seen_states = [False]
     condition_open_lines = []
     block_comment_open_line = None
+    preserve_block_comment = False
     for line_number, line in enumerate(content.splitlines(), start=1):
         if block_comment_open_line is not None:
-            if active_states[-1]:
+            if preserve_block_comment:
                 flattened_lines.append(line)
             if "*/" in line:
                 block_comment_open_line = None
+                preserve_block_comment = False
             continue
-        entry, trailing_comment = _split_trailing_line_comment(line)
+        entry, trailing_comment = _split_trailing_comment(line)
         stripped = entry.strip()
         tokens = stripped.split()
+        starts_multiline_block_comment = (
+            trailing_comment is not None
+            and trailing_comment.startswith("/*")
+            and "*/" not in trailing_comment
+        )
+        if starts_multiline_block_comment:
+            block_comment_open_line = line_number
+            preserve_block_comment = active_states[-1]
         expected_condition_usage = {
             "`ifdef": "`ifdef MACRO",
             "`ifndef": "`ifndef MACRO",
@@ -161,6 +171,7 @@ def _flatten_lines(
                     f"  expected: {_MACRO_NAME_SYNTAX}"
                 )
         if stripped.startswith("`ifdef "):
+            preserve_block_comment = False
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
                 active_states[-1] and macro in request.predefined_macros
@@ -171,6 +182,7 @@ def _flatten_lines(
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`ifndef "):
+            preserve_block_comment = False
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
                 active_states[-1] and macro not in request.predefined_macros
@@ -181,6 +193,7 @@ def _flatten_lines(
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`elsif "):
+            preserve_block_comment = False
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `elsif without a matching condition\n"
@@ -203,6 +216,7 @@ def _flatten_lines(
             )
             continue
         if stripped == "`else":
+            preserve_block_comment = False
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `else without a matching condition\n"
@@ -223,6 +237,7 @@ def _flatten_lines(
             )
             continue
         if stripped == "`endif":
+            preserve_block_comment = False
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `endif without a matching condition\n"
@@ -234,8 +249,6 @@ def _flatten_lines(
             condition_open_lines.pop()
             continue
         if not active_states[-1]:
-            if stripped.startswith("/*") and "*/" not in stripped:
-                block_comment_open_line = line_number
             continue
         if stripped.endswith("\\"):
             raise FlattenError(
@@ -250,8 +263,6 @@ def _flatten_lines(
             continue
         if stripped.startswith("/*"):
             flattened_lines.append(line)
-            if "*/" not in stripped:
-                block_comment_open_line = line_number
             continue
         if stripped.startswith("`"):
             raise FlattenError(
