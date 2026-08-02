@@ -86,3 +86,27 @@ def test_cli_define_option_selects_all_named_macro_branches(tmp_path: Path) -> N
         completed.stderr,
         output.read_text(encoding="utf-8") if output.exists() else None,
     ) == (0, "", f"{fpga_source}\n{ddr_source}\n")
+
+
+def test_cli_reports_flatten_error_without_python_traceback(tmp_path: Path) -> None:
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("missing.sv\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert (completed.returncode, completed.stdout, completed.stderr) == (
+        1,
+        "",
+        "source file does not exist\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: missing.sv\n"
+        f"  resolved: {tmp_path / 'missing.sv'}\n",
+    )
+    assert not (tmp_path / "flattened.f").exists()
