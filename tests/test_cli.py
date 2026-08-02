@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -471,4 +472,42 @@ def test_cli_validates_log_path_type_and_parent_access(
     assert completed.returncode == 1
     assert expected_error in completed.stderr
     assert "Traceback" not in completed.stderr
+    assert not (tmp_path / "flattened.f").exists()
+
+
+def test_cli_returns_three_for_unexpected_internal_failure(tmp_path: Path) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    fault_injection = tmp_path / "fault-injection"
+    fault_injection.mkdir()
+    (fault_injection / "sitecustomize.py").write_text(
+        "import os\n"
+        "_real_replace = os.replace\n"
+        "def _injected_replace(source, destination):\n"
+        "    if str(destination).endswith('flattened.f'):\n"
+        "        raise RuntimeError('injected replace failure')\n"
+        "    return _real_replace(source, destination)\n"
+        "os.replace = _injected_replace\n",
+        encoding="utf-8",
+    )
+    environment = os.environ.copy()
+    environment["PYTHONPATH"] = str(fault_injection)
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist)],
+        cwd=tmp_path,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    terminal = completed.stdout + completed.stderr
+    assert completed.returncode == 3
+    assert "ERROR" in terminal
+    assert "ff internal error: RuntimeError: injected replace failure" in terminal
+    assert "Traceback" not in terminal
     assert not (tmp_path / "flattened.f").exists()

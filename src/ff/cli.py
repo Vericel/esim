@@ -22,6 +22,14 @@ def _paths_share_identity(first: Path, second: Path) -> bool:
     return first.exists() and second.exists() and first.resolve() == second.resolve()
 
 
+def _report_internal_error(log, error: Exception, debug: bool) -> None:
+    message = f"ff internal error: {type(error).__name__}: {error}"
+    if debug:
+        log.exception(message)
+    else:
+        log.error(message)
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="ff")
     parser.add_argument("input", type=Path)
@@ -148,7 +156,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 logging.shutdown()
                 temporary_log.unlink()
         return 1
+    except Exception as error:
+        _report_internal_error(log, error, args.debug)
+        if temporary_log is not None:
+            _publish_log(temporary_log, log_file)
+        return 3
     log.info(f"flattened output: {result.output_filelist}")
     if temporary_log is not None:
-        _publish_log(temporary_log, log_file)
+        try:
+            _publish_log(temporary_log, log_file)
+        except Exception as error:
+            _report_internal_error(log, error, args.debug)
+            if temporary_log.exists():
+                temporary_log.unlink()
+            return 3
     return 0
