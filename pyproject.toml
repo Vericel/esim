@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "esim"
 version = "0.1.0"
 description = "Verilog/SystemVerilog filelist flattener"
+readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["rich>=14.3,<15"]
 
