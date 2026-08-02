@@ -283,6 +283,34 @@ def test_elsif_keeps_first_matching_alternative_branch(tmp_path: Path) -> None:
     )
 
 
+def test_unselected_branch_skips_nonconditional_validation_and_side_effects(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    monkeypatch.delenv("MISSING_ROOT", raising=False)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "`ifdef DISABLED\n"
+        "$MISSING_ROOT/missing.sv\n"
+        "-F missing.f\n"
+        "path with spaces.sv\n"
+        "`define IGNORED\n"
+        "`endif\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_bytes() == b""
+
+
 def test_unmatched_endif_reports_structured_filelist_error(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 
@@ -558,6 +586,28 @@ def test_recursive_filelist_cycle_reports_complete_source_chain(
         f"    {top_filelist}:1 -> {child_filelist}\n"
         f"    {child_filelist}:1 -> {top_filelist}"
     )
+
+
+def test_repeated_filelist_references_and_sources_are_not_deduplicated(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("top.sv\ntop.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F child.f\n-F child.f\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n" * 4
 
 
 def test_nested_missing_source_reports_complete_source_chain(
@@ -1521,6 +1571,35 @@ def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
         "  suggestion: choose a different output path"
     )
     assert top_filelist.read_text(encoding="utf-8") == original_content
+
+
+def test_output_symlink_to_nested_input_is_rejected_by_real_identity(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    child_filelist = tmp_path / "child.f"
+    original_child = ""
+    child_filelist.write_text(original_child, encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F child.f\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+    output_filelist.symlink_to(child_filelist)
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert "output conflicts with an input filelist" in str(caught.value)
+    assert f"  input: {child_filelist}" in str(caught.value)
+    assert output_filelist.is_symlink()
+    assert child_filelist.read_text(encoding="utf-8") == original_child
+    assert top_filelist.read_text(encoding="utf-8") == "-F child.f\n"
 
 
 def test_symlinked_source_keeps_logical_path_with_physical_target_comment(
