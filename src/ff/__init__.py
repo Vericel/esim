@@ -55,7 +55,10 @@ def _symlink_target_annotation(path: Path) -> Optional[str]:
 
 
 def _has_read_permission(path: Path) -> bool:
-    return bool(stat.S_IMODE(path.stat().st_mode) & 0o444)
+    return bool(stat.S_IMODE(path.stat().st_mode) & 0o444) and os.access(
+        path,
+        os.R_OK,
+    )
 
 
 def _source_chain_section(source_chain: tuple[str, ...]) -> str:
@@ -748,7 +751,11 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             "  suggestion: choose an output path inside a directory"
         )
     output_parent_mode = stat.S_IMODE(output_filelist.parent.stat().st_mode)
-    if not output_parent_mode & 0o222 or not output_parent_mode & 0o111:
+    if (
+        not output_parent_mode & 0o222
+        or not output_parent_mode & 0o111
+        or not os.access(output_filelist.parent, os.W_OK | os.X_OK)
+    ):
         raise FlattenError(
             "output parent directory is not writable\n"
             f"  output: {output_filelist}\n"

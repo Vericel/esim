@@ -106,6 +106,26 @@ def test_unreadable_source_is_rejected_before_output_is_published(
     assert not output_filelist.exists()
 
 
+def test_source_readability_uses_effective_process_access(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    source.chmod(0o004)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert "source file is not readable" in str(caught.value)
+
+
 def test_unreadable_top_filelist_is_a_structured_engine_error(
     tmp_path: Path,
 ) -> None:
@@ -1463,6 +1483,31 @@ def test_output_parent_directory_must_be_writable(tmp_path: Path) -> None:
         f"  parent: {output_parent}\n"
         "  suggestion: grant write and search permission to the directory"
     )
+
+
+def test_output_parent_access_uses_effective_process_permissions(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("", encoding="utf-8")
+    output_parent = tmp_path / "other-only"
+    output_parent.mkdir()
+    output_parent.chmod(0o003)
+    output_filelist = output_parent / "flattened.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+    output_parent.chmod(0o700)
+
+    assert "output parent directory is not writable" in str(caught.value)
 
 
 def test_existing_output_directory_is_rejected_before_publication(

@@ -321,7 +321,6 @@ def test_cli_rejects_log_and_flattened_output_identity_conflict(
         capture_output=True,
         text=True,
     )
-
     assert completed.returncode == 1
     assert "log path conflicts with flattened output" in (
         completed.stdout + completed.stderr
@@ -437,6 +436,7 @@ def test_cli_reports_missing_log_parent_without_traceback(tmp_path: Path) -> Non
     [
         ("parent_file", "log parent is not a directory"),
         ("read_only_parent", "log parent directory is not writable"),
+        ("other_only_parent", "log parent directory is not writable"),
         ("target_directory", "log path is not a regular file"),
     ],
 )
@@ -455,8 +455,8 @@ def test_cli_validates_log_path_type_and_parent_access(
         parent = tmp_path / "logs"
         parent.mkdir()
         log_file = parent / "ff.log"
-        if case == "read_only_parent":
-            parent.chmod(0o555)
+        if case in {"read_only_parent", "other_only_parent"}:
+            parent.chmod(0o555 if case == "read_only_parent" else 0o003)
         else:
             log_file.mkdir()
     ff_command = Path(sys.executable).with_name("ff")
@@ -468,6 +468,8 @@ def test_cli_validates_log_path_type_and_parent_access(
         capture_output=True,
         text=True,
     )
+    if case in {"read_only_parent", "other_only_parent"}:
+        parent.chmod(0o700)
 
     assert completed.returncode == 1
     assert expected_error in completed.stderr

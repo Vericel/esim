@@ -75,7 +75,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
             return 1
         log_parent_mode = stat.S_IMODE(log_file.parent.stat().st_mode)
-        if not log_parent_mode & 0o222 or not log_parent_mode & 0o111:
+        if (
+            not log_parent_mode & 0o222
+            or not log_parent_mode & 0o111
+            or not os.access(log_file.parent, os.W_OK | os.X_OK)
+        ):
             print(
                 "log parent directory is not writable\n"
                 f"  log: {log_file}\n"
