@@ -53,6 +53,51 @@ def _split_trailing_comment(line: str) -> tuple[str, Optional[str]]:
     return line, None
 
 
+def _logical_entries(
+    content: str,
+    filelist: Path,
+    source_chain: tuple[str, ...],
+) -> list[tuple[int, str, str, Optional[str]]]:
+    physical_lines = content.splitlines()
+    entries = []
+    line_index = 0
+    while line_index < len(physical_lines):
+        line_number = line_index + 1
+        first_line = physical_lines[line_index]
+        entry, trailing_comment = _split_trailing_comment(first_line)
+        original_lines = [first_line]
+        if (
+            trailing_comment is not None
+            and trailing_comment.startswith("/*")
+            and "*/" not in trailing_comment
+        ):
+            comment_lines = [trailing_comment]
+            while "*/" not in comment_lines[-1]:
+                line_index += 1
+                if line_index == len(physical_lines):
+                    raise FlattenError(
+                        "unterminated block comment\n"
+                        f"{_source_chain_section(source_chain)}"
+                        f"  opened at: {filelist}:{line_number}\n"
+                        "  suggestion: close the comment with */ in the "
+                        "same filelist"
+                    )
+                next_line = physical_lines[line_index]
+                original_lines.append(next_line)
+                comment_lines.append(next_line)
+            trailing_comment = "\n".join(comment_lines)
+        entries.append(
+            (
+                line_number,
+                "\n".join(original_lines),
+                entry,
+                trailing_comment,
+            )
+        )
+        line_index += 1
+    return entries
+
+
 def _expand_environment_variables(
     value: str,
     filelist: Path,
@@ -121,27 +166,13 @@ def _flatten_lines(
     branch_taken_states = [False]
     else_seen_states = [False]
     condition_open_lines = []
-    block_comment_open_line = None
-    preserve_block_comment = False
-    for line_number, line in enumerate(content.splitlines(), start=1):
-        if block_comment_open_line is not None:
-            if preserve_block_comment:
-                flattened_lines.append(line)
-            if "*/" in line:
-                block_comment_open_line = None
-                preserve_block_comment = False
-            continue
-        entry, trailing_comment = _split_trailing_comment(line)
+    for line_number, line, entry, trailing_comment in _logical_entries(
+        content,
+        filelist,
+        source_chain,
+    ):
         stripped = entry.strip()
         tokens = stripped.split()
-        starts_multiline_block_comment = (
-            trailing_comment is not None
-            and trailing_comment.startswith("/*")
-            and "*/" not in trailing_comment
-        )
-        if starts_multiline_block_comment:
-            block_comment_open_line = line_number
-            preserve_block_comment = active_states[-1]
         expected_condition_usage = {
             "`ifdef": "`ifdef MACRO",
             "`ifndef": "`ifndef MACRO",
@@ -171,7 +202,6 @@ def _flatten_lines(
                     f"  expected: {_MACRO_NAME_SYNTAX}"
                 )
         if stripped.startswith("`ifdef "):
-            preserve_block_comment = False
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
                 active_states[-1] and macro in request.predefined_macros
@@ -182,7 +212,6 @@ def _flatten_lines(
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`ifndef "):
-            preserve_block_comment = False
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
                 active_states[-1] and macro not in request.predefined_macros
@@ -193,7 +222,6 @@ def _flatten_lines(
             condition_open_lines.append(line_number)
             continue
         if stripped.startswith("`elsif "):
-            preserve_block_comment = False
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `elsif without a matching condition\n"
@@ -216,7 +244,6 @@ def _flatten_lines(
             )
             continue
         if stripped == "`else":
-            preserve_block_comment = False
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `else without a matching condition\n"
@@ -237,7 +264,6 @@ def _flatten_lines(
             )
             continue
         if stripped == "`endif":
-            preserve_block_comment = False
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `endif without a matching condition\n"
@@ -481,11 +507,6 @@ def _flatten_lines(
         raise FlattenError(
             "unterminated conditional block\n"
             f"  opened at: {filelist}:{condition_open_lines[-1]}"
-        )
-    if block_comment_open_line is not None:
-        raise FlattenError(
-            "unterminated block comment\n"
-            f"  opened at: {filelist}:{block_comment_open_line}"
         )
     return flattened_lines
 

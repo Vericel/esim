@@ -618,6 +618,67 @@ def test_filelist_reference_trailing_comment_is_promoted_before_expansion(
     )
 
 
+def test_filelist_reference_promotes_complete_multiline_block_comment(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("top.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "-F child.f /* expanded\n"
+        "               child sources */\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "/* expanded\n"
+        "               child sources */\n"
+        f"{source}\n"
+    )
+
+
+def test_block_comment_must_close_inside_the_filelist_that_opened_it(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("/* not closed here\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "-F child.f\n"
+        "*/\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "unterminated block comment\n"
+        "  source chain:\n"
+        f"    {top_filelist}:1 -> {child_filelist}\n"
+        f"  opened at: {child_filelist}:1\n"
+        "  suggestion: close the comment with */ in the same filelist"
+    )
+
+
 def test_source_trailing_comment_follows_normalized_absolute_path(
     tmp_path: Path,
 ) -> None:
