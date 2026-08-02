@@ -1675,6 +1675,43 @@ def test_source_path_rejects_glob_metacharacters_even_when_file_exists(
     )
 
 
+@pytest.mark.parametrize(
+    ("entry", "literal_name", "is_directory"),
+    [
+        ("-F child*.f", "child*.f", False),
+        ("-v model?.v", "model?.v", False),
+        ("-y lib[01]", "lib[01]", True),
+        ("+incdir+inc*", "inc*", True),
+    ],
+)
+def test_all_recognized_path_entries_reject_glob_metacharacters(
+    tmp_path: Path,
+    entry: str,
+    literal_name: str,
+    is_directory: bool,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    literal_path = tmp_path / literal_name
+    if is_directory:
+        literal_path.mkdir()
+    else:
+        literal_path.write_text("", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert "glob patterns are not supported in paths" in str(caught.value)
+    assert f"  input: {literal_name}" in str(caught.value)
+
+
 def test_backslash_line_continuation_is_rejected_explicitly(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 

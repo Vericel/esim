@@ -165,6 +165,14 @@ def _expand_path_value(
     line_number: int,
     source_chain: tuple[str, ...],
 ) -> str:
+    if "*" in value or "?" in value or ("[" in value and "]" in value):
+        raise FlattenError(
+            "glob patterns are not supported in paths\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  at: {filelist}:{line_number}\n"
+            f"  input: {value}\n"
+            "  suggestion: list each path explicitly"
+        )
     braced_references = re.findall(r"\$\{[^}]*\}", value)
     has_unsupported_shell_syntax = (
         value.startswith("~")
