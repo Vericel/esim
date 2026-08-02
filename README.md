@@ -7,12 +7,17 @@ filelist。
 ## 安装
 
 ```bash
-python3 -m pip install .
+python3 -m pip install \
+  --no-index \
+  --find-links ./wheelhouse \
+  esim==0.1.0
 ```
 
-项目支持 Python 3.9+，运行依赖 Rich。`BottiCelle/onelog` 上游当前没有
-Python 打包元数据，因此以固定 commit
-`dd41f9ac9772d9aa9d69a8a40c4ebe9420db6163` 随 `ff` wheel 发行。
+项目支持 Python 3.9+，依赖正式打包的 `botticelle-onelog` 0.1.x，它再依赖
+Rich。发行时将 onelog、Rich 及其传递依赖和 ff wheel 放在同一
+wheelhouse，即可在目标机使用
+`--no-index --find-links WHEELHOUSE` 离线安装。onelog 0.1.0 对应
+[v0.1.0](https://github.com/BottiCelle/onelog/releases/tag/v0.1.0)。
 
 ## CLI
 
@@ -62,4 +67,3 @@ print(result.output_filelist)
 
 详细契约见 [docs/ff-requirements.md](docs/ff-requirements.md)。第一版只处理
 Verilog/SystemVerilog flat filelist，不考虑 mixed-language 或 logical library。
-

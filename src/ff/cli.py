@@ -8,7 +8,7 @@ import tempfile
 from typing import Optional, Sequence
 
 from ff import FlattenError, FlattenRequest, flatten_filelist
-from ff._vendor.onelog import get_logger
+from onelog import get_logger
 
 
 def _publish_log(temporary_log: Path, log_file: Path) -> None:
