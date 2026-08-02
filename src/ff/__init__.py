@@ -38,6 +38,13 @@ def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
     return Path(os.path.abspath(path))
 
 
+def _symlink_target_annotation(path: Path) -> Optional[str]:
+    physical_path = path.resolve()
+    if physical_path == path:
+        return None
+    return f"// symlink target: {physical_path}"
+
+
 def _source_chain_section(source_chain: tuple[str, ...]) -> str:
     if not source_chain:
         return ""
@@ -451,6 +458,9 @@ def _flatten_lines(
             rendered_library = f"-v {library_file}"
             if trailing_comment is not None:
                 rendered_library = f"{rendered_library} {trailing_comment}"
+            annotation = _symlink_target_annotation(library_file)
+            if annotation is not None:
+                flattened_lines.append(annotation)
             flattened_lines.append(rendered_library)
             continue
         if len(tokens) == 2 and tokens[0] == "-y":
@@ -477,6 +487,9 @@ def _flatten_lines(
                 rendered_library_directory = (
                     f"{rendered_library_directory} {trailing_comment}"
                 )
+            annotation = _symlink_target_annotation(library_directory)
+            if annotation is not None:
+                flattened_lines.append(annotation)
             flattened_lines.append(rendered_library_directory)
             continue
         if stripped.startswith("+incdir+"):
@@ -510,6 +523,9 @@ def _flatten_lines(
                         f"  input: {line}\n"
                         f"  resolved: {include_directory}"
                     )
+                annotation = _symlink_target_annotation(include_directory)
+                if annotation is not None:
+                    include_directories.append(annotation)
                 include_directories.append(f"+incdir+{include_directory}")
             if trailing_comment is not None:
                 flattened_lines.append(trailing_comment)
@@ -553,9 +569,9 @@ def _flatten_lines(
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}"
             )
-        physical_source = resolved_source.resolve()
-        if physical_source != resolved_source:
-            flattened_lines.append(f"// symlink target: {physical_source}")
+        annotation = _symlink_target_annotation(resolved_source)
+        if annotation is not None:
+            flattened_lines.append(annotation)
         rendered_source = str(resolved_source)
         if trailing_comment is not None:
             rendered_source = f"{rendered_source} {trailing_comment}"

@@ -1173,6 +1173,43 @@ def test_symlinked_source_keeps_logical_path_with_physical_target_comment(
     )
 
 
+def test_all_recognized_simulator_paths_annotate_symlink_targets(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    physical_directory = tmp_path / "physical"
+    physical_directory.mkdir()
+    physical_library = physical_directory / "models.v"
+    physical_library.write_text("module model; endmodule\n", encoding="utf-8")
+    logical_directory = tmp_path / "logical"
+    logical_directory.symlink_to(physical_directory, target_is_directory=True)
+    logical_library = logical_directory / "models.v"
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "-v logical/models.v\n"
+        "-y logical\n"
+        "+incdir+logical\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"// symlink target: {physical_library}\n"
+        f"-v {logical_library}\n"
+        f"// symlink target: {physical_directory}\n"
+        f"-y {logical_directory}\n"
+        f"// symlink target: {physical_directory}\n"
+        f"+incdir+{logical_directory}\n"
+    )
+
+
 def test_utf8_bom_and_crlf_input_renders_utf8_lf_without_bom(
     tmp_path: Path,
 ) -> None:
