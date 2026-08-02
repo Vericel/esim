@@ -1296,6 +1296,63 @@ def test_output_parent_directory_must_already_exist(tmp_path: Path) -> None:
     assert not output_filelist.parent.exists()
 
 
+def test_output_parent_must_be_a_writable_directory(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    parent_file = tmp_path / "not-a-directory"
+    parent_file.write_text("content\n", encoding="utf-8")
+    output_filelist = parent_file / "flattened.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert str(caught.value) == (
+        "output parent is not a directory\n"
+        f"  output: {output_filelist}\n"
+        f"  parent: {parent_file}\n"
+        "  suggestion: choose an output path inside a directory"
+    )
+
+
+def test_output_parent_directory_must_be_writable(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_parent = tmp_path / "read-only"
+    output_parent.mkdir()
+    output_parent.chmod(0o555)
+    output_filelist = output_parent / "flattened.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert str(caught.value) == (
+        "output parent directory is not writable\n"
+        f"  output: {output_filelist}\n"
+        f"  parent: {output_parent}\n"
+        "  suggestion: grant write and search permission to the directory"
+    )
+
+
 def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 

@@ -657,6 +657,21 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             f"  parent: {output_filelist.parent}\n"
             "  suggestion: create the parent directory or choose another output"
         )
+    if not output_filelist.parent.is_dir():
+        raise FlattenError(
+            "output parent is not a directory\n"
+            f"  output: {output_filelist}\n"
+            f"  parent: {output_filelist.parent}\n"
+            "  suggestion: choose an output path inside a directory"
+        )
+    output_parent_mode = stat.S_IMODE(output_filelist.parent.stat().st_mode)
+    if not output_parent_mode & 0o222 or not output_parent_mode & 0o111:
+        raise FlattenError(
+            "output parent directory is not writable\n"
+            f"  output: {output_filelist}\n"
+            f"  parent: {output_filelist.parent}\n"
+            "  suggestion: grant write and search permission to the directory"
+        )
     top_filelist_identity = top_filelist.resolve()
     input_filelists = {top_filelist_identity: top_filelist}
     flattened_lines = _flatten_lines(
