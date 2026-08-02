@@ -620,6 +620,37 @@ def test_unreadable_child_filelist_reports_its_reference(
     )
 
 
+def test_nested_parse_error_reports_complete_filelist_source_chain(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    leaf_filelist = tmp_path / "leaf.f"
+    leaf_filelist.write_text("`define BAD\n", encoding="utf-8")
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("-F leaf.f\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F child.f\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "unsupported backtick directive\n"
+        "  source chain:\n"
+        f"    {top_filelist}:1 -> {child_filelist}\n"
+        f"    {child_filelist}:1 -> {leaf_filelist}\n"
+        f"  at: {leaf_filelist}:1\n"
+        "  input: `define BAD\n"
+        "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
+    )
+
+
 def test_active_blank_lines_and_line_comments_preserve_source_order(
     tmp_path: Path,
 ) -> None:

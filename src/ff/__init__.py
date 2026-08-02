@@ -278,6 +278,7 @@ def _flatten_lines(
             if len(tokens) != expected_token_count:
                 raise FlattenError(
                     "invalid conditional directive syntax\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}\n"
                     f"  input: {stripped}\n"
                     f"  expected: {expected_condition_usage[tokens[0]]}"
@@ -288,6 +289,7 @@ def _flatten_lines(
             ):
                 raise FlattenError(
                     "invalid conditional macro name\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}\n"
                     f"  macro: {tokens[1]}\n"
                     f"  expected: {_MACRO_NAME_SYNTAX}"
@@ -316,11 +318,13 @@ def _flatten_lines(
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `elsif without a matching condition\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}"
                 )
             if else_seen_states[-1]:
                 raise FlattenError(
                     "unexpected `elsif after `else\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}"
                 )
             macro = stripped.split(maxsplit=1)[1]
@@ -338,11 +342,13 @@ def _flatten_lines(
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `else without a matching condition\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}"
                 )
             if else_seen_states[-1]:
                 raise FlattenError(
                     "unexpected `else after `else\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}"
                 )
             else_seen_states[-1] = True
@@ -358,6 +364,7 @@ def _flatten_lines(
             if len(active_states) == 1:
                 raise FlattenError(
                     "unexpected `endif without a matching condition\n"
+                    f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}"
                 )
             active_states.pop()
@@ -384,6 +391,7 @@ def _flatten_lines(
         if stripped.startswith("`"):
             raise FlattenError(
                 "unsupported backtick directive\n"
+                f"{_source_chain_section(source_chain)}"
                 f"  at: {filelist}:{line_number}\n"
                 f"  input: {stripped}\n"
                 "  supported: `ifdef, `ifndef, `elsif, `else, `endif"
@@ -637,6 +645,7 @@ def _flatten_lines(
     if condition_open_lines:
         raise FlattenError(
             "unterminated conditional block\n"
+            f"{_source_chain_section(source_chain)}"
             f"  opened at: {filelist}:{condition_open_lines[-1]}"
         )
     return flattened_lines
