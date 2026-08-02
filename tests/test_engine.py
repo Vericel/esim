@@ -1064,3 +1064,29 @@ def test_non_utf8_filelist_reports_structured_error(tmp_path: Path) -> None:
         f"  input: {top_filelist}\n"
         "  suggestion: convert the filelist to UTF-8"
     )
+
+
+def test_source_path_rejects_whitespace_even_when_file_exists(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "with space.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("with space.sv\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "source path contains whitespace\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: with space.sv\n"
+        "  suggestion: use a path without spaces or tabs"
+    )

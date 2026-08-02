@@ -402,6 +402,14 @@ def _flatten_lines(
         if stripped.startswith(("-", "+")):
             flattened_lines.append(line)
             continue
+        if len(tokens) != 1:
+            raise FlattenError(
+                "source path contains whitespace\n"
+                f"{_source_chain_section(source_chain)}"
+                f"  at: {filelist}:{line_number}\n"
+                f"  input: {stripped}\n"
+                "  suggestion: use a path without spaces or tabs"
+            )
         expanded_source = _expand_environment_variables(
             stripped,
             filelist,
