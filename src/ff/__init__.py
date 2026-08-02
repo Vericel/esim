@@ -121,7 +121,14 @@ def _flatten_lines(
     branch_taken_states = [False]
     else_seen_states = [False]
     condition_open_lines = []
+    block_comment_open_line = None
     for line_number, line in enumerate(content.splitlines(), start=1):
+        if block_comment_open_line is not None:
+            if active_states[-1]:
+                flattened_lines.append(line)
+            if "*/" in line:
+                block_comment_open_line = None
+            continue
         entry, trailing_comment = _split_trailing_line_comment(line)
         stripped = entry.strip()
         tokens = stripped.split()
@@ -227,6 +234,8 @@ def _flatten_lines(
             condition_open_lines.pop()
             continue
         if not active_states[-1]:
+            if stripped.startswith("/*") and "*/" not in stripped:
+                block_comment_open_line = line_number
             continue
         if stripped.endswith("\\"):
             raise FlattenError(
@@ -238,6 +247,11 @@ def _flatten_lines(
             )
         if not stripped or stripped.startswith("//"):
             flattened_lines.append(line)
+            continue
+        if stripped.startswith("/*"):
+            flattened_lines.append(line)
+            if "*/" not in stripped:
+                block_comment_open_line = line_number
             continue
         if stripped.startswith("`"):
             raise FlattenError(
@@ -456,6 +470,11 @@ def _flatten_lines(
         raise FlattenError(
             "unterminated conditional block\n"
             f"  opened at: {filelist}:{condition_open_lines[-1]}"
+        )
+    if block_comment_open_line is not None:
+        raise FlattenError(
+            "unterminated block comment\n"
+            f"  opened at: {filelist}:{block_comment_open_line}"
         )
     return flattened_lines
 

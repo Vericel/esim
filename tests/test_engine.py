@@ -528,6 +528,40 @@ def test_active_blank_lines_and_line_comments_preserve_source_order(
     )
 
 
+def test_multiline_block_comments_follow_conditional_branch_selection(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "active.sv"
+    source.write_text("module active; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "`ifdef OMITTED\n"
+        "/* removed\n"
+        "   comment */\n"
+        "`else\n"
+        "/* retained\n"
+        "   comment */\n"
+        "active.sv\n"
+        "`endif\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "/* retained\n"
+        "   comment */\n"
+        f"{source}\n"
+    )
+
+
 def test_filelist_reference_trailing_comment_is_promoted_before_expansion(
     tmp_path: Path,
 ) -> None:
