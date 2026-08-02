@@ -105,6 +105,7 @@ def _flatten_lines(
     request: FlattenRequest,
     filelist_stack: tuple[Path, ...],
     source_chain: tuple[str, ...],
+    input_filelists: dict[Path, Path],
 ) -> list[str]:
     content = filelist.read_text(encoding="utf-8")
     flattened_lines = []
@@ -279,6 +280,7 @@ def _flatten_lines(
                     f"  resolved: {child_filelist}"
                 )
             child_identity = child_filelist.resolve()
+            input_filelists.setdefault(child_identity, child_filelist)
             reference = f"{filelist}:{line_number} -> {child_filelist}"
             next_source_chain = source_chain + (reference,)
             if child_identity in filelist_stack:
@@ -296,10 +298,11 @@ def _flatten_lines(
                 _flatten_lines(
                     child_filelist,
                     child_content_base or child_filelist.parent,
-                    request,
-                    filelist_stack + (child_identity,),
-                    next_source_chain,
-                )
+                        request,
+                        filelist_stack + (child_identity,),
+                        next_source_chain,
+                        input_filelists,
+                    )
             )
             continue
         if len(tokens) == 2 and tokens[0] == "-v":
@@ -429,16 +432,28 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     output_filelist = request.output_filelist or (
         request.working_directory / "flattened.f"
     )
+    top_filelist_identity = request.top_filelist.resolve()
+    input_filelists = {top_filelist_identity: request.top_filelist}
     flattened_lines = _flatten_lines(
         request.top_filelist,
         request.top_filelist.parent,
         request,
-        (request.top_filelist.resolve(),),
+        (top_filelist_identity,),
         (),
+        input_filelists,
     )
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"
+    if output_filelist.exists():
+        conflicting_input = input_filelists.get(output_filelist.resolve())
+        if conflicting_input is not None:
+            raise FlattenError(
+                "output conflicts with an input filelist\n"
+                f"  output: {output_filelist}\n"
+                f"  input: {conflicting_input}\n"
+                "  suggestion: choose a different output path"
+            )
     preserved_output_mode = None
     if (
         output_filelist.exists()

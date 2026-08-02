@@ -969,3 +969,30 @@ def test_replacing_regular_output_preserves_rw_bits_and_clears_execute(
     )
 
     assert output_filelist.stat().st_mode & 0o777 == 0o664
+
+
+def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    original_content = "top.sv\n"
+    top_filelist.write_text(original_content, encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=top_filelist,
+            )
+        )
+
+    assert str(caught.value) == (
+        "output conflicts with an input filelist\n"
+        f"  output: {top_filelist}\n"
+        f"  input: {top_filelist}\n"
+        "  suggestion: choose a different output path"
+    )
+    assert top_filelist.read_text(encoding="utf-8") == original_content
