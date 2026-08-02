@@ -439,6 +439,9 @@ def _flatten_lines(
                 )
             if trailing_comment is not None:
                 flattened_lines.append(trailing_comment)
+            annotation = _symlink_target_annotation(child_filelist)
+            if annotation is not None:
+                flattened_lines.append(annotation)
             flattened_lines.extend(
                 _flatten_lines(
                     child_filelist,
@@ -692,6 +695,9 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         (),
         input_filelists,
     )
+    top_annotation = _symlink_target_annotation(top_filelist)
+    if top_annotation is not None:
+        flattened_lines.insert(0, top_annotation)
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"

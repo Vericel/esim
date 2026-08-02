@@ -1473,6 +1473,62 @@ def test_all_recognized_simulator_paths_annotate_symlink_targets(
     )
 
 
+def test_symlinked_child_filelist_is_annotated_before_its_expansion(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "lists" / "top.sv"
+    source.parent.mkdir()
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    physical_child = tmp_path / "physical" / "child.f"
+    physical_child.parent.mkdir()
+    physical_child.write_text("../lists/top.sv\n", encoding="utf-8")
+    logical_child = tmp_path / "lists" / "child.f"
+    logical_child.symlink_to(physical_child)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F lists/child.f\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"// symlink target: {physical_child}\n"
+        f"{source}\n"
+    )
+
+
+def test_symlinked_top_filelist_is_annotated_before_flattened_content(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "logical" / "top.sv"
+    source.parent.mkdir()
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    physical_filelist = tmp_path / "physical" / "top.f"
+    physical_filelist.parent.mkdir()
+    physical_filelist.write_text("top.sv\n", encoding="utf-8")
+    logical_filelist = tmp_path / "logical" / "top.f"
+    logical_filelist.symlink_to(physical_filelist)
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=logical_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"// symlink target: {physical_filelist}\n"
+        f"{source}\n"
+    )
+
+
 def test_utf8_bom_and_crlf_input_renders_utf8_lf_without_bom(
     tmp_path: Path,
 ) -> None:
