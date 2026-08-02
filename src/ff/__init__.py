@@ -672,6 +672,16 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             f"  parent: {output_filelist.parent}\n"
             "  suggestion: grant write and search permission to the directory"
         )
+    if (
+        output_filelist.exists()
+        and not output_filelist.is_symlink()
+        and not output_filelist.is_file()
+    ):
+        raise FlattenError(
+            "output path is not a regular file\n"
+            f"  output: {output_filelist}\n"
+            "  suggestion: choose a file path for the flattened filelist"
+        )
     top_filelist_identity = top_filelist.resolve()
     input_filelists = {top_filelist_identity: top_filelist}
     flattened_lines = _flatten_lines(

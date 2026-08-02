@@ -1353,6 +1353,35 @@ def test_output_parent_directory_must_be_writable(tmp_path: Path) -> None:
     )
 
 
+def test_existing_output_directory_is_rejected_before_publication(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+    output_filelist.mkdir()
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert str(caught.value) == (
+        "output path is not a regular file\n"
+        f"  output: {output_filelist}\n"
+        "  suggestion: choose a file path for the flattened filelist"
+    )
+    assert output_filelist.is_dir()
+
+
 def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 
