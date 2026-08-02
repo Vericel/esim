@@ -303,6 +303,32 @@ def _flatten_lines(
                 rendered_library = f"{rendered_library} {trailing_comment}"
             flattened_lines.append(rendered_library)
             continue
+        if len(tokens) == 2 and tokens[0] == "-y":
+            expanded_library_directory = _expand_environment_variables(
+                tokens[1],
+                filelist,
+                line_number,
+                source_chain,
+            )
+            library_directory = _absolute_logical_path(
+                Path(expanded_library_directory),
+                path_base,
+            )
+            if not library_directory.is_dir():
+                raise FlattenError(
+                    "library directory does not exist\n"
+                    f"{_source_chain_section(source_chain)}"
+                    f"  at: {filelist}:{line_number}\n"
+                    f"  input: {line}\n"
+                    f"  resolved: {library_directory}"
+                )
+            rendered_library_directory = f"-y {library_directory}"
+            if trailing_comment is not None:
+                rendered_library_directory = (
+                    f"{rendered_library_directory} {trailing_comment}"
+                )
+            flattened_lines.append(rendered_library_directory)
+            continue
         expanded_source = _expand_environment_variables(
             stripped,
             filelist,

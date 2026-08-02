@@ -767,3 +767,27 @@ def test_v_library_file_is_expanded_and_rendered_as_absolute(
     assert result.output_filelist.read_text(encoding="utf-8") == (
         f"-v {library_file}\n"
     )
+
+
+def test_y_library_directory_is_expanded_and_rendered_as_absolute(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    library_directory = tmp_path / "libraries"
+    library_directory.mkdir()
+    monkeypatch.setenv("LIB_ROOT", str(tmp_path))
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-y $LIB_ROOT/libraries\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"-y {library_directory}\n"
+    )
