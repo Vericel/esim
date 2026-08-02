@@ -68,6 +68,16 @@ def _expand_environment_variables(
                 f"  variable: {name}\n"
                 f"  suggestion: export {name} before running ff"
             )
+        if not os.environ[name]:
+            raise FlattenError(
+                "environment variable is empty\n"
+                f"{_source_chain_section(source_chain)}"
+                f"  at: {filelist}:{line_number}\n"
+                f"  input: {value}\n"
+                f"  variable: {name}\n"
+                f"  suggestion: export {name} with a non-empty value "
+                "before running ff"
+            )
         return os.environ[name]
 
     return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, value)
