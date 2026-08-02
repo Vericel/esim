@@ -106,6 +106,71 @@ def test_unreadable_source_is_rejected_before_output_is_published(
     assert not output_filelist.exists()
 
 
+def test_unreadable_top_filelist_is_a_structured_engine_error(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("", encoding="utf-8")
+    top_filelist.chmod(0)
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "top filelist is not readable\n"
+        f"  input: {top_filelist}\n"
+        "  suggestion: grant read permission to the filelist"
+    )
+
+
+def test_missing_top_filelist_is_a_structured_engine_error(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "missing.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "top filelist does not exist\n"
+        f"  input: {top_filelist}\n"
+        "  suggestion: provide an existing filelist path"
+    )
+
+
+def test_top_filelist_directory_is_rejected_as_wrong_type(tmp_path: Path) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "lists"
+    top_filelist.mkdir()
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "top filelist is not a regular file\n"
+        f"  input: {top_filelist}\n"
+        "  suggestion: provide a regular file"
+    )
+
+
 def test_ifdef_keeps_branch_for_predefined_macro(tmp_path: Path) -> None:
     from ff import FlattenRequest, flatten_filelist
 

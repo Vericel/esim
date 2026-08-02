@@ -605,14 +605,36 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
                 f"  macro: {macro}\n"
                 f"  expected: {_MACRO_NAME_SYNTAX}"
             )
+    top_filelist = _absolute_logical_path(
+        request.top_filelist,
+        request.working_directory,
+    )
+    if not top_filelist.exists():
+        raise FlattenError(
+            "top filelist does not exist\n"
+            f"  input: {top_filelist}\n"
+            "  suggestion: provide an existing filelist path"
+        )
+    if not top_filelist.is_file():
+        raise FlattenError(
+            "top filelist is not a regular file\n"
+            f"  input: {top_filelist}\n"
+            "  suggestion: provide a regular file"
+        )
+    if not _has_read_permission(top_filelist):
+        raise FlattenError(
+            "top filelist is not readable\n"
+            f"  input: {top_filelist}\n"
+            "  suggestion: grant read permission to the filelist"
+        )
     output_filelist = request.output_filelist or (
         request.working_directory / "flattened.f"
     )
-    top_filelist_identity = request.top_filelist.resolve()
-    input_filelists = {top_filelist_identity: request.top_filelist}
+    top_filelist_identity = top_filelist.resolve()
+    input_filelists = {top_filelist_identity: top_filelist}
     flattened_lines = _flatten_lines(
-        request.top_filelist,
-        request.top_filelist.parent,
+        top_filelist,
+        top_filelist.parent,
         request,
         (top_filelist_identity,),
         (),
