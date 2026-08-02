@@ -45,6 +45,10 @@ def _symlink_target_annotation(path: Path) -> Optional[str]:
     return f"// symlink target: {physical_path}"
 
 
+def _has_read_permission(path: Path) -> bool:
+    return bool(stat.S_IMODE(path.stat().st_mode) & 0o444)
+
+
 def _source_chain_section(source_chain: tuple[str, ...]) -> str:
     if not source_chain:
         return ""
@@ -568,6 +572,15 @@ def _flatten_lines(
                 f"  at: {filelist}:{line_number}\n"
                 f"  input: {line}\n"
                 f"  resolved: {resolved_source}"
+            )
+        if not _has_read_permission(resolved_source):
+            raise FlattenError(
+                "source file is not readable\n"
+                f"{_source_chain_section(source_chain)}"
+                f"  at: {filelist}:{line_number}\n"
+                f"  input: {line}\n"
+                f"  resolved: {resolved_source}\n"
+                "  suggestion: grant read permission to the source file"
             )
         annotation = _symlink_target_annotation(resolved_source)
         if annotation is not None:

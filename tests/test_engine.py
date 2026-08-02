@@ -75,6 +75,37 @@ def test_missing_source_reports_resolved_path_and_origin(tmp_path: Path) -> None
     )
 
 
+def test_unreadable_source_is_rejected_before_output_is_published(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    source.chmod(0)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert str(caught.value) == (
+        "source file is not readable\n"
+        f"  at: {top_filelist}:1\n"
+        "  input: top.sv\n"
+        f"  resolved: {source}\n"
+        "  suggestion: grant read permission to the source file"
+    )
+    assert not output_filelist.exists()
+
+
 def test_ifdef_keeps_branch_for_predefined_macro(tmp_path: Path) -> None:
     from ff import FlattenRequest, flatten_filelist
 
