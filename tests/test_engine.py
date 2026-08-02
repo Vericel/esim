@@ -1382,6 +1382,58 @@ def test_existing_output_directory_is_rejected_before_publication(
     assert output_filelist.is_dir()
 
 
+def test_output_symlink_node_is_replaced_without_touching_target(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_target = tmp_path / "preserved.f"
+    output_target.write_text("target stays\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+    output_filelist.symlink_to(output_target)
+
+    flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            output_filelist=output_filelist,
+        )
+    )
+
+    assert not output_filelist.is_symlink()
+    assert output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+    assert output_target.read_text(encoding="utf-8") == "target stays\n"
+
+
+def test_flatten_failure_preserves_existing_output_bytes_and_inode(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("missing.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+    original_content = b"existing output\n"
+    output_filelist.write_bytes(original_content)
+    original_inode = output_filelist.stat().st_ino
+
+    with pytest.raises(FlattenError):
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+                output_filelist=output_filelist,
+            )
+        )
+
+    assert output_filelist.read_bytes() == original_content
+    assert output_filelist.stat().st_ino == original_inode
+
+
 def test_output_cannot_replace_an_input_filelist(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 
