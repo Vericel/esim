@@ -922,3 +922,26 @@ def test_recognized_path_options_require_one_separated_argument(
         f"  input: {entry}\n"
         f"  expected: {expected_usage}"
     )
+
+
+def test_success_atomically_replaces_existing_output_inode(tmp_path: Path) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    output_filelist = tmp_path / "flattened.f"
+    output_filelist.write_text("old content\n", encoding="utf-8")
+    old_inode = output_filelist.stat().st_ino
+
+    flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            output_filelist=output_filelist,
+        )
+    )
+
+    assert output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+    assert output_filelist.stat().st_ino != old_inode

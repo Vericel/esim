@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 import os
 from pathlib import Path
 import re
+import tempfile
 from typing import FrozenSet, Optional
 
 
@@ -437,7 +438,18 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"
-    output_filelist.write_text(flattened_content, encoding="utf-8")
+    temporary_fd, temporary_name = tempfile.mkstemp(
+        prefix=f".{output_filelist.name}.",
+        dir=output_filelist.parent,
+    )
+    os.close(temporary_fd)
+    temporary_output = Path(temporary_name)
+    try:
+        temporary_output.write_text(flattened_content, encoding="utf-8")
+        os.replace(temporary_output, output_filelist)
+    finally:
+        if temporary_output.exists():
+            temporary_output.unlink()
     return FlattenResult(output_filelist=output_filelist)
 
 
