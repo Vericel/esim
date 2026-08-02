@@ -98,6 +98,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     for macro_group in args.define
                     for macro in macro_group
                 ),
+                log_file=log_file,
             )
         )
     except FlattenError as error:
@@ -109,7 +110,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             except SystemExit:
                 pass
         if temporary_log is not None:
-            _publish_log(temporary_log, log_file)
+            if error.log_publish_safe:
+                _publish_log(temporary_log, log_file)
+            else:
+                logging.shutdown()
+                temporary_log.unlink()
         return 1
     if log is not None:
         log.info(f"flattened output: {result.output_filelist}")

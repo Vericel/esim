@@ -316,3 +316,31 @@ def test_cli_rejects_log_and_top_filelist_identity_conflict(
     )
     assert top_filelist.read_text(encoding="utf-8") == original_filelist
     assert not (tmp_path / "flattened.f").exists()
+
+
+def test_cli_rejects_log_and_nested_filelist_identity_conflict(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "child.f"
+    original_child = "top.sv\n"
+    child_filelist.write_text(original_child, encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F child.f\n", encoding="utf-8")
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "-l", str(child_filelist)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    assert "log path conflicts with input filelist" in (
+        completed.stdout + completed.stderr
+    )
+    assert child_filelist.read_text(encoding="utf-8") == original_child
+    assert not (tmp_path / "flattened.f").exists()

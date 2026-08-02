@@ -16,7 +16,9 @@ _WINDOWS_DRIVE_PATH_PATTERN = re.compile(r"^[A-Za-z]:[\\/]")
 
 
 class FlattenError(Exception):
-    pass
+    def __init__(self, message: str, *, log_publish_safe: bool = True) -> None:
+        super().__init__(message)
+        self.log_publish_safe = log_publish_safe
 
 
 @dataclass(frozen=True)
@@ -25,6 +27,7 @@ class FlattenRequest:
     working_directory: Path
     output_filelist: Optional[Path] = None
     predefined_macros: FrozenSet[str] = field(default_factory=frozenset)
+    log_file: Optional[Path] = None
 
 
 @dataclass(frozen=True)
@@ -695,6 +698,22 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         (),
         input_filelists,
     )
+    if request.log_file is not None:
+        log_file = _absolute_logical_path(
+            request.log_file,
+            request.working_directory,
+        )
+        conflicting_input = (
+            input_filelists.get(log_file.resolve()) if log_file.exists() else None
+        )
+        if conflicting_input is not None:
+            raise FlattenError(
+                "log path conflicts with input filelist\n"
+                f"  log: {log_file}\n"
+                f"  input: {conflicting_input}\n"
+                "  suggestion: choose a different log path",
+                log_publish_safe=False,
+            )
     top_annotation = _symlink_target_annotation(top_filelist)
     if top_annotation is not None:
         flattened_lines.insert(0, top_annotation)
