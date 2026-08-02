@@ -207,3 +207,35 @@ def test_cli_debug_and_custom_log_receive_the_same_trace_levels(
         assert message in log_content
     assert "Log Summary" not in terminal
     assert "Log Summary" not in log_content
+
+
+def test_cli_controlled_failure_publishes_overwritten_fatal_log(
+    tmp_path: Path,
+) -> None:
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("missing.sv\n", encoding="utf-8")
+    log_file = tmp_path / "failure.log"
+    log_file.write_text("stale log\n", encoding="utf-8")
+    old_inode = log_file.stat().st_ino
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "-l", str(log_file)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    terminal = completed.stdout + completed.stderr
+    log_content = log_file.read_text(encoding="utf-8")
+    assert completed.returncode == 1
+    assert "FATAL" in terminal
+    assert "source file does not exist" in terminal
+    assert "FATAL" in log_content
+    assert "source file does not exist" in log_content
+    assert "stale log" not in log_content
+    assert "Log Summary" not in terminal
+    assert "Traceback" not in terminal
+    assert log_file.stat().st_ino != old_inode
+    assert not (tmp_path / "flattened.f").exists()
