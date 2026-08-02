@@ -2,6 +2,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+import pytest
+
 
 def test_cli_writes_default_flat_filelist(tmp_path: Path) -> None:
     source = tmp_path / "top.sv"
@@ -391,5 +393,48 @@ def test_cli_reports_missing_log_parent_without_traceback(tmp_path: Path) -> Non
     assert completed.stdout == ""
     assert "log parent directory does not exist" in completed.stderr
     assert str(log_file.parent) in completed.stderr
+    assert "Traceback" not in completed.stderr
+    assert not (tmp_path / "flattened.f").exists()
+
+
+@pytest.mark.parametrize(
+    ("case", "expected_error"),
+    [
+        ("parent_file", "log parent is not a directory"),
+        ("read_only_parent", "log parent directory is not writable"),
+        ("target_directory", "log path is not a regular file"),
+    ],
+)
+def test_cli_validates_log_path_type_and_parent_access(
+    tmp_path: Path,
+    case: str,
+    expected_error: str,
+) -> None:
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("", encoding="utf-8")
+    if case == "parent_file":
+        parent = tmp_path / "parent-file"
+        parent.write_text("content\n", encoding="utf-8")
+        log_file = parent / "ff.log"
+    else:
+        parent = tmp_path / "logs"
+        parent.mkdir()
+        log_file = parent / "ff.log"
+        if case == "read_only_parent":
+            parent.chmod(0o555)
+        else:
+            log_file.mkdir()
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "-l", str(log_file)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    assert expected_error in completed.stderr
     assert "Traceback" not in completed.stderr
     assert not (tmp_path / "flattened.f").exists()

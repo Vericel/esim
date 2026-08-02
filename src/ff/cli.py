@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 from pathlib import Path
+import stat
 import sys
 import tempfile
 from typing import Optional, Sequence
@@ -53,6 +54,33 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 f"  log: {log_file}\n"
                 f"  parent: {log_file.parent}\n"
                 "  suggestion: create the parent directory or choose another log",
+                file=sys.stderr,
+            )
+            return 1
+        if not log_file.parent.is_dir():
+            print(
+                "log parent is not a directory\n"
+                f"  log: {log_file}\n"
+                f"  parent: {log_file.parent}\n"
+                "  suggestion: choose a log path inside a directory",
+                file=sys.stderr,
+            )
+            return 1
+        log_parent_mode = stat.S_IMODE(log_file.parent.stat().st_mode)
+        if not log_parent_mode & 0o222 or not log_parent_mode & 0o111:
+            print(
+                "log parent directory is not writable\n"
+                f"  log: {log_file}\n"
+                f"  parent: {log_file.parent}\n"
+                "  suggestion: grant write and search permission to the directory",
+                file=sys.stderr,
+            )
+            return 1
+        if log_file.exists() and not log_file.is_symlink() and not log_file.is_file():
+            print(
+                "log path is not a regular file\n"
+                f"  log: {log_file}\n"
+                "  suggestion: choose a file path for the log",
                 file=sys.stderr,
             )
             return 1
