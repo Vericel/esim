@@ -71,7 +71,8 @@ def test_missing_source_reports_resolved_path_and_origin(tmp_path: Path) -> None
         "source file does not exist\n"
         f"  at: {top_filelist}:1\n"
         "  input: ../rtl/missing.sv\n"
-        f"  resolved: {resolved}"
+        f"  resolved: {resolved}\n"
+        "  suggestion: correct the path or restore the source file"
     )
 
 
@@ -347,7 +348,8 @@ def test_unmatched_endif_reports_structured_filelist_error(tmp_path: Path) -> No
 
     assert str(caught.value) == (
         "unexpected `endif without a matching condition\n"
-        f"  at: {top_filelist}:1"
+        f"  at: {top_filelist}:1\n"
+        "  suggestion: add a matching `ifdef or `ifndef before `endif"
     )
 
 
@@ -367,7 +369,8 @@ def test_unclosed_condition_at_eof_reports_its_opening_line(tmp_path: Path) -> N
 
     assert str(caught.value) == (
         "unterminated conditional block\n"
-        f"  opened at: {top_filelist}:1"
+        f"  opened at: {top_filelist}:1\n"
+        "  suggestion: close the conditional block with `endif"
     )
 
 
@@ -392,7 +395,8 @@ def test_branch_continuation_without_condition_reports_structured_error(
     directive_name = directive.split()[0]
     assert str(caught.value) == (
         f"unexpected {directive_name} without a matching condition\n"
-        f"  at: {top_filelist}:1"
+        f"  at: {top_filelist}:1\n"
+        f"  suggestion: add a matching `ifdef or `ifndef before {directive_name}"
     )
 
 
@@ -421,9 +425,15 @@ def test_condition_rejects_branch_directives_after_else(
         )
 
     directive_name = directive.split()[0]
+    suggestion = (
+        "keep only one `else in the conditional block"
+        if directive_name == "`else"
+        else "move `elsif before `else or remove it"
+    )
     assert str(caught.value) == (
         f"unexpected {directive_name} after `else\n"
-        f"  at: {top_filelist}:3"
+        f"  at: {top_filelist}:3\n"
+        f"  suggestion: {suggestion}"
     )
 
 
@@ -604,7 +614,8 @@ def test_recursive_filelist_cycle_reports_complete_source_chain(
         "filelist include cycle\n"
         "  source chain:\n"
         f"    {top_filelist}:1 -> {child_filelist}\n"
-        f"    {child_filelist}:1 -> {top_filelist}"
+        f"    {child_filelist}:1 -> {top_filelist}\n"
+        "  suggestion: remove the recursive -f/-F reference"
     )
 
 
@@ -658,7 +669,8 @@ def test_nested_missing_source_reports_complete_source_chain(
         f"    {middle_filelist}:1 -> {leaf_filelist}\n"
         f"  at: {leaf_filelist}:1\n"
         "  input: missing.sv\n"
-        f"  resolved: {missing_source}"
+        f"  resolved: {missing_source}\n"
+        "  suggestion: correct the path or restore the source file"
     )
 
 

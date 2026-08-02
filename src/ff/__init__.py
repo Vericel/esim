@@ -361,13 +361,15 @@ def _flatten_lines(
                 raise FlattenError(
                     "unexpected `elsif without a matching condition\n"
                     f"{_source_chain_section(source_chain)}"
-                    f"  at: {filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}\n"
+                    "  suggestion: add a matching `ifdef or `ifndef before `elsif"
                 )
             if else_seen_states[-1]:
                 raise FlattenError(
                     "unexpected `elsif after `else\n"
                     f"{_source_chain_section(source_chain)}"
-                    f"  at: {filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}\n"
+                    "  suggestion: move `elsif before `else or remove it"
                 )
             macro = stripped.split(maxsplit=1)[1]
             branch_selected = (
@@ -385,13 +387,15 @@ def _flatten_lines(
                 raise FlattenError(
                     "unexpected `else without a matching condition\n"
                     f"{_source_chain_section(source_chain)}"
-                    f"  at: {filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}\n"
+                    "  suggestion: add a matching `ifdef or `ifndef before `else"
                 )
             if else_seen_states[-1]:
                 raise FlattenError(
                     "unexpected `else after `else\n"
                     f"{_source_chain_section(source_chain)}"
-                    f"  at: {filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}\n"
+                    "  suggestion: keep only one `else in the conditional block"
                 )
             else_seen_states[-1] = True
             branch_selected = (
@@ -407,7 +411,8 @@ def _flatten_lines(
                 raise FlattenError(
                     "unexpected `endif without a matching condition\n"
                     f"{_source_chain_section(source_chain)}"
-                    f"  at: {filelist}:{line_number}"
+                    f"  at: {filelist}:{line_number}\n"
+                    "  suggestion: add a matching `ifdef or `ifndef before `endif"
                 )
             active_states.pop()
             branch_taken_states.pop()
@@ -486,7 +491,8 @@ def _flatten_lines(
                     f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}\n"
                     f"  input: {line}\n"
-                    f"  resolved: {child_filelist}"
+                    f"  resolved: {child_filelist}\n"
+                    "  suggestion: correct the path or restore the filelist"
                 )
             if not _has_read_permission(child_filelist):
                 raise FlattenError(
@@ -508,7 +514,8 @@ def _flatten_lines(
                 raise FlattenError(
                     "filelist include cycle\n"
                     "  source chain:\n"
-                    f"{rendered_source_chain}"
+                    f"{rendered_source_chain}\n"
+                    "  suggestion: remove the recursive -f/-F reference"
                 )
             if request.logger is not None:
                 request.logger.debug(
@@ -548,7 +555,8 @@ def _flatten_lines(
                     f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}\n"
                     f"  input: {line}\n"
-                    f"  resolved: {library_file}"
+                    f"  resolved: {library_file}\n"
+                    "  suggestion: correct the -v path or restore the library file"
                 )
             if not _has_read_permission(library_file):
                 raise FlattenError(
@@ -584,7 +592,8 @@ def _flatten_lines(
                     f"{_source_chain_section(source_chain)}"
                     f"  at: {filelist}:{line_number}\n"
                     f"  input: {line}\n"
-                    f"  resolved: {library_directory}"
+                    f"  resolved: {library_directory}\n"
+                    "  suggestion: correct the -y path or create the directory"
                 )
             rendered_library_directory = f"-y {library_directory}"
             if trailing_comment is not None:
@@ -625,7 +634,8 @@ def _flatten_lines(
                         f"{_source_chain_section(source_chain)}"
                         f"  at: {filelist}:{line_number}\n"
                         f"  input: {line}\n"
-                        f"  resolved: {include_directory}"
+                        f"  resolved: {include_directory}\n"
+                        "  suggestion: correct +incdir+ or create the directory"
                     )
                 annotation = _symlink_target_annotation(include_directory)
                 if annotation is not None:
@@ -671,7 +681,8 @@ def _flatten_lines(
                 f"{_source_chain_section(source_chain)}"
                 f"  at: {filelist}:{line_number}\n"
                 f"  input: {line}\n"
-                f"  resolved: {resolved_source}"
+                f"  resolved: {resolved_source}\n"
+                "  suggestion: correct the path or restore the source file"
             )
         if not _has_read_permission(resolved_source):
             raise FlattenError(
@@ -697,7 +708,8 @@ def _flatten_lines(
         raise FlattenError(
             "unterminated conditional block\n"
             f"{_source_chain_section(source_chain)}"
-            f"  opened at: {filelist}:{condition_open_lines[-1]}"
+            f"  opened at: {filelist}:{condition_open_lines[-1]}\n"
+            "  suggestion: close the conditional block with `endif"
         )
     return flattened_lines
 
