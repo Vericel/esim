@@ -344,3 +344,30 @@ def test_cli_rejects_log_and_nested_filelist_identity_conflict(
     )
     assert child_filelist.read_text(encoding="utf-8") == original_child
     assert not (tmp_path / "flattened.f").exists()
+
+
+def test_cli_replaces_log_symlink_node_without_touching_target(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("top.sv\n", encoding="utf-8")
+    log_target = tmp_path / "preserved.log"
+    log_target.write_text("target stays\n", encoding="utf-8")
+    log_file = tmp_path / "ff.log"
+    log_file.symlink_to(log_target)
+    ff_command = Path(sys.executable).with_name("ff")
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist), "-l", str(log_file)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0
+    assert not log_file.is_symlink()
+    assert log_file.read_text(encoding="utf-8") == ""
+    assert log_target.read_text(encoding="utf-8") == "target stays\n"
