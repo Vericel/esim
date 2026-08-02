@@ -57,6 +57,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 file=sys.stderr,
             )
             return 1
+        top_filelist = args.input
+        if not top_filelist.is_absolute():
+            top_filelist = working_directory / top_filelist
+        if _paths_share_identity(log_file, top_filelist):
+            print(
+                "log path conflicts with input filelist\n"
+                f"  log: {log_file}\n"
+                f"  input: {top_filelist}\n"
+                "  suggestion: choose a different log path",
+                file=sys.stderr,
+            )
+            return 1
         temporary_fd, temporary_name = tempfile.mkstemp(
             prefix=f".{log_file.name}.",
             dir=log_file.parent,
