@@ -107,7 +107,7 @@ def _flatten_lines(
     source_chain: tuple[str, ...],
     input_filelists: dict[Path, Path],
 ) -> list[str]:
-    content = filelist.read_text(encoding="utf-8")
+    content = filelist.read_text(encoding="utf-8-sig")
     flattened_lines = []
     active_states = [True]
     branch_taken_states = [False]

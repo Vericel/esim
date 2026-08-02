@@ -1023,3 +1023,23 @@ def test_symlinked_source_keeps_logical_path_with_physical_target_comment(
         f"// symlink target: {physical_source}\n"
         f"{logical_source}\n"
     )
+
+
+def test_utf8_bom_and_crlf_input_renders_utf8_lf_without_bom(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_bytes(b"\xef\xbb\xbftop.sv\r\n")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_bytes() == f"{source}\n".encode("utf-8")
