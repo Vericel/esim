@@ -112,19 +112,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
         os.close(temporary_fd)
         temporary_log = Path(temporary_name)
-    log = None
-    if args.debug or temporary_log is not None:
-        log = get_logger(
-            __name__,
-            level=logging.DEBUG if args.debug else logging.WARNING,
-            show_summary=False,
-            gen_log=temporary_log is not None,
-            log_file=str(temporary_log) if temporary_log is not None else None,
-        )
+    log = get_logger(
+        __name__,
+        level=logging.DEBUG if args.debug else logging.WARNING,
+        show_summary=False,
+        gen_log=temporary_log is not None,
+        log_file=str(temporary_log) if temporary_log is not None else None,
+    )
 
     try:
-        if log is not None:
-            log.debug(f"flattening input: {args.input}")
+        log.debug(f"flattening input: {args.input}")
         result = flatten_filelist(
             FlattenRequest(
                 top_filelist=args.input,
@@ -140,13 +137,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
         )
     except FlattenError as error:
-        if log is None:
-            print(error, file=sys.stderr)
-        else:
-            try:
-                log.fatal(str(error))
-            except SystemExit:
-                pass
+        try:
+            log.fatal(str(error))
+        except SystemExit:
+            pass
         if temporary_log is not None:
             if error.log_publish_safe:
                 _publish_log(temporary_log, log_file)
@@ -154,8 +148,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 logging.shutdown()
                 temporary_log.unlink()
         return 1
-    if log is not None:
-        log.info(f"flattened output: {result.output_filelist}")
+    log.info(f"flattened output: {result.output_filelist}")
     if temporary_log is not None:
         _publish_log(temporary_log, log_file)
     return 0

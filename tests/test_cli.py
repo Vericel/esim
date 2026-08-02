@@ -103,15 +103,16 @@ def test_cli_reports_flatten_error_without_python_traceback(tmp_path: Path) -> N
         text=True,
     )
 
-    assert (completed.returncode, completed.stdout, completed.stderr) == (
-        1,
-        "",
-        "source file does not exist\n"
-        f"  at: {top_filelist}:1\n"
-        "  input: missing.sv\n"
-        f"  resolved: {tmp_path / 'missing.sv'}\n",
-    )
+    terminal = completed.stdout + completed.stderr
+    assert completed.returncode == 1
+    assert "FATAL" in terminal
+    assert "source file does not exist" in terminal
+    assert "top.f" in terminal
+    assert "missing.sv" in terminal
+    assert "Traceback" not in terminal
+    assert "Log Summary" not in terminal
     assert not (tmp_path / "flattened.f").exists()
+    assert not (tmp_path / "app.log").exists()
 
 
 def test_cli_log_flag_without_path_atomically_publishes_ff_log(
