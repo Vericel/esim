@@ -151,6 +151,25 @@ def _expand_path_value(
     line_number: int,
     source_chain: tuple[str, ...],
 ) -> str:
+    braced_references = re.findall(r"\$\{[^}]*\}", value)
+    has_unsupported_shell_syntax = (
+        value.startswith("~")
+        or "$(" in value
+        or "`" in value
+        or "${" in _ENVIRONMENT_VARIABLE_PATTERN.sub("", value)
+        or any(
+            _ENVIRONMENT_VARIABLE_PATTERN.fullmatch(reference) is None
+            for reference in braced_references
+        )
+    )
+    if has_unsupported_shell_syntax:
+        raise FlattenError(
+            "shell expansion syntax is not supported in paths\n"
+            f"{_source_chain_section(source_chain)}"
+            f"  at: {filelist}:{line_number}\n"
+            f"  input: {value}\n"
+            "  supported: $NAME and ${NAME}"
+        )
     expanded_value = _expand_environment_variables(
         value,
         filelist,

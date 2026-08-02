@@ -1291,3 +1291,32 @@ def test_source_path_rejects_non_posix_path_syntax(
         f"  input: {entry}\n"
         "  suggestion: use a Linux/POSIX path such as /mnt/c/project"
     )
+
+
+@pytest.mark.parametrize(
+    "entry",
+    ["~/rtl/top.sv", "${DV_HOME:-/tmp}/top.sv", "$(pwd)/top.sv"],
+)
+def test_source_path_rejects_shell_expansion_syntax(
+    tmp_path: Path,
+    entry: str,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(f"{entry}\n", encoding="utf-8")
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top_filelist,
+                working_directory=tmp_path,
+            )
+        )
+
+    assert str(caught.value) == (
+        "shell expansion syntax is not supported in paths\n"
+        f"  at: {top_filelist}:1\n"
+        f"  input: {entry}\n"
+        "  supported: $NAME and ${NAME}"
+    )
