@@ -10,6 +10,14 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["botticelle-onelog>=0.1,<0.2"]
 
+[project.optional-dependencies]
+dev = [
+    "pre-commit==4.6.0",
+    "pytest==8.4.2",
+    "pytest-cov==7.1.0",
+    "ruff==0.15.22",
+]
+
 [project.scripts]
 ff = "ff.cli:main"
 
@@ -19,3 +27,21 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+extend-exclude = ["build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PIE", "RUF"]
+
+[tool.coverage.run]
+branch = true
+patch = ["subprocess"]
+source = ["ff"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true

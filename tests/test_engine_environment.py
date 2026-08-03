@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import pytest
+
 
 @pytest.mark.parametrize(
     "entry",
@@ -30,6 +30,7 @@ def test_source_path_expands_standard_environment_variable_forms(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
 
 def test_missing_environment_variable_reports_its_name_and_source(
     tmp_path: Path,
@@ -161,4 +162,3 @@ def test_filelist_reference_path_expands_environment_variables(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
-

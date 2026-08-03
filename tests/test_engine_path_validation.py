@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import pytest
+
 
 def test_source_path_rejects_whitespace_even_when_file_exists(
     tmp_path: Path,

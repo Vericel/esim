@@ -1,9 +1,8 @@
-import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
-import pytest
+
 def test_cli_log_flag_without_path_atomically_publishes_ff_log(
     tmp_path: Path,
 ) -> None:

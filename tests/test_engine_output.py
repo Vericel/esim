@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+
 def test_success_atomically_replaces_existing_output_inode(tmp_path: Path) -> None:
     from ff import FlattenRequest, flatten_filelist
 
@@ -342,8 +343,7 @@ def test_symlinked_source_keeps_logical_path_with_physical_target_comment(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        f"// symlink target: {physical_source}\n"
-        f"{logical_source}\n"
+        f"// symlink target: {physical_source}\n{logical_source}\n"
     )
 
 
@@ -361,9 +361,7 @@ def test_all_recognized_simulator_paths_annotate_symlink_targets(
     logical_library = logical_directory / "models.v"
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "-v logical/models.v\n"
-        "-y logical\n"
-        "+incdir+logical\n",
+        "-v logical/models.v\n-y logical\n+incdir+logical\n",
         encoding="utf-8",
     )
 
@@ -408,8 +406,7 @@ def test_symlinked_child_filelist_is_annotated_before_its_expansion(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        f"// symlink target: {physical_child}\n"
-        f"{source}\n"
+        f"// symlink target: {physical_child}\n{source}\n"
     )
 
 
@@ -435,8 +432,7 @@ def test_symlinked_top_filelist_is_annotated_before_flattened_content(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        f"// symlink target: {physical_filelist}\n"
-        f"{source}\n"
+        f"// symlink target: {physical_filelist}\n{source}\n"
     )
 
 
@@ -457,7 +453,7 @@ def test_utf8_bom_and_crlf_input_renders_utf8_lf_without_bom(
         )
     )
 
-    assert result.output_filelist.read_bytes() == f"{source}\n".encode("utf-8")
+    assert result.output_filelist.read_bytes() == f"{source}\n".encode()
 
 
 def test_non_utf8_filelist_reports_structured_error(tmp_path: Path) -> None:

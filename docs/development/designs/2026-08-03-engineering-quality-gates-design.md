@@ -10,7 +10,7 @@
 - 正式支持原生 Linux 和 WSL2；POSIX 路径、权限和 symlink 语义为权威。
 - CI 验证 CPython 3.11、3.12、3.13 和 3.14。
 - Node 24 只运行官方 npm Pyright，不属于 ff 运行时或发布制品。
-- `botticelle-onelog>=0.1,<0.2` 保持运行时依赖；CI 和 wheelhouse 固定从 v0.1.0 对应提交 `7738cac48b383624b9b5a6bf3434a2a40210c568` 构建。
+- `botticelle-onelog>=0.1,<0.2` 保持运行时依赖；CI 和 wheelhouse 固定从 BottiCelle/onelog v0.1.0 对应提交 `7738cac48b383624b9b5a6bf3434a2a40210c568` 构建。
 
 ## 质量门禁
 

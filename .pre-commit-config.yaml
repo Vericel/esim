@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.22
+    hooks:
+      - id: ruff-format
+      - id: ruff-check
+        args: [--fix]
+
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: bash scripts/run-pyright.sh
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: pytest-coverage
+        name: pytest with branch coverage
+        entry: .venv/bin/python -m pytest --cov=ff --cov-branch --cov-fail-under=90
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

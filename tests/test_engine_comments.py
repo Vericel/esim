@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import pytest
+
 
 def test_active_blank_lines_and_line_comments_preserve_source_order(
     tmp_path: Path,
@@ -14,10 +14,7 @@ def test_active_blank_lines_and_line_comments_preserve_source_order(
     second_source.write_text("module second; endmodule\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "first.sv\n"
-        "\n"
-        "  // between sources\n"
-        "second.sv\n",
+        "first.sv\n\n  // between sources\nsecond.sv\n",
         encoding="utf-8",
     )
 
@@ -29,10 +26,7 @@ def test_active_blank_lines_and_line_comments_preserve_source_order(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        f"{first_source}\n"
-        "\n"
-        "  // between sources\n"
-        f"{second_source}\n"
+        f"{first_source}\n\n  // between sources\n{second_source}\n"
     )
 
 
@@ -64,9 +58,7 @@ def test_multiline_block_comments_follow_conditional_branch_selection(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        "/* retained\n"
-        "   comment */\n"
-        f"{source}\n"
+        f"/* retained\n   comment */\n{source}\n"
     )
 
 
@@ -80,8 +72,7 @@ def test_multiline_block_comment_follows_normalized_source_path(
     source.write_text("module top; endmodule\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "rtl/top.sv /* primary\n"
-        "               source */\n",
+        "rtl/top.sv /* primary\n               source */\n",
         encoding="utf-8",
     )
 
@@ -93,8 +84,7 @@ def test_multiline_block_comment_follows_normalized_source_path(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        f"{source} /* primary\n"
-        "               source */\n"
+        f"{source} /* primary\n               source */\n"
     )
 
 
@@ -121,8 +111,7 @@ def test_filelist_reference_trailing_comment_is_promoted_before_expansion(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        "// expanded child sources\n"
-        f"{source}\n"
+        f"// expanded child sources\n{source}\n"
     )
 
 
@@ -137,8 +126,7 @@ def test_filelist_reference_promotes_complete_multiline_block_comment(
     child_filelist.write_text("top.sv\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "-F child.f /* expanded\n"
-        "               child sources */\n",
+        "-F child.f /* expanded\n               child sources */\n",
         encoding="utf-8",
     )
 
@@ -150,9 +138,7 @@ def test_filelist_reference_promotes_complete_multiline_block_comment(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        "/* expanded\n"
-        "               child sources */\n"
-        f"{source}\n"
+        f"/* expanded\n               child sources */\n{source}\n"
     )
 
 
@@ -165,8 +151,7 @@ def test_block_comment_must_close_inside_the_filelist_that_opened_it(
     child_filelist.write_text("/* not closed here\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "-F child.f\n"
-        "*/\n",
+        "-F child.f\n*/\n",
         encoding="utf-8",
     )
 

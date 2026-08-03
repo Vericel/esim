@@ -40,7 +40,12 @@
 
 ```bash
 .venv/bin/python -m compileall -q src
-.venv/bin/python -m pytest -q
+.venv/bin/ruff format --check src tests scripts typings
+.venv/bin/ruff check src tests scripts typings
+bash scripts/run-pyright.sh
+.venv/bin/python -m pytest -q \
+  --cov=ff --cov-branch --cov-report=term-missing --cov-fail-under=90
+.venv/bin/python -m pip check
 .venv/bin/python -m pip wheel . --no-build-isolation --no-deps
 .venv/bin/python -m pip install --no-index --find-links WHEELHOUSE esim==0.2.0
 ```

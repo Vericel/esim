@@ -1,9 +1,11 @@
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
+
+
 def test_cli_reports_flatten_error_without_python_traceback(tmp_path: Path) -> None:
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text("missing.sv\n", encoding="utf-8")

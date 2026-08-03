@@ -1,6 +1,6 @@
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 from zipfile import ZipFile
 
 
@@ -29,9 +29,7 @@ def test_wheel_requires_python_311_and_declares_version_020(
     wheel = next(tmp_path.glob("esim-*.whl"))
     with ZipFile(wheel) as archive:
         metadata_name = next(
-            name
-            for name in archive.namelist()
-            if name.endswith(".dist-info/METADATA")
+            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
         )
         metadata = archive.read(metadata_name).decode("utf-8")
 

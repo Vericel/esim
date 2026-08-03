@@ -1,11 +1,10 @@
-from dataclasses import dataclass, field
 import os
-from pathlib import Path
 import re
 import stat
 import tempfile
-from typing import FrozenSet, Optional, Protocol
-
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Protocol
 
 _MACRO_NAME_SYNTAX = r"[A-Za-z_][A-Za-z0-9_$]*"
 _MACRO_NAME_PATTERN = re.compile(_MACRO_NAME_SYNTAX)
@@ -22,18 +21,17 @@ class FlattenError(Exception):
 
 
 class _DebugLogger(Protocol):
-    def debug(self, message: str) -> None:
-        ...
+    def debug(self, message: str) -> None: ...
 
 
 @dataclass(frozen=True)
 class FlattenRequest:
     top_filelist: Path
     working_directory: Path
-    output_filelist: Optional[Path] = None
-    predefined_macros: FrozenSet[str] = field(default_factory=frozenset)
-    log_file: Optional[Path] = None
-    logger: Optional[_DebugLogger] = None
+    output_filelist: Path | None = None
+    predefined_macros: frozenset[str] = field(default_factory=frozenset[str])
+    log_file: Path | None = None
+    logger: _DebugLogger | None = None
 
 
 @dataclass(frozen=True)
@@ -43,16 +41,16 @@ class FlattenResult:
 
 @dataclass
 class _FlattenedSections:
-    defines: list[str] = field(default_factory=list)
-    incdirs: list[str] = field(default_factory=list)
-    others: list[str] = field(default_factory=list)
+    defines: list[str] = field(default_factory=list[str])
+    incdirs: list[str] = field(default_factory=list[str])
+    others: list[str] = field(default_factory=list[str])
 
     def extend(self, child: "_FlattenedSections") -> None:
         self.defines.extend(child.defines)
         self.incdirs.extend(child.incdirs)
         self.others.extend(child.others)
 
-    def render(self, predefined_macros: FrozenSet[str]) -> list[str]:
+    def render(self, predefined_macros: frozenset[str]) -> list[str]:
         return (
             [f"+define+{macro}" for macro in sorted(predefined_macros)]
             + self.defines
@@ -67,7 +65,7 @@ def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
     return Path(os.path.abspath(path))
 
 
-def _symlink_target_annotation(path: Path) -> Optional[str]:
+def _symlink_target_annotation(path: Path) -> str | None:
     physical_path = path.resolve()
     if physical_path == path:
         return None
@@ -88,7 +86,7 @@ def _source_chain_section(source_chain: tuple[str, ...]) -> str:
     return f"  source chain:\n{rendered_entries}\n"
 
 
-def _split_trailing_comment(line: str) -> tuple[str, Optional[str]]:
+def _split_trailing_comment(line: str) -> tuple[str, str | None]:
     for index in range(len(line) - 1):
         if line[index : index + 2] not in {"//", "/*"}:
             continue
@@ -101,9 +99,9 @@ def _logical_entries(
     content: str,
     filelist: Path,
     source_chain: tuple[str, ...],
-) -> list[tuple[int, str, str, Optional[str]]]:
+) -> list[tuple[int, str, str, str | None]]:
     physical_lines = content.splitlines()
-    entries = []
+    entries: list[tuple[int, str, str, str | None]] = []
     line_index = 0
     while line_index < len(physical_lines):
         line_number = line_index + 1
@@ -166,7 +164,7 @@ def _expand_environment_variables(
         def replace(match: re.Match[str]) -> str:
             name = match.group(1) or match.group(2)
             if name in expansion_chain:
-                cycle = expansion_chain + (name,)
+                cycle = (*expansion_chain, name)
                 raise FlattenError(
                     "environment variable expansion cycle\n"
                     f"{_source_chain_section(source_chain)}"
@@ -195,7 +193,7 @@ def _expand_environment_variables(
                     f"  suggestion: export {name} with a non-empty value "
                     "before running ff"
                 )
-            return expand(os.environ[name], expansion_chain + (name,))
+            return expand(os.environ[name], (*expansion_chain, name))
 
         return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, current_value)
 
@@ -275,8 +273,7 @@ def _expand_path_value(
             candidate
             for candidate in (value, expanded_value)
             if _WINDOWS_DRIVE_PATH_PATTERN.match(candidate)
-            or candidate.startswith("\\\\")
-            or candidate.startswith("//")
+            or candidate.startswith(("\\\\", "//"))
         ),
         None,
     )
@@ -318,7 +315,7 @@ def _flatten_lines(
     active_states = [True]
     branch_taken_states = [False]
     else_seen_states = [False]
-    condition_open_lines = []
+    condition_open_lines: list[int] = []
     for line_number, line, entry, trailing_comment in _logical_entries(
         content,
         filelist,
@@ -334,9 +331,7 @@ def _flatten_lines(
             "`endif": "`endif",
         }
         if tokens and tokens[0] in expected_condition_usage:
-            expected_token_count = (
-                1 if tokens[0] in {"`else", "`endif"} else 2
-            )
+            expected_token_count = 1 if tokens[0] in {"`else", "`endif"} else 2
             if len(tokens) != expected_token_count:
                 raise FlattenError(
                     "invalid conditional directive syntax\n"
@@ -358,9 +353,7 @@ def _flatten_lines(
                 )
         if stripped.startswith("`ifdef "):
             macro = stripped.split(maxsplit=1)[1]
-            branch_selected = (
-                active_states[-1] and macro in request.predefined_macros
-            )
+            branch_selected = active_states[-1] and macro in request.predefined_macros
             active_states.append(branch_selected)
             branch_taken_states.append(branch_selected)
             else_seen_states.append(False)
@@ -398,9 +391,7 @@ def _flatten_lines(
                 and macro in request.predefined_macros
             )
             active_states[-1] = branch_selected
-            branch_taken_states[-1] = (
-                branch_taken_states[-1] or branch_selected
-            )
+            branch_taken_states[-1] = branch_taken_states[-1] or branch_selected
             continue
         if stripped == "`else":
             if len(active_states) == 1:
@@ -418,13 +409,9 @@ def _flatten_lines(
                     "  suggestion: keep only one `else in the conditional block"
                 )
             else_seen_states[-1] = True
-            branch_selected = (
-                active_states[-2] and not branch_taken_states[-1]
-            )
+            branch_selected = active_states[-2] and not branch_taken_states[-1]
             active_states[-1] = branch_selected
-            branch_taken_states[-1] = (
-                branch_taken_states[-1] or branch_selected
-            )
+            branch_taken_states[-1] = branch_taken_states[-1] or branch_selected
             continue
         if stripped == "`endif":
             if len(active_states) == 1:
@@ -486,14 +473,10 @@ def _flatten_lines(
                 )
         if len(tokens) == 2 and tokens[0] in {"-f", "-F"}:
             child_reference_base = (
-                request.working_directory
-                if tokens[0] == "-f"
-                else filelist.parent
+                request.working_directory if tokens[0] == "-f" else filelist.parent
             )
             child_content_base = (
-                request.working_directory
-                if tokens[0] == "-f"
-                else None
+                request.working_directory if tokens[0] == "-f" else None
             )
             expanded_child_reference = _expand_path_value(
                 tokens[1],
@@ -526,7 +509,7 @@ def _flatten_lines(
             child_identity = child_filelist.resolve()
             input_filelists.setdefault(child_identity, child_filelist)
             reference = f"{filelist}:{line_number} -> {child_filelist}"
-            next_source_chain = source_chain + (reference,)
+            next_source_chain = (*source_chain, reference)
             if child_identity in filelist_stack:
                 rendered_source_chain = "\n".join(
                     f"    {entry}" for entry in next_source_chain
@@ -539,8 +522,7 @@ def _flatten_lines(
                 )
             if request.logger is not None:
                 request.logger.debug(
-                    f"expanding filelist: {filelist}:{line_number} -> "
-                    f"{child_filelist}"
+                    f"expanding filelist: {filelist}:{line_number} -> {child_filelist}"
                 )
             if trailing_comment is not None:
                 sections.others.append(trailing_comment)
@@ -551,11 +533,11 @@ def _flatten_lines(
                 _flatten_lines(
                     child_filelist,
                     child_content_base or child_filelist.parent,
-                        request,
-                        filelist_stack + (child_identity,),
-                        next_source_chain,
-                        input_filelists,
-                    )
+                    request,
+                    (*filelist_stack, child_identity),
+                    next_source_chain,
+                    input_filelists,
+                )
             )
             continue
         if len(tokens) == 2 and tokens[0] == "-v":
@@ -626,7 +608,7 @@ def _flatten_lines(
             sections.others.append(rendered_library_directory)
             continue
         if stripped.startswith("+incdir+"):
-            include_directories = []
+            include_directories: list[str] = []
             directory_entries = stripped[len("+incdir+") :].split("+")
             if any(not directory_entry for directory_entry in directory_entries):
                 raise FlattenError(
@@ -679,11 +661,7 @@ def _flatten_lines(
                 f"  input: {stripped}\n"
                 "  suggestion: use a path without spaces or tabs"
             )
-        if (
-            "*" in stripped
-            or "?" in stripped
-            or ("[" in stripped and "]" in stripped)
-        ):
+        if "*" in stripped or "?" in stripped or ("[" in stripped and "]" in stripped):
             raise FlattenError(
                 "glob patterns are not supported in paths\n"
                 f"{_source_chain_section(source_chain)}"
@@ -855,9 +833,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         and not output_filelist.is_symlink()
         and output_filelist.is_file()
     ):
-        preserved_output_mode = (
-            stat.S_IMODE(output_filelist.stat().st_mode) & 0o666
-        )
+        preserved_output_mode = stat.S_IMODE(output_filelist.stat().st_mode) & 0o666
     current_umask = os.umask(0)
     os.umask(current_umask)
     output_mode = (

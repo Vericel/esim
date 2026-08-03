@@ -1,0 +1,9 @@
+{
+  "include": ["src"],
+  "exclude": ["build", "dist"],
+  "stubPath": "typings",
+  "typeCheckingMode": "strict",
+  "pythonVersion": "3.11",
+  "venvPath": ".",
+  "venv": ".venv"
+}

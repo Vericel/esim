@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import pytest
+
 
 def test_uppercase_f_recursively_uses_each_filelist_directory(
     tmp_path: Path,

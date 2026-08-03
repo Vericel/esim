@@ -1,9 +1,6 @@
-import os
-from pathlib import Path
 import subprocess
 import sys
-
-import pytest
+from pathlib import Path
 
 
 def test_cli_writes_default_flat_filelist(tmp_path: Path) -> None:
@@ -59,12 +56,7 @@ def test_cli_define_option_selects_all_named_macro_branches(tmp_path: Path) -> N
     ddr_source.write_text("module ddr; endmodule\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "`ifdef FPGA\n"
-        f"{fpga_source}\n"
-        "`endif\n"
-        "`ifdef USE_DDR\n"
-        f"{ddr_source}\n"
-        "`endif\n",
+        f"`ifdef FPGA\n{fpga_source}\n`endif\n`ifdef USE_DDR\n{ddr_source}\n`endif\n",
         encoding="utf-8",
     )
     ff_command = Path(sys.executable).with_name("ff")
@@ -91,8 +83,5 @@ def test_cli_define_option_selects_all_named_macro_branches(tmp_path: Path) -> N
     ) == (
         0,
         "",
-        "+define+FPGA\n"
-        "+define+USE_DDR\n"
-        f"{fpga_source}\n"
-        f"{ddr_source}\n",
+        f"+define+FPGA\n+define+USE_DDR\n{fpga_source}\n{ddr_source}\n",
     )

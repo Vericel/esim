@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import pytest
+
 
 def test_v_library_file_is_expanded_and_rendered_as_absolute(
     tmp_path: Path,
@@ -128,8 +128,7 @@ def test_incdirs_are_promoted_with_comments_and_symlink_annotations(
     plain.mkdir()
     top = tmp_path / "top.f"
     top.write_text(
-        "top.sv\n"
-        "+incdir+logical_include+plain_include // include search order\n",
+        "top.sv\n+incdir+logical_include+plain_include // include search order\n",
         encoding="utf-8",
     )
 
@@ -185,12 +184,7 @@ def test_unknown_simulator_options_pass_through_without_defining_ff_macros(
     source.write_text("module generic; endmodule\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "+define+FPGA\n"
-        "-sverilog\n"
-        "`ifdef FPGA\n"
-        "missing-fpga.sv\n"
-        "`endif\n"
-        "generic.sv\n",
+        "+define+FPGA\n-sverilog\n`ifdef FPGA\nmissing-fpga.sv\n`endif\ngeneric.sv\n",
         encoding="utf-8",
     )
 
@@ -202,9 +196,7 @@ def test_unknown_simulator_options_pass_through_without_defining_ff_macros(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        "+define+FPGA\n"
-        "-sverilog\n"
-        f"{source}\n"
+        f"+define+FPGA\n-sverilog\n{source}\n"
     )
 
 
@@ -221,17 +213,12 @@ def test_filelist_defines_are_promoted_after_command_line_defines_stably(
     include.mkdir()
     child = tmp_path / "child.f"
     child.write_text(
-        "second.sv\n"
-        "+define+STUB_XXX // from child\n",
+        "second.sv\n+define+STUB_XXX // from child\n",
         encoding="utf-8",
     )
     top = tmp_path / "top.f"
     top.write_text(
-        "first.sv\n"
-        "+incdir+include\n"
-        "+define+TOP_MODE\n"
-        "-F child.f\n"
-        "+define+STUB_XXX\n",
+        "first.sv\n+incdir+include\n+define+TOP_MODE\n-F child.f\n+define+STUB_XXX\n",
         encoding="utf-8",
     )
 

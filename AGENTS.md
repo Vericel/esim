@@ -83,6 +83,7 @@ tests/
 ## 代码与依赖
 
 - 生产代码必须兼容 CPython 3.11，不使用更高版本才提供的语法或标准库 API。
+- 开发依赖使用 `.[dev]` extra 中的精确版本；Pyright 1.1.411 使用 Node 24 和 `package-lock.json`，Node、Pyright 与其他质量工具不得进入运行依赖或发布 wheelhouse。
 - CLI 层只负责参数解析、调用应用逻辑和呈现结果；核心业务规则放入可独立理解和测试的模块。
 - 优先使用小而清晰的接口；不做与当前需求无关的重构，不提前实现未来功能。
 - 代码标识符和测试函数名使用英文；CLI 参数、输出和错误信息保持现有英文风格，除非需求明确要求本地化。
@@ -95,11 +96,12 @@ tests/
 
 - TDD 循环中先运行最小相关测试；声称完成前使用项目虚拟环境运行完整测试：`.venv/bin/python -m pytest`。若该环境不存在，使用当前已激活 Python 环境的 `python -m pytest` 并报告实际解释器。
 - 稳定的部分回归按能力文件运行，例如 `.venv/bin/python -m pytest tests/test_engine_conditions.py`；单条用例使用完整 node ID；跨能力临时筛选可使用 `-k`，但不得把 `-k` 表达式当成持久测试分类。
+- 完整本地质量门禁依次运行 `.venv/bin/ruff format --check src tests scripts typings`、`.venv/bin/ruff check src tests scripts typings`、`bash scripts/run-pyright.sh` 和 `.venv/bin/python -m pytest --cov=ff --cov-branch --cov-fail-under=90`。
 - 修改 CLI、输出格式或错误信息时，同时覆盖 CLI seam 和引擎 API seam 的相关测试。
 - 文档或路径变化后，搜索仓库内引用并确认没有失效链接或旧路径。
 - 完成前检查 `git diff --check` 和 `git status --short`，确认没有覆盖或混入用户的其他改动。
 - 没有实际运行验证时不得声称“完成”或“通过”。环境阻止验证时，明确报告命令、阻碍和未验证范围。
-- 当前仓库没有配置 formatter、linter 或 type checker，不虚构相应门禁；引入后再把准确命令加入本文件。
+- 提交前 hook 自动执行 Ruff 格式化、安全修复和 Pyright；pre-push hook 执行完整 branch coverage 回归。hook 不替代完成前的显式全量验证。
 
 ## Git 规范
 

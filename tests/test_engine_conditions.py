@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import pytest
+
 
 def test_predefined_macros_select_branches_and_render_sorted_hdl_defines(
     tmp_path: Path,
@@ -27,9 +27,7 @@ def test_predefined_macros_select_branches_and_render_sorted_hdl_defines(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        "+define+FPGA\n"
-        "+define+Z_TRACE\n"
-        f"{source}\n"
+        f"+define+FPGA\n+define+Z_TRACE\n{source}\n"
     )
 
 
@@ -67,11 +65,7 @@ def test_else_keeps_fallback_branch_when_ifdef_is_not_selected(tmp_path: Path) -
     top_filelist = tmp_path / "lists" / "top.f"
     top_filelist.parent.mkdir()
     top_filelist.write_text(
-        "`ifdef FPGA\n"
-        "../rtl/fpga.sv\n"
-        "`else\n"
-        "../rtl/asic.sv\n"
-        "`endif\n",
+        "`ifdef FPGA\n../rtl/fpga.sv\n`else\n../rtl/asic.sv\n`endif\n",
         encoding="utf-8",
     )
 
@@ -117,8 +111,7 @@ def test_elsif_keeps_first_matching_alternative_branch(tmp_path: Path) -> None:
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
-        "+define+ASIC\n"
-        f"{rtl_dir / 'asic.sv'}\n"
+        f"+define+ASIC\n{rtl_dir / 'asic.sv'}\n"
     )
 
 
@@ -227,10 +220,7 @@ def test_condition_rejects_branch_directives_after_else(
 
     top_filelist = tmp_path / "top.f"
     top_filelist.write_text(
-        "`ifdef FPGA\n"
-        "`else\n"
-        f"{directive}\n"
-        "`endif\n",
+        f"`ifdef FPGA\n`else\n{directive}\n`endif\n",
         encoding="utf-8",
     )
 

@@ -1,14 +1,17 @@
 import argparse
 import logging
 import os
-from pathlib import Path
 import stat
 import sys
 import tempfile
-from typing import Optional, Sequence
+from collections.abc import Sequence
+from contextlib import suppress
+from pathlib import Path
+from typing import Protocol, cast
+
+from onelog import get_logger
 
 from ff import FlattenError, FlattenRequest, flatten_filelist
-from onelog import get_logger
 
 
 def _publish_log(temporary_log: Path, log_file: Path) -> None:
@@ -22,7 +25,13 @@ def _paths_share_identity(first: Path, second: Path) -> bool:
     return first.exists() and second.exists() and first.resolve() == second.resolve()
 
 
-def _report_internal_error(log, error: Exception, debug: bool) -> None:
+class _Logger(Protocol):
+    def error(self, message: object) -> None: ...
+
+    def exception(self, message: object) -> None: ...
+
+
+def _report_internal_error(log: _Logger, error: Exception, debug: bool) -> None:
     message = f"ff internal error: {type(error).__name__}: {error}"
     if debug:
         log.exception(message)
@@ -30,7 +39,7 @@ def _report_internal_error(log, error: Exception, debug: bool) -> None:
         log.error(message)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="ff")
     parser.add_argument("input", type=Path)
     parser.add_argument("-o", "--output", type=Path)
@@ -45,14 +54,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     ):
         parser.error("INPUT must be the first argument")
     args = parser.parse_args(arguments)
+    input_filelist = cast(Path, args.input)
+    output_filelist = cast(Path | None, args.output)
+    define_groups = cast(list[list[str]], args.define)
+    log_file = cast(Path | None, args.log)
+    debug = cast(bool, args.debug)
 
     working_directory = Path.cwd()
-    output_filelist = args.output
     if output_filelist is not None and not output_filelist.is_absolute():
         output_filelist = working_directory / output_filelist
 
-    log_file = args.log
-    temporary_log = None
+    temporary_log: Path | None = None
     if log_file is not None:
         if not log_file.is_absolute():
             log_file = working_directory / log_file
@@ -106,7 +118,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 file=sys.stderr,
             )
             return 1
-        top_filelist = args.input
+        top_filelist = input_filelist
         if not top_filelist.is_absolute():
             top_filelist = working_directory / top_filelist
         if _paths_share_identity(log_file, top_filelist):
@@ -126,34 +138,31 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         temporary_log = Path(temporary_name)
     log = get_logger(
         __name__,
-        level=logging.DEBUG if args.debug else logging.WARNING,
+        level=logging.DEBUG if debug else logging.WARNING,
         show_summary=False,
         gen_log=temporary_log is not None,
         log_file=str(temporary_log) if temporary_log is not None else None,
     )
 
     try:
-        log.debug(f"flattening input: {args.input}")
+        log.debug(f"flattening input: {input_filelist}")
         result = flatten_filelist(
             FlattenRequest(
-                top_filelist=args.input,
+                top_filelist=input_filelist,
                 working_directory=working_directory,
                 output_filelist=output_filelist,
                 predefined_macros=frozenset(
-                    macro
-                    for macro_group in args.define
-                    for macro in macro_group
+                    macro for macro_group in define_groups for macro in macro_group
                 ),
                 log_file=log_file,
                 logger=log,
             )
         )
     except FlattenError as error:
-        try:
+        with suppress(SystemExit):
             log.fatal(str(error))
-        except SystemExit:
-            pass
         if temporary_log is not None:
+            assert log_file is not None
             if error.log_publish_safe:
                 _publish_log(temporary_log, log_file)
             else:
@@ -161,16 +170,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 temporary_log.unlink()
         return 1
     except Exception as error:
-        _report_internal_error(log, error, args.debug)
+        _report_internal_error(log, error, debug)
         if temporary_log is not None:
+            assert log_file is not None
             _publish_log(temporary_log, log_file)
         return 3
     log.info(f"flattened output: {result.output_filelist}")
     if temporary_log is not None:
+        assert log_file is not None
         try:
             _publish_log(temporary_log, log_file)
         except Exception as error:
-            _report_internal_error(log, error, args.debug)
+            _report_internal_error(log, error, debug)
             if temporary_log.exists():
                 temporary_log.unlink()
             return 3
