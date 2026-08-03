@@ -7,7 +7,8 @@
 |---|---|
 | 默认/显式输出与 CLI 参数顺序 | `test_engine_writes_default_flat_filelist`、`test_cli_writes_explicit_output_filelist`、`test_cli_requires_input_to_be_the_first_argument` |
 | 条件指令、宏集合和非活动分支 | `test_ifdef_*`、`test_elsif_*`、`test_condition_*`、`test_unselected_branch_skips_nonconditional_validation_and_side_effects` |
-| `-f/-F`、基准、循环、重复和 source chain | `test_uppercase_f_*`、`test_lowercase_f_*`、`test_recursive_filelist_cycle_*`、`test_repeated_filelist_references_and_sources_are_not_deduplicated`、`test_nested_*source_chain` |
+| `-f/-F`、基准、循环、重复和 source chain | `test_uppercase_f_*`、`test_lowercase_f_*`、`test_recursive_filelist_cycle_*`、`test_repeated_filelist_references_expand_before_source_deduplication`、`test_nested_*source_chain` |
+| 普通源码与 `-v` 的独立物理去重域 | `test_repeated_source_is_commented_after_first_occurrence`、`test_symlink_and_real_source_share_physical_duplicate_identity`、`test_v_files_deduplicate_separately_from_ordinary_sources`、`test_multiline_trailing_comment_is_fully_commented_on_duplicate`、`test_duplicate_files_report_physical_and_origin_debug_trace` |
 | `//`/`/* */`、尾注释与注释提升 | `test_active_blank_lines_*`、`test_multiline_block_*`、`test_filelist_reference_*comment`、`test_block_comment_*` |
 | 环境变量语法、递归、缺失/空/循环 | `test_source_path_expands_*`、`test_environment_*`、`test_source_path_rejects_malformed_environment_references` |
 | source、`-v/-y`、`+incdir+`、透传选项 | `test_v_*`、`test_y_*`、`test_incdir_*`、`test_unknown_simulator_options_*` |

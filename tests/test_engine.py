@@ -642,6 +642,33 @@ def test_repeated_source_is_commented_after_first_occurrence(tmp_path: Path) -> 
     )
 
 
+def test_repeated_filelist_references_expand_before_source_deduplication(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    child_filelist = tmp_path / "child.f"
+    child_filelist.write_text("top.sv\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("-F child.f\n-F child.f\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{source}\n"
+        "// ff: duplicate physical source; "
+        f"first: {child_filelist}:1; duplicate: {child_filelist}:1\n"
+        f"// {source}\n"
+    )
+
+
 def test_symlink_and_real_source_share_physical_duplicate_identity(
     tmp_path: Path,
 ) -> None:
