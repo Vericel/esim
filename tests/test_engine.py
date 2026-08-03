@@ -675,6 +675,47 @@ def test_symlink_and_real_source_share_physical_duplicate_identity(
     )
 
 
+def test_duplicate_files_report_physical_and_origin_debug_trace(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    class RecordingLogger:
+        def __init__(self) -> None:
+            self.messages: list[str] = []
+
+        def debug(self, message: str) -> None:
+            self.messages.append(message)
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "top.sv\ntop.sv\n-v top.sv\n-v top.sv\n",
+        encoding="utf-8",
+    )
+    logger = RecordingLogger()
+
+    flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            logger=logger,
+        )
+    )
+
+    assert (
+        "skipping duplicate physical source: "
+        f"identity={source}; first={top_filelist}:1; "
+        f"duplicate={top_filelist}:2; entry={source}"
+    ) in logger.messages
+    assert (
+        "skipping duplicate physical library file: "
+        f"identity={source}; first={top_filelist}:3; "
+        f"duplicate={top_filelist}:4; entry=-v {source}"
+    ) in logger.messages
+
+
 def test_nested_missing_source_reports_complete_source_chain(
     tmp_path: Path,
 ) -> None:

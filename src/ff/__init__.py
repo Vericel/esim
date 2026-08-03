@@ -77,6 +77,23 @@ def _comment_duplicate(
     ]
 
 
+def _log_duplicate(
+    logger: Optional[_DebugLogger],
+    kind: str,
+    identity: str,
+    first_origin: str,
+    duplicate_origin: str,
+    rendered_entry: str,
+) -> None:
+    if logger is None:
+        return
+    logger.debug(
+        f"skipping duplicate physical {kind}: "
+        f"identity={identity}; first={first_origin}; "
+        f"duplicate={duplicate_origin}; entry={rendered_entry}"
+    )
+
+
 def _has_read_permission(path: Path) -> bool:
     return bool(stat.S_IMODE(path.stat().st_mode) & 0o444) and os.access(
         path,
@@ -597,6 +614,14 @@ def _flatten_lines(
             identity = str(library_file.resolve())
             first_origin = state.seen_library_files.get(identity)
             if first_origin is not None:
+                _log_duplicate(
+                    request.logger,
+                    "library file",
+                    identity,
+                    first_origin,
+                    origin,
+                    rendered_library,
+                )
                 flattened_lines.extend(
                     _comment_duplicate(
                         "library file",
@@ -741,6 +766,14 @@ def _flatten_lines(
         identity = str(resolved_source.resolve())
         first_origin = state.seen_sources.get(identity)
         if first_origin is not None:
+            _log_duplicate(
+                request.logger,
+                "source",
+                identity,
+                first_origin,
+                origin,
+                rendered_source,
+            )
             flattened_lines.extend(
                 _comment_duplicate(
                     "source",
