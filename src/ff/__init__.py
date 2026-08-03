@@ -61,6 +61,22 @@ def _symlink_target_annotation(path: Path) -> Optional[str]:
     return f"// symlink target: {physical_path}"
 
 
+def _comment_duplicate(
+    kind: str,
+    first_origin: str,
+    duplicate_origin: str,
+    rendered_entry: str,
+) -> list[str]:
+    explanation = (
+        f"// ff: duplicate physical {kind}; "
+        f"first: {first_origin}; duplicate: {duplicate_origin}"
+    )
+    return [
+        explanation,
+        *(f"// {line}" for line in rendered_entry.splitlines()),
+    ]
+
+
 def _has_read_permission(path: Path) -> bool:
     return bool(stat.S_IMODE(path.stat().st_mode) & 0o444) and os.access(
         path,
@@ -582,11 +598,12 @@ def _flatten_lines(
             first_origin = state.seen_library_files.get(identity)
             if first_origin is not None:
                 flattened_lines.extend(
-                    [
-                        "// ff: duplicate physical library file; "
-                        f"first: {first_origin}; duplicate: {origin}",
-                        f"// {rendered_library}",
-                    ]
+                    _comment_duplicate(
+                        "library file",
+                        first_origin,
+                        origin,
+                        rendered_library,
+                    )
                 )
                 continue
             state.seen_library_files[identity] = origin
@@ -725,11 +742,12 @@ def _flatten_lines(
         first_origin = state.seen_sources.get(identity)
         if first_origin is not None:
             flattened_lines.extend(
-                [
-                    "// ff: duplicate physical source; "
-                    f"first: {first_origin}; duplicate: {origin}",
-                    f"// {rendered_source}",
-                ]
+                _comment_duplicate(
+                    "source",
+                    first_origin,
+                    origin,
+                    rendered_source,
+                )
             )
             continue
         state.seen_sources[identity] = origin

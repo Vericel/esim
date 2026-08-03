@@ -862,6 +862,37 @@ def test_multiline_block_comment_follows_normalized_source_path(
     )
 
 
+def test_multiline_trailing_comment_is_fully_commented_on_duplicate(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "top.sv\n"
+        "top.sv /* duplicate from\n"
+        "          integration */\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{source}\n"
+        "// ff: duplicate physical source; "
+        f"first: {top_filelist}:1; duplicate: {top_filelist}:2\n"
+        f"// {source} /* duplicate from\n"
+        "//           integration */\n"
+    )
+
+
 def test_filelist_reference_trailing_comment_is_promoted_before_expansion(
     tmp_path: Path,
 ) -> None:
