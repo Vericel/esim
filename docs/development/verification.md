@@ -16,7 +16,7 @@
 | symlink 逻辑路径、target annotation 和真实身份 | `test_symlinked_*`、`test_all_recognized_simulator_paths_annotate_symlink_targets`、`test_output_symlink_to_nested_input_is_rejected_by_real_identity` |
 | 可读性、输出父目录、原子替换和权限 | `test_unreadable_*`、`test_output_parent_*`、`test_success_atomically_*`、`test_new_output_permissions_*`、`test_flatten_failure_preserves_*` |
 | onelog、`-l`、`--debug`、summary 和日志安全 | `test_cli_log_*`、`test_cli_debug_*`、`test_cli_controlled_failure_*`、`test_cli_rejects_log_*`、`test_cli_replaces_log_symlink_*` |
-| 发布物使用正式 onelog 依赖且不混入 vendor 缓存 | `test_wheel_uses_versioned_onelog_dependency` |
+| 发布物使用正式 onelog 依赖且不混入 vendor 缓存；wheelhouse 不覆盖非空目录 | `test_wheel_uses_versioned_onelog_dependency`、`test_wheelhouse_builder_preserves_and_rejects_nonempty_output` |
 | 退出码 0/1/2/3 | CLI 成功测试、`test_cli_reports_flatten_error_without_python_traceback`、`test_cli_requires_input_to_be_the_first_argument`、`test_cli_returns_three_for_unexpected_internal_failure` |
 
 ## 回归选择
@@ -41,6 +41,6 @@
 ```bash
 .venv/bin/python -m compileall -q src
 bash scripts/check.sh
-.venv/bin/python -m pip wheel . --no-build-isolation --no-deps
-.venv/bin/python -m pip install --no-index --find-links WHEELHOUSE esim==0.2.0
+FF_PYTHON=.venv/bin/python \
+  bash scripts/build-wheelhouse.sh /tmp/esim-wheelhouse
 ```

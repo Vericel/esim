@@ -20,6 +20,9 @@
 - `README.md`：项目入口、安装说明和最小示例。
 - `docs/user/ff-user-guide.html`：完整用户使用文档。
 - `docs/development/verification.md`：项目级验证方法和结果。
+- `docs/development/development-guide.md`：开发环境、质量门禁和 CI 使用说明。
+- `docs/development/release-checklist.md`：人工发布与离线制品检查清单。
+- `CHANGELOG.md`：遵循 SemVer 的用户可见变更记录。
 - `docs/development/research/`：调研证据，不自动成为需求或架构决策。
 
 实现、测试和文档不一致时，先确认需求；不得通过只修改其中一层来掩盖冲突。任何可观察行为变更必须在同一逻辑变更中同步更新需求、测试、实现和受影响的用户文档。
@@ -97,6 +100,7 @@ tests/
 - TDD 循环中先运行最小相关测试；声称完成前使用项目虚拟环境运行完整测试：`.venv/bin/python -m pytest`。若该环境不存在，使用当前已激活 Python 环境的 `python -m pytest` 并报告实际解释器。
 - 稳定的部分回归按能力文件运行，例如 `.venv/bin/python -m pytest tests/test_engine_conditions.py`；单条用例使用完整 node ID；跨能力临时筛选可使用 `-k`，但不得把 `-k` 表达式当成持久测试分类。
 - 完整本地质量门禁统一运行 `bash scripts/check.sh`；该入口依次执行 Ruff、Pyright、文档链接检查、90% branch coverage 回归和 `pip check`，CI 必须调用同一入口。
+- 离线发布验证使用空输出目录运行 `FF_PYTHON=.venv/bin/python bash scripts/build-wheelhouse.sh <OUTPUT>`；该命令必须完成固定 onelog commit、全部运行依赖、无网络安装 smoke test 和 SHA-256 清单。
 - 修改 CLI、输出格式或错误信息时，同时覆盖 CLI seam 和引擎 API seam 的相关测试。
 - 文档或路径变化后，搜索仓库内引用并确认没有失效链接或旧路径。
 - 完成前检查 `git diff --check` 和 `git status --short`，确认没有覆盖或混入用户的其他改动。

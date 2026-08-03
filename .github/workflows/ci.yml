@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ONELOG_COMMIT: 7738cac48b383624b9b5a6bf3434a2a40210c568
+
+jobs:
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m venv .venv
+      - name: Install fixed runtime dependency
+        run: >-
+          .venv/bin/python -m pip install
+          "git+https://github.com/BottiCelle/onelog.git@${ONELOG_COMMIT}"
+      - run: .venv/bin/python -m pip install -e ".[dev]"
+      - run: .venv/bin/python -m pytest -q
+      - run: .venv/bin/python -m pip check
+
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: python -m venv .venv
+      - name: Install fixed runtime dependency
+        run: >-
+          .venv/bin/python -m pip install
+          "git+https://github.com/BottiCelle/onelog.git@${ONELOG_COMMIT}"
+      - run: .venv/bin/python -m pip install -e ".[dev]"
+      - run: npm ci
+      - run: bash scripts/check.sh
+
+  package:
+    name: Offline wheelhouse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m venv .venv
+      - name: Build and smoke-test wheelhouse
+        run: FF_PYTHON=.venv/bin/python bash scripts/build-wheelhouse.sh
+      - name: Create release archive
+        run: tar -czf dist/esim-0.2.0-wheelhouse.tar.gz -C dist wheelhouse
+      - uses: actions/upload-artifact@v7
+        with:
+          name: esim-0.2.0-wheelhouse
+          path: |
+            dist/esim-0.2.0-wheelhouse.tar.gz
+            dist/wheelhouse/SHA256SUMS
+          if-no-files-found: error

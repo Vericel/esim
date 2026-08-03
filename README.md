@@ -29,3 +29,5 @@ ff /aaa/bbb/testbench.f -o testbench.f -d MACRO_1 MACRO_2
 
 - [ff User Guide](docs/user/ff-user-guide.html)
 - [ff 需求与行为契约](docs/requirements/ff.md)
+- [开发指南](docs/development/development-guide.md)
+- [变更记录](CHANGELOG.md)

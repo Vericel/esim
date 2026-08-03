@@ -67,3 +67,32 @@ def test_wheel_uses_versioned_onelog_dependency(tmp_path: Path) -> None:
 
     assert "ff/_vendor/onelog.py" not in names
     assert "Requires-Dist: botticelle-onelog<0.2,>=0.1" in metadata
+
+
+def test_wheelhouse_builder_preserves_and_rejects_nonempty_output(
+    tmp_path: Path,
+) -> None:
+    project_root = Path(__file__).parents[1]
+    output = tmp_path / "wheelhouse"
+    output.mkdir()
+    existing = output / "existing.whl"
+    existing.write_text("keep", encoding="utf-8")
+
+    completed = subprocess.run(
+        [
+            "bash",
+            str(project_root / "scripts" / "build-wheelhouse.sh"),
+            str(output),
+        ],
+        cwd=project_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert (completed.returncode, completed.stdout, completed.stderr) == (
+        2,
+        "",
+        f"wheelhouse output must be empty: {output}\n",
+    )
+    assert existing.read_text(encoding="utf-8") == "keep"
