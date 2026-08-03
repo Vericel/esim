@@ -41,6 +41,26 @@ class FlattenResult:
     output_filelist: Path
 
 
+@dataclass
+class _FlattenedSections:
+    defines: list[str] = field(default_factory=list)
+    incdirs: list[str] = field(default_factory=list)
+    others: list[str] = field(default_factory=list)
+
+    def extend(self, child: "_FlattenedSections") -> None:
+        self.defines.extend(child.defines)
+        self.incdirs.extend(child.incdirs)
+        self.others.extend(child.others)
+
+    def render(self, predefined_macros: FrozenSet[str]) -> list[str]:
+        return (
+            [f"+define+{macro}" for macro in sorted(predefined_macros)]
+            + self.defines
+            + self.incdirs
+            + self.others
+        )
+
+
 def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
     if not path.is_absolute():
         path = base_directory / path
@@ -282,7 +302,7 @@ def _flatten_lines(
     filelist_stack: tuple[Path, ...],
     source_chain: tuple[str, ...],
     input_filelists: dict[Path, Path],
-) -> list[str]:
+) -> _FlattenedSections:
     if request.logger is not None:
         request.logger.debug(f"reading filelist: {filelist}")
     try:
@@ -294,7 +314,7 @@ def _flatten_lines(
             f"  input: {filelist}\n"
             "  suggestion: convert the filelist to UTF-8"
         ) from error
-    flattened_lines = []
+    sections = _FlattenedSections()
     active_states = [True]
     branch_taken_states = [False]
     else_seen_states = [False]
@@ -430,10 +450,10 @@ def _flatten_lines(
                 "  suggestion: put one complete logical entry on each line"
             )
         if not stripped or stripped.startswith("//"):
-            flattened_lines.append(line)
+            sections.others.append(line)
             continue
         if stripped.startswith("/*"):
-            flattened_lines.append(line)
+            sections.others.append(line)
             continue
         if stripped.startswith("`"):
             raise FlattenError(
@@ -523,11 +543,11 @@ def _flatten_lines(
                     f"{child_filelist}"
                 )
             if trailing_comment is not None:
-                flattened_lines.append(trailing_comment)
+                sections.others.append(trailing_comment)
             annotation = _symlink_target_annotation(child_filelist)
             if annotation is not None:
-                flattened_lines.append(annotation)
-            flattened_lines.extend(
+                sections.others.append(annotation)
+            sections.extend(
                 _flatten_lines(
                     child_filelist,
                     child_content_base or child_filelist.parent,
@@ -572,8 +592,8 @@ def _flatten_lines(
                 rendered_library = f"{rendered_library} {trailing_comment}"
             annotation = _symlink_target_annotation(library_file)
             if annotation is not None:
-                flattened_lines.append(annotation)
-            flattened_lines.append(rendered_library)
+                sections.others.append(annotation)
+            sections.others.append(rendered_library)
             continue
         if len(tokens) == 2 and tokens[0] == "-y":
             expanded_library_directory = _expand_path_value(
@@ -602,8 +622,8 @@ def _flatten_lines(
                 )
             annotation = _symlink_target_annotation(library_directory)
             if annotation is not None:
-                flattened_lines.append(annotation)
-            flattened_lines.append(rendered_library_directory)
+                sections.others.append(annotation)
+            sections.others.append(rendered_library_directory)
             continue
         if stripped.startswith("+incdir+"):
             include_directories = []
@@ -642,11 +662,14 @@ def _flatten_lines(
                     include_directories.append(annotation)
                 include_directories.append(f"+incdir+{include_directory}")
             if trailing_comment is not None:
-                flattened_lines.append(trailing_comment)
-            flattened_lines.extend(include_directories)
+                sections.incdirs.append(trailing_comment)
+            sections.incdirs.extend(include_directories)
+            continue
+        if stripped.startswith("+define+"):
+            sections.defines.append(line)
             continue
         if stripped.startswith(("-", "+")):
-            flattened_lines.append(line)
+            sections.others.append(line)
             continue
         if len(tokens) != 1:
             raise FlattenError(
@@ -699,11 +722,11 @@ def _flatten_lines(
             )
         annotation = _symlink_target_annotation(resolved_source)
         if annotation is not None:
-            flattened_lines.append(annotation)
+            sections.others.append(annotation)
         rendered_source = str(resolved_source)
         if trailing_comment is not None:
             rendered_source = f"{rendered_source} {trailing_comment}"
-        flattened_lines.append(rendered_source)
+        sections.others.append(rendered_source)
     if condition_open_lines:
         raise FlattenError(
             "unterminated conditional block\n"
@@ -711,7 +734,7 @@ def _flatten_lines(
             f"  opened at: {filelist}:{condition_open_lines[-1]}\n"
             "  suggestion: close the conditional block with `endif"
         )
-    return flattened_lines
+    return sections
 
 
 def flatten_filelist(request: FlattenRequest) -> FlattenResult:
@@ -786,7 +809,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
         )
     top_filelist_identity = top_filelist.resolve()
     input_filelists = {top_filelist_identity: top_filelist}
-    flattened_lines = _flatten_lines(
+    sections = _flatten_lines(
         top_filelist,
         top_filelist.parent,
         request,
@@ -812,7 +835,8 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             )
     top_annotation = _symlink_target_annotation(top_filelist)
     if top_annotation is not None:
-        flattened_lines.insert(0, top_annotation)
+        sections.others.insert(0, top_annotation)
+    flattened_lines = sections.render(request.predefined_macros)
     flattened_content = "\n".join(flattened_lines)
     if flattened_lines:
         flattened_content += "\n"

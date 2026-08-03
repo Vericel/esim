@@ -192,7 +192,9 @@ def test_top_filelist_directory_is_rejected_as_wrong_type(tmp_path: Path) -> Non
     )
 
 
-def test_ifdef_keeps_branch_for_predefined_macro(tmp_path: Path) -> None:
+def test_predefined_macros_select_branches_and_render_sorted_hdl_defines(
+    tmp_path: Path,
+) -> None:
     from ff import FlattenRequest, flatten_filelist
 
     source = tmp_path / "rtl" / "fpga.sv"
@@ -209,11 +211,15 @@ def test_ifdef_keeps_branch_for_predefined_macro(tmp_path: Path) -> None:
         FlattenRequest(
             top_filelist=top_filelist,
             working_directory=tmp_path,
-            predefined_macros=frozenset({"FPGA"}),
+            predefined_macros=frozenset({"Z_TRACE", "FPGA"}),
         )
     )
 
-    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "+define+FPGA\n"
+        "+define+Z_TRACE\n"
+        f"{source}\n"
+    )
 
 
 def test_ifndef_keeps_branch_for_missing_macro(tmp_path: Path) -> None:
@@ -300,6 +306,7 @@ def test_elsif_keeps_first_matching_alternative_branch(tmp_path: Path) -> None:
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
+        "+define+ASIC\n"
         f"{rtl_dir / 'asic.sv'}\n"
     )
 
@@ -1245,6 +1252,39 @@ def test_incdir_splits_directories_preserving_order_duplicates_and_comment(
     )
 
 
+def test_incdirs_are_promoted_with_comments_and_symlink_annotations(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "top.sv"
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    physical = tmp_path / "physical_include"
+    physical.mkdir()
+    logical = tmp_path / "logical_include"
+    logical.symlink_to(physical, target_is_directory=True)
+    plain = tmp_path / "plain_include"
+    plain.mkdir()
+    top = tmp_path / "top.f"
+    top.write_text(
+        "top.sv\n"
+        "+incdir+logical_include+plain_include // include search order\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(top_filelist=top, working_directory=tmp_path)
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "// include search order\n"
+        f"// symlink target: {physical}\n"
+        f"+incdir+{logical}\n"
+        f"+incdir+{plain}\n"
+        f"{source}\n"
+    )
+
+
 @pytest.mark.parametrize(
     "entry",
     ["+incdir+", "+incdir++include", "+incdir+include+"],
@@ -1304,6 +1344,52 @@ def test_unknown_simulator_options_pass_through_without_defining_ff_macros(
         "+define+FPGA\n"
         "-sverilog\n"
         f"{source}\n"
+    )
+
+
+def test_filelist_defines_are_promoted_after_command_line_defines_stably(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    first = tmp_path / "first.sv"
+    first.write_text("module first; endmodule\n", encoding="utf-8")
+    second = tmp_path / "second.sv"
+    second.write_text("module second; endmodule\n", encoding="utf-8")
+    include = tmp_path / "include"
+    include.mkdir()
+    child = tmp_path / "child.f"
+    child.write_text(
+        "second.sv\n"
+        "+define+STUB_XXX // from child\n",
+        encoding="utf-8",
+    )
+    top = tmp_path / "top.f"
+    top.write_text(
+        "first.sv\n"
+        "+incdir+include\n"
+        "+define+TOP_MODE\n"
+        "-F child.f\n"
+        "+define+STUB_XXX\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top,
+            working_directory=tmp_path,
+            predefined_macros=frozenset({"STUB_XXX"}),
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        "+define+STUB_XXX\n"
+        "+define+TOP_MODE\n"
+        "+define+STUB_XXX // from child\n"
+        "+define+STUB_XXX\n"
+        f"+incdir+{include}\n"
+        f"{first}\n"
+        f"{second}\n"
     )
 
 
@@ -1714,12 +1800,12 @@ def test_all_recognized_simulator_paths_annotate_symlink_targets(
     )
 
     assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"// symlink target: {physical_directory}\n"
+        f"+incdir+{logical_directory}\n"
         f"// symlink target: {physical_library}\n"
         f"-v {logical_library}\n"
         f"// symlink target: {physical_directory}\n"
         f"-y {logical_directory}\n"
-        f"// symlink target: {physical_directory}\n"
-        f"+incdir+{logical_directory}\n"
     )
 
 

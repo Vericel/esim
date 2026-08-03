@@ -21,8 +21,10 @@ ff /aaa/bbb/testbench.f -o testbench.f -d MACRO_1 MACRO_2
 ```
 
 不指定 `-o` 时，默认在当前目录生成 `flattened.f`。
+每个 `-d/--define` 宏既选择 filelist 条件分支，也会在输出开头生成同名
+`+define+MACRO`，供 VCS 编译 HDL 时使用。
 
 ## 详细文档
 
-- [ff User Guide](docs/ff-user-guide.html)
-- [ff 需求与行为契约](docs/ff-requirements.md)
+- [ff User Guide](docs/user/ff-user-guide.html)
+- [ff 需求与行为契约](docs/requirements/ff.md)

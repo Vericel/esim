@@ -88,7 +88,14 @@ def test_cli_define_option_selects_all_named_macro_branches(tmp_path: Path) -> N
         completed.returncode,
         completed.stderr,
         output.read_text(encoding="utf-8") if output.exists() else None,
-    ) == (0, "", f"{fpga_source}\n{ddr_source}\n")
+    ) == (
+        0,
+        "",
+        "+define+FPGA\n"
+        "+define+USE_DDR\n"
+        f"{fpga_source}\n"
+        f"{ddr_source}\n",
+    )
 
 
 def test_cli_reports_flatten_error_without_python_traceback(tmp_path: Path) -> None:

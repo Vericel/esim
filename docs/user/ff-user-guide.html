@@ -740,8 +740,8 @@
         <p class="section-kicker">01 · Overview</p>
         <h2>了解 ff</h2>
         <p class="lead">
-          <code>ff</code> 是 filelist 预处理工具。它把分散在多层 filelist 中的有效条目按原顺序
-          展开，并将自己识别的路径规范化为绝对路径。
+          <code>ff</code> 是 filelist 预处理工具。它把分散在多层 filelist 中的有效条目展开，
+          将自己识别的路径规范化为绝对路径，并按全局编译配置与其余内容稳定分组。
         </p>
 
         <div class="cards">
@@ -811,8 +811,8 @@ ff /proj/tb/top.f</code></pre>
           </div>
           <div class="example-step">
             <span class="example-label">结果 · /proj/tb/run/flattened.f</span>
-            <pre><code>/proj/rtl/top.sv
-+incdir+/proj/rtl/include</code></pre>
+            <pre><code>+incdir+/proj/rtl/include
+/proj/rtl/top.sv</code></pre>
           </div>
         </div>
 
@@ -820,7 +820,8 @@ ff /proj/tb/top.f</code></pre>
         <pre><code>ff /proj/tb/testbench.f -o testbench.f -d MACRO_1 MACRO_2</code></pre>
         <p>
           相对输出 <code>testbench.f</code> 以当前工作目录为基准。<code>MACRO_1</code> 和
-          <code>MACRO_2</code> 作为“已定义”标记，用来选择条件分支。
+          <code>MACRO_2</code> 既作为“已定义”标记选择条件分支，也在结果开头生成
+          同名 <code>+define+</code>，供 VCS 编译 HDL 时使用。
         </p>
       </section>
 
@@ -857,10 +858,35 @@ ff top.f -d FPGA -d USE_DDR
 ff top.f --define FPGA --define USE_DDR</code></pre>
         <ul>
           <li>所有 <code>-d/--define</code> 值合并为集合，重复宏去重，名字区分大小写。</li>
+          <li>命令行宏按名字升序写到结果开头，每个宏生成一行 <code>+define+MACRO</code>。</li>
           <li>宏名匹配 <code>[A-Za-z_][A-Za-z0-9_$]*</code>。</li>
           <li>只支持无值的“已定义/未定义”标记，不支持 <code>WIDTH=32</code>，也不用逗号分隔。</li>
-          <li>filelist 中的 <code>+define+</code> 是仿真器选项，ff 原样透传，不会改变宏集合。</li>
+          <li>filelist 原有的 <code>+define+</code> 不会改变 ff 的宏集合或选择条件分支，但会原样提升到命令行宏之后。</li>
+          <li>命令行生成的宏不与 filelist 原有宏去重；同名定义保留多次。</li>
         </ul>
+
+        <div class="example">
+          <p class="example-title">示例：同一个宏控制 filelist 和 HDL 编译</p>
+          <div class="example-step">
+            <span class="example-label">输入 · /proj/tb/top.f</span>
+            <pre><code>`ifdef STUB_XXX
+../rtl/stub.sv
+`endif
++define+STUB_XXX
++incdir+../rtl/include</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">命令</span>
+            <pre><code>ff /proj/tb/top.f -d STUB_XXX</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>+define+STUB_XXX
++define+STUB_XXX
++incdir+/proj/rtl/include
+/proj/rtl/stub.sv</code></pre>
+          </div>
+        </div>
 
         <h3>退出码</h3>
         <div class="table-wrap">
@@ -977,7 +1003,7 @@ ff /proj/tb/top.f</code></pre>
         <ul>
           <li>ff 使用当前引用栈检测递归循环，真实路径身份相同的循环会失败。</li>
           <li>同一 filelist 在不同分支或位置被多次引用不等于循环，每次都按位置展开。</li>
-          <li>重复源码和选项也保留原顺序与次数，不自动去重。</li>
+          <li>重复源码和选项不自动去重，并在各自输出分组内保留展开后的原顺序与次数。</li>
           <li>启用 DEBUG 时，ff 可以提示重复条目的来源，但不改变输出。</li>
           <li><code>-f/-F</code> 行的尾部注释会提升为展开内容之前的独立注释。</li>
         </ul>
@@ -1006,8 +1032,8 @@ ff /proj/tb/top.f</code></pre>
           </div>
           <div class="example-step">
             <span class="example-label">结果</span>
-            <pre><code>/proj/rtl/top.sv
-+incdir+/proj/tb/include</code></pre>
+            <pre><code>+incdir+/proj/tb/include
+/proj/rtl/top.sv</code></pre>
           </div>
         </div>
 
@@ -1042,7 +1068,7 @@ ff /proj/tb/top.f</code></pre>
           <li>活动分支的原始注释和空行保留；非活动分支的注释删除。</li>
           <li>普通路径条目的尾部注释保留在规范化路径后。</li>
           <li><code>-f/-F</code> 的尾部注释提升为展开内容前的独立注释。</li>
-          <li>多目录 <code>+incdir+</code> 的尾部注释提升为拆分组之前的独立注释。</li>
+          <li>多目录 <code>+incdir+</code> 的尾部注释提升为拆分组之前的独立注释，并随目录组移动。</li>
           <li>除 symlink target annotation 外，ff 不主动增加其他注释。</li>
         </ul>
 
@@ -1059,6 +1085,7 @@ ff /proj/tb/top.f</code></pre>
               <tr><td><code>-v library.v</code></td><td>单个分离参数</td><td>文件必须存在且可读，保留 <code>-v</code> 并绝对化路径。</td></tr>
               <tr><td><code>-y library_dir</code></td><td>单个分离参数</td><td>目录必须存在，保留 <code>-y</code> 并绝对化路径。</td></tr>
               <tr><td><code>+incdir+dir1+dir2</code></td><td>一个或多个非空目录</td><td>每个目录拆成独立行，保留顺序和重复项。</td></tr>
+              <tr><td><code>+define+MACRO</code></td><td>仿真器选项</td><td>原样保留并提升到 include 目录之前，不改变 ff 条件宏集合。</td></tr>
             </tbody>
           </table>
         </div>
@@ -1231,6 +1258,7 @@ suggestion: check the path or define the macro that selects another branch</code
               <tr><td>条件</td><td><code>`ifdef</code> <code>`ifndef</code> <code>`elsif</code> <code>`else</code> <code>`endif</code></td><td>只筛选，不做宏文本替换。</td></tr>
               <tr><td>嵌套</td><td><code>-f</code> <code>-F</code></td><td>选项后只允许一个分离路径参数。</td></tr>
               <tr><td>环境变量</td><td><code>$NAME</code> <code>${NAME}</code></td><td>递归展开；缺失、空值、循环都失败。</td></tr>
+              <tr><td>输出顺序</td><td>命令行宏、filelist 宏、include 目录、其余内容</td><td>各组稳定保序，重复项保留。</td></tr>
               <tr><td>路径</td><td>source、<code>-v</code>、<code>-y</code>、<code>+incdir+</code></td><td>校验存在性/类型并绝对化。</td></tr>
               <tr><td>注释</td><td><code>//</code> 和 <code>/* ... */</code></td><td>块注释不可嵌套，不跨 filelist。</td></tr>
               <tr><td>其他选项</td><td>原样透传</td><td>ff 不猜测其内部的路径语义。</td></tr>

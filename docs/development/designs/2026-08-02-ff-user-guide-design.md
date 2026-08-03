@@ -6,7 +6,7 @@
 
 将当前 README 收缩为面向首次使用者的简要入口，并提供一份详细的中文
 HTML User Guide。两份文档都只描述已实现的 ff 行为，以
-`docs/ff-requirements.md` 为权威内容来源。
+`docs/requirements/ff.md` 为权威内容来源。
 
 ## 交付物
 
@@ -22,7 +22,7 @@ README 仅保留：
 
 README 不再承载 Python 引擎 API、日志矩阵、退出码或 filelist 细节规则。
 
-### docs/ff-user-guide.html
+### docs/user/ff-user-guide.html
 
 User Guide 是可直接用浏览器打开的单文件中文 HTML：
 
@@ -66,7 +66,7 @@ User Guide 按使用任务而不是实现模块组织：
 
 ## 验证方案
 
-1. 对照 `docs/ff-requirements.md` 逐类核对 HTML 章节和示例，保证没有丢失重要用户规则。
+1. 对照 `docs/requirements/ff.md` 逐类核对 HTML 章节和示例，保证没有丢失重要用户规则。
 2. 解析 HTML，验证标题、章节 ID、内部链接和重复 ID。
 3. 扫描 `src`/`href` 与 CSS，确认没有 HTTP(S) 或本地附加资源依赖。
 4. 以桌面宽度和窄屏宽度分别渲染，检查导航、正文、代码块和打印样式。

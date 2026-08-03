@@ -33,8 +33,12 @@ flat filelist 中紧邻 symlink 路径条目的 `ff` 生成注释，记录该逻
 _Avoid_: Original path, source expression
 
 **Predefined macro**:
-由 `ff` 调用者提供、用于判定 filelist 条件分支的无值 Verilog 标识符。它仅表达“已定义”或“未定义”，可以来自直接命令行调用，也可以由 esim 从 TC 配置中读取后传入。
-_Avoid_: HDL compilation define
+由 `ff` 调用者提供的无值 Verilog 标识符。它用于判定 filelist 条件分支，并在 flat filelist 开头生成为同名 `+define+` HDL 编译宏；可以来自直接命令行调用，也可以由 esim 从 TC 配置中读取后传入。
+_Avoid_: Macro substitution
+
+**Global compile option groups**:
+flat filelist 的稳定输出分组，依次为调用者预定义宏生成的 `+define+`、有效输入 filelist 原有的 `+define+`、规范化后的 `+incdir+` 和其余有效内容。每组内部保留展开后的原顺序和重复项。
+_Avoid_: Global source order
 
 **Conditional directive**:
 filelist 中由 `` `ifdef``, `` `ifndef``, `` `elsif``, `` `else`` 和 `` `endif`` 构成的条件结构。`ff` 根据预定义宏保留选中分支，但不执行宏文本替换；未选中分支只参与条件结构校验，其他内容不解析。

@@ -4,7 +4,7 @@
 
 **Goal:** Replace the detailed README with a concise entry point and add a detailed, self-contained Chinese HTML User Guide for ff CLI users.
 
-**Architecture:** `README.md` is the minimal discovery and installation surface. `docs/ff-user-guide.html` is a hand-authored, task-oriented, standalone document whose behavior claims come only from `docs/ff-requirements.md`. Because both artifacts are human-facing prose, validation checks HTML/link/resource behavior and rendered layout instead of adding brittle text-assertion tests.
+**Architecture:** `README.md` is the minimal discovery and installation surface. `docs/user/ff-user-guide.html` is a hand-authored, task-oriented, standalone document whose behavior claims come only from `docs/requirements/ff.md`. Because both artifacts are human-facing prose, validation checks HTML/link/resource behavior and rendered layout instead of adding brittle text-assertion tests.
 
 **Tech Stack:** Markdown, semantic HTML5, embedded CSS, `xmllint`, Python 3.9 standard-library `html.parser` for a one-time link audit, and local Chrome rendering.
 
@@ -14,7 +14,7 @@
 - CSS is embedded; no external fonts, icons, stylesheets, scripts, images, or other resources.
 - JavaScript is not used.
 - Wide screens use sticky left navigation and main content; narrow screens use one column.
-- Content describes only implemented ff behavior and treats `docs/ff-requirements.md` as authoritative.
+- Content describes only implemented ff behavior and treats `docs/requirements/ff.md` as authoritative.
 - The guide targets ff CLI users and does not document esim TC YAML or expand the Python engine API.
 - README contains only introduction, installation, basic usage, and links to detailed documentation.
 
@@ -26,8 +26,8 @@
 - Modify: `README.md`
 
 **Interfaces:**
-- Consumes: installation and basic CLI syntax from `docs/ff-requirements.md`
-- Produces: a short README linking to `docs/ff-user-guide.html`
+- Consumes: installation and basic CLI syntax from `docs/requirements/ff.md`
+- Produces: a short README linking to `docs/user/ff-user-guide.html`
 
 - [ ] **Step 1: Replace README with the approved minimal content**
 
@@ -59,8 +59,8 @@ ff /aaa/bbb/testbench.f -o testbench.f -d MACRO_1 MACRO_2
 
 ## 详细文档
 
-- [ff User Guide](docs/ff-user-guide.html)
-- [ff 需求与行为契约](docs/ff-requirements.md)
+- [ff User Guide](docs/user/ff-user-guide.html)
+- [ff 需求与行为契约](docs/requirements/ff.md)
 ```
 
 - [ ] **Step 2: Check the README boundary**
@@ -83,10 +83,10 @@ git commit -m "docs: simplify ff readme"
 ### Task 2: Create the complete standalone HTML guide
 
 **Files:**
-- Create: `docs/ff-user-guide.html`
+- Create: `docs/user/ff-user-guide.html`
 
 **Interfaces:**
-- Consumes: sections 1 and 3 through 9 of `docs/ff-requirements.md`
+- Consumes: sections 1 and 3 through 9 of `docs/requirements/ff.md`
 - Produces: a task-oriented, standalone HTML5 guide with stable internal section IDs
 
 - [ ] **Step 1: Build the embedded visual system and document shell**
@@ -166,8 +166,8 @@ For conditions, nested filelists, environment variables, and logging, include ex
 - [ ] **Step 4: Validate HTML syntax and offline boundaries**
 
 ```bash
-xmllint --noout docs/ff-user-guide.html
-rg -n 'https?://|src=|<script|<link' docs/ff-user-guide.html
+xmllint --noout docs/user/ff-user-guide.html
+rg -n 'https?://|src=|<script|<link' docs/user/ff-user-guide.html
 ```
 
 Expected: XML well-formed checking exits 0; resource scan returns no matches. HTML5 void elements use XML-compatible self-closing syntax so this check is silent.
@@ -177,7 +177,7 @@ Run a one-time standard-library `HTMLParser` audit that collects all IDs and fra
 - [ ] **Step 5: Commit the guide**
 
 ```bash
-git add docs/ff-user-guide.html
+git add docs/user/ff-user-guide.html
 git commit -m "docs: add detailed ff user guide"
 ```
 
@@ -187,7 +187,7 @@ git commit -m "docs: add detailed ff user guide"
 
 **Files:**
 - Modify if the audits find defects: `README.md`
-- Modify if the audits find defects: `docs/ff-user-guide.html`
+- Modify if the audits find defects: `docs/user/ff-user-guide.html`
 
 **Interfaces:**
 - Consumes: the completed README, guide, and authoritative requirements
@@ -195,11 +195,11 @@ git commit -m "docs: add detailed ff user guide"
 
 - [ ] **Step 1: Audit requirement coverage**
 
-Compare the guide section-by-section with `docs/ff-requirements.md`. Explicitly account for CLI, conditions, comments, recognized paths, nested paths, environment expansion, path normalization/symlinks, output safety, logging, errors, and limitations. Correct any unsupported claim or missing user-visible rule.
+Compare the guide section-by-section with `docs/requirements/ff.md`. Explicitly account for CLI, conditions, comments, recognized paths, nested paths, environment expansion, path normalization/symlinks, output safety, logging, errors, and limitations. Correct any unsupported claim or missing user-visible rule.
 
 - [ ] **Step 2: Render at desktop width**
 
-Open `/mnt/c/Users/majin/Documents/EDA仿真脚本开发/.worktrees/ff-user-guide/docs/ff-user-guide.html` in Chrome at a 1440 px-wide viewport. Capture a full-page screenshot and verify sidebar behavior, readable line lengths, table/code containment, focus visibility, and labeled information blocks.
+Open `/mnt/c/Users/majin/Documents/EDA仿真脚本开发/.worktrees/ff-user-guide/docs/user/ff-user-guide.html` in Chrome at a 1440 px-wide viewport. Capture a full-page screenshot and verify sidebar behavior, readable line lengths, table/code containment, focus visibility, and labeled information blocks.
 
 - [ ] **Step 3: Render at narrow width**
 
@@ -213,7 +213,7 @@ Use Chrome print preview. Confirm the sidebar is hidden, main content uses print
 
 ```bash
 git diff --check
-xmllint --noout docs/ff-user-guide.html
+xmllint --noout docs/user/ff-user-guide.html
 /mnt/c/Users/majin/Documents/EDA仿真脚本开发/.venv/bin/python -m compileall -q src
 /mnt/c/Users/majin/Documents/EDA仿真脚本开发/.venv/bin/pytest -q
 ```
@@ -225,7 +225,7 @@ Expected: all commands exit 0; the existing 119 tests still pass.
 If audits or rendering required changes:
 
 ```bash
-git add README.md docs/ff-user-guide.html
+git add README.md docs/user/ff-user-guide.html
 git commit -m "docs: polish ff user guide"
 ```
 

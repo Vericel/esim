@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Follow the approved design in `docs/superpowers/specs/2026-08-03-ff-physical-file-deduplication-design.md`.
+- Follow the approved design in `docs/development/designs/2026-08-03-ff-physical-file-deduplication-design.md`.
 - Test only through `flatten_filelist(FlattenRequest(...))`; do not test private helpers or `_FlattenState` directly.
 - Use `Path.resolve()` physical identity stored as `str`; preserve the first logical entry and order.
 - Validate every occurrence before duplicate detection.
@@ -24,8 +24,8 @@
 
 - Modify `src/ff/__init__.py`: private per-run state, duplicate rendering, source and `-v` emission policy, DEBUG provenance.
 - Modify `tests/test_engine.py`: public-seam RED-GREEN tests for each behavior slice.
-- Modify `docs/ff-requirements.md`: replace the old duplicate-preservation contract.
-- Modify `docs/ff-user-guide.html`: explain physical deduplication and show output examples.
+- Modify `docs/requirements/ff.md`: replace the old duplicate-preservation contract.
+- Modify `docs/user/ff-user-guide.html`: explain physical deduplication and show output examples.
 - Modify `CONTEXT.md`: define physical compiled-file identity and duplicate annotation vocabulary.
 
 ---
@@ -442,8 +442,8 @@ git commit -m "feat: trace duplicate file provenance"
 
 **Files:**
 - Modify: `CONTEXT.md`
-- Modify: `docs/ff-requirements.md:154-178`
-- Modify: `docs/ff-user-guide.html:976-982`
+- Modify: `docs/requirements/ff.md:154-178`
+- Modify: `docs/user/ff-user-guide.html:976-982`
 
 **Interfaces:**
 - Consumes: final output and DEBUG behavior from Tasks 1-5.
@@ -474,8 +474,8 @@ Rewrite the “循环与重复” list and include one ordinary-source output ex
 - [ ] **Step 4: Verify documentation**
 
 ```bash
-xmllint --noout docs/ff-user-guide.html
-rg -n "重复源码和选项也保留|不自动去重" CONTEXT.md docs/ff-requirements.md docs/ff-user-guide.html
+xmllint --noout docs/user/ff-user-guide.html
+rg -n "重复源码和选项也保留|不自动去重" CONTEXT.md docs/requirements/ff.md docs/user/ff-user-guide.html
 git diff --check
 ```
 
@@ -484,7 +484,7 @@ Expected: XML validation passes, obsolete rules produce no matches, and `git dif
 - [ ] **Step 5: Commit the documentation**
 
 ```bash
-git add CONTEXT.md docs/ff-requirements.md docs/ff-user-guide.html
+git add CONTEXT.md docs/requirements/ff.md docs/user/ff-user-guide.html
 git commit -m "docs: document physical file deduplication"
 ```
 
@@ -511,7 +511,7 @@ Expected: compilation succeeds and all tests pass.
 - [ ] **Step 2: Verify HTML and repository hygiene**
 
 ```bash
-xmllint --noout docs/ff-user-guide.html
+xmllint --noout docs/user/ff-user-guide.html
 git diff --check
 git status --short --branch
 ```
