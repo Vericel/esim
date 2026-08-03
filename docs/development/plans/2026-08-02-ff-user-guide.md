@@ -59,8 +59,8 @@ ff /aaa/bbb/testbench.f -o testbench.f -d MACRO_1 MACRO_2
 
 ## 详细文档
 
-- [ff User Guide](docs/user/ff-user-guide.html)
-- [ff 需求与行为契约](docs/requirements/ff.md)
+- [ff User Guide](../../user/ff-user-guide.html)
+- [ff 需求与行为契约](../../requirements/ff.md)
 ```
 
 - [ ] **Step 2: Check the README boundary**

@@ -96,7 +96,7 @@ tests/
 
 - TDD 循环中先运行最小相关测试；声称完成前使用项目虚拟环境运行完整测试：`.venv/bin/python -m pytest`。若该环境不存在，使用当前已激活 Python 环境的 `python -m pytest` 并报告实际解释器。
 - 稳定的部分回归按能力文件运行，例如 `.venv/bin/python -m pytest tests/test_engine_conditions.py`；单条用例使用完整 node ID；跨能力临时筛选可使用 `-k`，但不得把 `-k` 表达式当成持久测试分类。
-- 完整本地质量门禁依次运行 `.venv/bin/ruff format --check src tests scripts typings`、`.venv/bin/ruff check src tests scripts typings`、`bash scripts/run-pyright.sh` 和 `.venv/bin/python -m pytest --cov=ff --cov-branch --cov-fail-under=90`。
+- 完整本地质量门禁统一运行 `bash scripts/check.sh`；该入口依次执行 Ruff、Pyright、文档链接检查、90% branch coverage 回归和 `pip check`，CI 必须调用同一入口。
 - 修改 CLI、输出格式或错误信息时，同时覆盖 CLI seam 和引擎 API seam 的相关测试。
 - 文档或路径变化后，搜索仓库内引用并确认没有失效链接或旧路径。
 - 完成前检查 `git diff --check` 和 `git status --short`，确认没有覆盖或混入用户的其他改动。
