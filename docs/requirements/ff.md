@@ -1,7 +1,7 @@
 # ff 需求架构
 
 状态：ff 已实现，作为需求和验收的权威契约
-最后更新：2026-08-02
+最后更新：2026-08-03
 
 ## 1. 目标与边界
 
@@ -22,7 +22,7 @@ flattening engine ─┤
 - 展平引擎不理解 CLI 或 YAML，接收结构化输入并返回结构化结果/错误。
 - ff CLI 是引擎的薄适配层。
 - esim 在进程内直接调用同一引擎，不启动 ff 子进程。
-- 实现基线为 Python 3.9+。
+- 实现基线为 CPython 3.11+，支持 Linux 和 WSL2。
 - CLI 使用正式打包、版本化的 `BottiCelle/onelog` 及其 Rich 依赖；它们随 ff/esim 发行，目标机无需联网安装。
 - onelog 在 ff 和 esim 中均关闭 summary。
 - 展平引擎不配置 root logger，不调用 `log.fatal()`。

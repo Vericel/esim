@@ -7,10 +7,11 @@ flat filelist。
 ## 安装
 
 ```bash
-python3 -m pip install --no-index --find-links ./wheelhouse esim==0.1.0
+python3 -m pip install --no-index --find-links ./wheelhouse esim==0.2.0
 ```
 
-需要 Python 3.9+。wheelhouse 需包含 ff、`botticelle-onelog`、Rich 及其依赖；
+需要 CPython 3.11+，支持 Linux 和 WSL2。wheelhouse 需包含 ff、
+`botticelle-onelog`、Rich 及其依赖；
 onelog 0.1.0 对应 [v0.1.0](https://github.com/BottiCelle/onelog/releases/tag/v0.1.0)。
 
 ## 基础用法

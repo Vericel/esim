@@ -718,12 +718,12 @@
         <li><a href="#logging-errors">10 · 日志与错误</a></li>
         <li><a href="#reference">11 · 规则速查</a></li>
       </ul>
-      <p class="sidebar-foot">ff 0.1 · Python 3.9+<br />文档日期 2026-08-02</p>
+      <p class="sidebar-foot">ff 0.2 · Python 3.11+<br />文档日期 2026-08-03</p>
     </nav>
 
     <main class="content" id="top">
       <header class="hero">
-        <span class="badge">ff 0.1 · 中文用户指南</span>
+        <span class="badge">ff 0.2 · 中文用户指南</span>
         <h1>Filelist，<br />展平之后更清楚。</h1>
         <p class="subtitle">
           从一份顶层 Verilog/SystemVerilog filelist 出发，处理条件分支、
@@ -768,18 +768,18 @@
         <p class="section-kicker">02 · Install</p>
         <h2>从离线 wheelhouse 安装</h2>
         <p class="lead">
-          ff 需要 Python 3.9 或更高版本。在目标 EDA 机器上，建议使用准备好的本地 wheelhouse，
+          ff 需要 CPython 3.11 或更高版本，支持 Linux 和 WSL2。在目标 EDA 机器上，建议使用准备好的本地 wheelhouse，
           安装过程不访问网络。
         </p>
 
         <pre><code>python3 -m pip install \
   --no-index \
   --find-links ./wheelhouse \
-  esim==0.1.0</code></pre>
+  esim==0.2.0</code></pre>
 
         <h3>wheelhouse 需包含</h3>
         <ul class="rule-list">
-          <li><code>esim</code> 0.1.0 wheel</li>
+          <li><code>esim</code> 0.2.0 wheel</li>
           <li><code>botticelle-onelog</code> 0.1.x wheel</li>
           <li>Rich wheel</li>
           <li>Rich 的传递依赖 wheel</li>

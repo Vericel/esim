@@ -22,8 +22,8 @@
 最终验收命令：
 
 ```bash
-python -m compileall -q src
-pytest -q
-python -m pip wheel . --no-build-isolation --no-deps
-python -m pip install --no-index --find-links WHEELHOUSE esim==0.1.0
+.venv/bin/python -m compileall -q src
+.venv/bin/python -m pytest -q
+.venv/bin/python -m pip wheel . --no-build-isolation --no-deps
+.venv/bin/python -m pip install --no-index --find-links WHEELHOUSE esim==0.2.0
 ```
