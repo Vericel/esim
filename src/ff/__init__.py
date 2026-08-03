@@ -45,6 +45,7 @@ class FlattenResult:
 class _FlattenState:
     input_filelists: dict[Path, Path]
     seen_sources: dict[str, str] = field(default_factory=dict)
+    seen_library_files: dict[str, str] = field(default_factory=dict)
 
 
 def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
@@ -576,6 +577,19 @@ def _flatten_lines(
             rendered_library = f"-v {library_file}"
             if trailing_comment is not None:
                 rendered_library = f"{rendered_library} {trailing_comment}"
+            origin = f"{filelist}:{line_number}"
+            identity = str(library_file.resolve())
+            first_origin = state.seen_library_files.get(identity)
+            if first_origin is not None:
+                flattened_lines.extend(
+                    [
+                        "// ff: duplicate physical library file; "
+                        f"first: {first_origin}; duplicate: {origin}",
+                        f"// {rendered_library}",
+                    ]
+                )
+                continue
+            state.seen_library_files[identity] = origin
             annotation = _symlink_target_annotation(library_file)
             if annotation is not None:
                 flattened_lines.append(annotation)

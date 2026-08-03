@@ -1195,6 +1195,37 @@ def test_v_library_file_is_expanded_and_rendered_as_absolute(
     )
 
 
+def test_v_files_deduplicate_separately_from_ordinary_sources(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    library = tmp_path / "models.v"
+    library.write_text("module model; endmodule\n", encoding="utf-8")
+    alias = tmp_path / "alias.v"
+    alias.symlink_to(library)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "models.v\n-v models.v\n-v alias.v\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{library}\n"
+        f"-v {library}\n"
+        "// ff: duplicate physical library file; "
+        f"first: {top_filelist}:2; duplicate: {top_filelist}:3\n"
+        f"// -v {alias}\n"
+    )
+
+
 def test_unreadable_v_library_file_is_rejected(tmp_path: Path) -> None:
     from ff import FlattenError, FlattenRequest, flatten_filelist
 
