@@ -55,8 +55,17 @@ tests/
 ├── fixtures/                    # 纳入版本控制的静态输入和期望输出；需要时创建
 │   └── <scenario>/
 ├── support/                     # 跨文件共享的测试构建器或辅助代码；需要时创建
-├── test_cli.py                  # CLI seam
-├── test_engine.py               # 公开引擎 API seam
+├── test_cli_output.py           # CLI 输出与宏透传
+├── test_cli_logging.py          # CLI 日志与调试输出
+├── test_cli_errors.py           # CLI 参数、受控错误和内部错误
+├── test_engine_inputs.py        # 顶层输入、源码解析和可读性
+├── test_engine_conditions.py    # 条件指令和预定义宏
+├── test_engine_filelists.py     # 嵌套 filelist、递归和 source chain
+├── test_engine_comments.py      # 行注释和块注释
+├── test_engine_environment.py   # 环境变量展开
+├── test_engine_options.py       # 仿真器选项、define 和 incdir
+├── test_engine_output.py        # 输出发布、编码和 symlink
+├── test_engine_path_validation.py # 路径语法约束
 └── test_distribution.py         # 打包、安装和入口点 seam
 ```
 
@@ -85,6 +94,7 @@ tests/
 ## 验证与完成标准
 
 - TDD 循环中先运行最小相关测试；声称完成前使用项目虚拟环境运行完整测试：`.venv/bin/python -m pytest`。若该环境不存在，使用当前已激活 Python 环境的 `python -m pytest` 并报告实际解释器。
+- 稳定的部分回归按能力文件运行，例如 `.venv/bin/python -m pytest tests/test_engine_conditions.py`；单条用例使用完整 node ID；跨能力临时筛选可使用 `-k`，但不得把 `-k` 表达式当成持久测试分类。
 - 修改 CLI、输出格式或错误信息时，同时覆盖 CLI seam 和引擎 API seam 的相关测试。
 - 文档或路径变化后，搜索仓库内引用并确认没有失效链接或旧路径。
 - 完成前检查 `git diff --check` 和 `git status --short`，确认没有覆盖或混入用户的其他改动。

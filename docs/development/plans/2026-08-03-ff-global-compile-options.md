@@ -25,8 +25,8 @@
 ### Task 1: Emit command-line macros as HDL defines
 
 **Files:**
-- Modify: `tests/test_engine.py`
-- Modify: `tests/test_cli.py`
+- Modify: `tests/test_engine_conditions.py`
+- Modify: `tests/test_cli_output.py`
 - Modify: `src/ff/__init__.py`
 
 **Interfaces:**
@@ -78,7 +78,7 @@ macros must still fail before any output is published.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py::test_predefined_macros_select_branches_and_render_sorted_hdl_defines
+pytest -q tests/test_engine_conditions.py::test_predefined_macros_select_branches_and_render_sorted_hdl_defines
 ```
 
 Expected: FAIL because the current output contains only the selected source path.
@@ -103,7 +103,7 @@ file creation so `WIDTH=32` behavior remains unchanged.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py::test_predefined_macros_select_branches_and_render_sorted_hdl_defines tests/test_engine.py::test_elsif_keeps_first_matching_alternative_branch
+pytest -q tests/test_engine_conditions.py::test_predefined_macros_select_branches_and_render_sorted_hdl_defines tests/test_engine_conditions.py::test_elsif_keeps_first_matching_alternative_branch
 ```
 
 Expected: PASS after updating both literal expectations.
@@ -128,7 +128,7 @@ parsing reaches engine rendering.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py tests/test_cli.py::test_cli_define_option_selects_all_named_macro_branches
+pytest -q tests/test_engine_conditions.py tests/test_cli_output.py::test_cli_define_option_selects_all_named_macro_branches
 ```
 
 Expected: all selected tests PASS.
@@ -138,7 +138,7 @@ Expected: all selected tests PASS.
 ### Task 2: Stably promote original filelist defines
 
 **Files:**
-- Modify: `tests/test_engine.py`
+- Modify: `tests/test_engine_options.py`
 - Modify: `src/ff/__init__.py`
 
 **Interfaces:**
@@ -200,7 +200,7 @@ order, inline-comment preservation, and no cross-source deduplication.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py::test_filelist_defines_are_promoted_after_command_line_defines_stably
+pytest -q tests/test_engine_options.py::test_filelist_defines_are_promoted_after_command_line_defines_stably
 ```
 
 Expected: FAIL because original defines remain interleaved with sources.
@@ -258,7 +258,7 @@ emitted exactly once.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py::test_filelist_defines_are_promoted_after_command_line_defines_stably tests/test_engine.py::test_unknown_simulator_options_pass_through_without_defining_ff_macros tests/test_engine.py::test_repeated_filelist_references_and_sources_are_not_deduplicated
+pytest -q tests/test_engine_options.py::test_filelist_defines_are_promoted_after_command_line_defines_stably tests/test_engine_options.py::test_unknown_simulator_options_pass_through_without_defining_ff_macros tests/test_engine_filelists.py::test_repeated_filelist_references_and_sources_are_not_deduplicated
 ```
 
 Expected: PASS. The unknown-options test input already places `+define+FPGA`
@@ -271,7 +271,7 @@ conditional branch.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py
+pytest -q tests/test_engine_*.py
 ```
 
 Expected: PASS with no source-order, comment, symlink, path, or atomic-output regressions.
@@ -281,7 +281,7 @@ Expected: PASS with no source-order, comment, symlink, path, or atomic-output re
 ### Task 3: Stably promote include directories with owned annotations
 
 **Files:**
-- Modify: `tests/test_engine.py`
+- Modify: `tests/test_engine_options.py`
 - Modify: `src/ff/__init__.py`
 
 **Interfaces:**
@@ -331,7 +331,7 @@ def test_incdirs_are_promoted_with_comments_and_symlink_annotations(
 Run:
 
 ```bash
-pytest -q tests/test_engine.py::test_incdirs_are_promoted_with_comments_and_symlink_annotations
+pytest -q tests/test_engine_options.py::test_incdirs_are_promoted_with_comments_and_symlink_annotations
 ```
 
 Expected: FAIL because the source currently precedes the include group.
@@ -357,7 +357,7 @@ path validation, order, or duplicate retention.
 Run:
 
 ```bash
-pytest -q tests/test_engine.py::test_incdirs_are_promoted_with_comments_and_symlink_annotations tests/test_engine.py::test_incdir_splits_directories_preserving_order_duplicates_and_comment tests/test_engine.py::test_all_recognized_simulator_paths_annotate_symlink_targets
+pytest -q tests/test_engine_options.py::test_incdirs_are_promoted_with_comments_and_symlink_annotations tests/test_engine_options.py::test_incdir_splits_directories_preserving_order_duplicates_and_comment tests/test_engine_output.py::test_all_recognized_simulator_paths_annotate_symlink_targets
 ```
 
 Expected: PASS after updating any combined-output literal to the new global
@@ -368,7 +368,7 @@ define/incdir/other order. Per-entry include search order and duplicates remain 
 Run:
 
 ```bash
-pytest -q tests/test_engine.py tests/test_cli.py
+pytest -q tests/test_engine_*.py tests/test_cli_*.py
 ```
 
 Expected: PASS.

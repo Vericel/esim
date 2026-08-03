@@ -19,6 +19,23 @@
 | 发布物使用正式 onelog 依赖且不混入 vendor 缓存 | `test_wheel_uses_versioned_onelog_dependency` |
 | 退出码 0/1/2/3 | CLI 成功测试、`test_cli_reports_flatten_error_without_python_traceback`、`test_cli_requires_input_to_be_the_first_argument`、`test_cli_returns_three_for_unexpected_internal_failure` |
 
+## 回归选择
+
+```bash
+# 全量回归
+.venv/bin/python -m pytest
+
+# 一个稳定能力
+.venv/bin/python -m pytest tests/test_engine_conditions.py
+
+# 一条精确用例
+.venv/bin/python -m pytest \
+  tests/test_engine_conditions.py::test_elsif_keeps_first_matching_alternative_branch
+
+# 一次性的跨文件筛选
+.venv/bin/python -m pytest tests/test_engine_*.py -k 'symlink or output_parent'
+```
+
 最终验收命令：
 
 ```bash

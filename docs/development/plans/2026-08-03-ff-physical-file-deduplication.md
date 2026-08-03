@@ -23,7 +23,7 @@
 ## File Structure
 
 - Modify `src/ff/__init__.py`: private per-run state, duplicate rendering, source and `-v` emission policy, DEBUG provenance.
-- Modify `tests/test_engine.py`: public-seam RED-GREEN tests for each behavior slice.
+- Modify the relevant `tests/test_engine_<capability>.py`: public-seam RED-GREEN tests for each behavior slice.
 - Modify `docs/requirements/ff.md`: replace the old duplicate-preservation contract.
 - Modify `docs/user/ff-user-guide.html`: explain physical deduplication and show output examples.
 - Modify `CONTEXT.md`: define physical compiled-file identity and duplicate annotation vocabulary.
@@ -33,7 +33,7 @@
 ### Task 1: Comment repeated ordinary source entries
 
 **Files:**
-- Modify: `tests/test_engine.py:622`
+- Modify: `tests/test_engine_filelists.py`
 - Modify: `src/ff/__init__.py:278-285, 506-538, 671-706, 787-796`
 
 **Interfaces:**
@@ -70,7 +70,7 @@ def test_repeated_source_is_commented_after_first_occurrence(tmp_path: Path) -> 
 Run:
 
 ```bash
-.venv/bin/pytest -q tests/test_engine.py::test_repeated_source_is_commented_after_first_occurrence
+.venv/bin/pytest -q tests/test_engine_filelists.py::test_repeated_source_is_commented_after_first_occurrence
 ```
 
 Expected: FAIL because the current engine emits the active source twice.
@@ -117,7 +117,7 @@ Run the focused test from Step 2. Expected: PASS.
 Run:
 
 ```bash
-.venv/bin/pytest -q tests/test_engine.py -k 'recursive_filelist or source_trailing_comment or symlinked_source'
+.venv/bin/pytest -q tests/test_engine_filelists.py tests/test_engine_comments.py tests/test_engine_output.py -k 'recursive_filelist or source_trailing_comment or symlinked_source'
 ```
 
 Expected: PASS except any old test whose asserted duplicate-preservation contract must be replaced by Step 1.
@@ -125,7 +125,7 @@ Expected: PASS except any old test whose asserted duplicate-preservation contrac
 - [ ] **Step 6: Commit the slice**
 
 ```bash
-git add src/ff/__init__.py tests/test_engine.py
+git add src/ff/__init__.py tests/test_engine_filelists.py
 git commit -m "feat: comment repeated source entries"
 ```
 
@@ -134,7 +134,7 @@ git commit -m "feat: comment repeated source entries"
 ### Task 2: Deduplicate symlink aliases by physical identity
 
 **Files:**
-- Modify: `tests/test_engine.py` near the ordinary duplicate test
+- Modify: `tests/test_engine_filelists.py` near the ordinary duplicate test
 - Modify: `src/ff/__init__.py` ordinary-source identity calculation
 
 **Interfaces:**
@@ -190,7 +190,7 @@ Run both tests by exact node ID. Expected: PASS.
 - [ ] **Step 5: Commit the slice**
 
 ```bash
-git add src/ff/__init__.py tests/test_engine.py
+git add src/ff/__init__.py tests/test_engine_filelists.py
 git commit -m "feat: deduplicate physical source aliases"
 ```
 
@@ -199,7 +199,7 @@ git commit -m "feat: deduplicate physical source aliases"
 ### Task 3: Add an independent `-v` deduplication domain
 
 **Files:**
-- Modify: `tests/test_engine.py` near `test_v_library_file_is_expanded_and_rendered_as_absolute`
+- Modify: `tests/test_engine_options.py` near `test_v_library_file_is_expanded_and_rendered_as_absolute`
 - Modify: `src/ff/__init__.py:541-577`
 
 **Interfaces:**
@@ -273,7 +273,7 @@ Expected: all PASS.
 - [ ] **Step 5: Run all existing path-option tests**
 
 ```bash
-.venv/bin/pytest -q tests/test_engine.py -k 'library_file or library_directory or incdir'
+.venv/bin/pytest -q tests/test_engine_options.py -k 'library_file or library_directory or incdir'
 ```
 
 Expected: PASS.
@@ -281,7 +281,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit the slice**
 
 ```bash
-git add src/ff/__init__.py tests/test_engine.py
+git add src/ff/__init__.py tests/test_engine_options.py
 git commit -m "feat: deduplicate physical library files"
 ```
 
@@ -290,7 +290,7 @@ git commit -m "feat: deduplicate physical library files"
 ### Task 4: Safely comment multiline duplicate entries
 
 **Files:**
-- Modify: `tests/test_engine.py` near multiline block-comment tests
+- Modify: `tests/test_engine_comments.py` near multiline block-comment tests
 - Modify: `src/ff/__init__.py` duplicate rendering helper and both duplicate branches
 
 **Interfaces:**
@@ -357,7 +357,7 @@ Expected: all PASS.
 - [ ] **Step 5: Commit the slice**
 
 ```bash
-git add src/ff/__init__.py tests/test_engine.py
+git add src/ff/__init__.py tests/test_engine_comments.py
 git commit -m "feat: safely comment multiline duplicates"
 ```
 
@@ -366,7 +366,7 @@ git commit -m "feat: safely comment multiline duplicates"
 ### Task 5: Report duplicate provenance through DEBUG
 
 **Files:**
-- Modify: `tests/test_engine.py` near duplicate tests
+- Modify: `tests/test_engine_filelists.py` near duplicate tests
 - Modify: `src/ff/__init__.py` duplicate branches or a private logging helper
 
 **Interfaces:**
@@ -424,7 +424,7 @@ Expected: all duplicate tests PASS.
 - [ ] **Step 5: Run all engine tests**
 
 ```bash
-.venv/bin/pytest -q tests/test_engine.py
+.venv/bin/pytest -q tests/test_engine_*.py
 ```
 
 Expected: PASS.
@@ -432,7 +432,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit the slice**
 
 ```bash
-git add src/ff/__init__.py tests/test_engine.py
+git add src/ff/__init__.py tests/test_engine_filelists.py
 git commit -m "feat: trace duplicate file provenance"
 ```
 
