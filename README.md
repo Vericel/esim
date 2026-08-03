@@ -1,6 +1,7 @@
-# ff
+# esim
 
-`ff` 是 Verilog/SystemVerilog filelist 展平工具。它处理条件分支、
+`esim` 是 EDA 仿真项目；`ff` 是其中可独立执行的
+Verilog/SystemVerilog filelist 展平工具。它处理条件分支、
 嵌套 filelist、环境变量和路径，输出全部使用绝对路径的
 flat filelist。
 
@@ -10,7 +11,7 @@ flat filelist。
 python3 -m pip install --no-index --find-links ./wheelhouse esim==0.2.0
 ```
 
-需要 CPython 3.11+，支持 Linux 和 WSL2。wheelhouse 需包含 ff、
+需要 CPython 3.11+，支持 Linux 和 WSL2。wheelhouse 需包含 esim、
 `botticelle-onelog`、Rich 及其依赖；
 onelog 0.1.0 对应 [v0.1.0](https://github.com/BottiCelle/onelog/releases/tag/v0.1.0)。
 

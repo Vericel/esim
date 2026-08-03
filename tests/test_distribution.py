@@ -4,7 +4,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
-def test_wheel_requires_python_311_and_declares_version_020(
+def test_esim_wheel_preserves_the_standalone_ff_command(
     tmp_path: Path,
 ) -> None:
     project_root = Path(__file__).parents[1]
@@ -32,9 +32,15 @@ def test_wheel_requires_python_311_and_declares_version_020(
             name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
         )
         metadata = archive.read(metadata_name).decode("utf-8")
+        entry_points_name = next(
+            name for name in archive.namelist() if name.endswith("entry_points.txt")
+        )
+        entry_points = archive.read(entry_points_name).decode("utf-8")
 
+    assert "Name: esim" in metadata
     assert "Version: 0.2.0" in metadata
     assert "Requires-Python: >=3.11" in metadata
+    assert "ff = ff.cli:main" in entry_points
 
 
 def test_wheel_uses_versioned_onelog_dependency(tmp_path: Path) -> None:

@@ -12,7 +12,6 @@ maintaining compatibility branches for end-of-life interpreters. Raising the
 minimum version is a breaking distribution change and therefore ships with
 `ff` 0.2.0. Runtime dependencies remain limited to
 `botticelle-onelog>=0.1,<0.2`; Node.js and all quality tools are development and
-CI dependencies only. Although the source repository is BottiCelle/onelog, commit
-`7738cac48b383624b9b5a6bf3434a2a40210c568` declares
-`Name: botticelle-onelog`; the dependency uses that authoritative distribution
-name so `pip check` and offline installation can resolve it.
+CI dependencies only. The source repository is BottiCelle/onelog, and the fixed
+commit declares `Name: botticelle-onelog` so `pip check` and offline installation
+resolve the same authoritative distribution identity.

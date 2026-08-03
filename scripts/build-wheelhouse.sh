@@ -17,8 +17,10 @@ trap 'rm -rf -- "$temporary_directory"' EXIT
 
 "$python_command" -m pip wheel \
     "git+https://github.com/BottiCelle/onelog.git@$onelog_commit" \
+    --no-build-isolation \
     --wheel-dir "$output"
 "$python_command" -m pip wheel "$project_root" \
+    --no-build-isolation \
     --no-deps \
     --wheel-dir "$output"
 

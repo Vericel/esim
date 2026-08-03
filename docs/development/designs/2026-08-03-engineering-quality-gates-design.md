@@ -34,6 +34,9 @@
 
 ## CI 与发布
 
-GitHub Actions 在 PR、main push 和手工触发时运行 Python 矩阵、quality 和 package 三类门禁。package job 生成包含 ff、onelog、Rich 和传递依赖的完整 wheelhouse，在干净 Python 3.11 venv 中以 `--no-index` 安装并运行 smoke test，然后上传压缩包与 SHA-256 清单。
+GitHub Actions 在 PR 和 main push 时运行 Python 矩阵与 quality 门禁。
+package job 只在手工触发或发布时生成包含 esim、onelog、Rich 和
+传递依赖的完整 wheelhouse，在干净 Python 3.11 venv 中以
+`--no-index` 安装并运行 smoke test，然后上传压缩包与 SHA-256 清单。
 
 CI 不创建 tag 或 GitHub Release。版本遵循 SemVer，`pyproject.toml` 是唯一版本源，`CHANGELOG.md` 记录 Unreleased 与 0.2.0，人工发布清单控制 tag 和制品发布。

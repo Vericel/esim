@@ -20,7 +20,7 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
     bash scripts/build-wheelhouse.sh dist/wheelhouse
   ```
 
-- [ ] 检查 wheelhouse 只包含 ff、botticelle-onelog、Rich 和运行时传递依赖。
+- [ ] 检查 wheelhouse 只包含 esim、botticelle-onelog、Rich 和运行时传递依赖。
 - [ ] 在独立干净 venv 中再次使用 `--no-index` 安装并运行 `ff --help`。
 - [ ] 使用 `sha256sum -c dist/wheelhouse/SHA256SUMS` 校验全部 wheel。
 - [ ] 把 wheelhouse 压缩包和 `SHA256SUMS` 作为发布制品保留。

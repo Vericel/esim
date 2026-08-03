@@ -49,17 +49,18 @@ FF_PYTHON=.venv/bin/python \
   bash scripts/build-wheelhouse.sh /tmp/esim-wheelhouse
 ```
 
-命令从固定 onelog commit 构建 wheel，收集 Rich 及传递依赖，构建 ff 0.2.0，
+命令从固定 onelog commit 构建 wheel，收集 Rich 及传递依赖，构建 esim 0.2.0，
 在干净 venv 中使用 `--no-index` 安装并运行 `ff --help`，最后生成
 `SHA256SUMS`。开发依赖和 Node 不进入 wheelhouse。
 
 ## CI
 
-GitHub Actions 在 pull request、main push 和手工触发时运行：
+GitHub Actions 在 pull request、main push 和手工触发时运行常规门禁：
 
 - `python`：CPython 3.11–3.14 测试矩阵；
 - `quality`：Node 24、Ruff、Pyright、文档检查和 branch coverage；
-- `package`：完整离线 wheelhouse、干净安装 smoke test 和制品上传。
+- `package`：仅手工触发或发布时构建完整离线 wheelhouse，
+  执行干净安装 smoke test 并上传制品。
 
 工作流权限仅为 `contents: read`。仓库建立远端后，由维护者把上述 jobs 配置为
 main 分支 required checks。
