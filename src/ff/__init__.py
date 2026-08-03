@@ -707,7 +707,7 @@ def _flatten_lines(
         if trailing_comment is not None:
             rendered_source = f"{rendered_source} {trailing_comment}"
         origin = f"{filelist}:{line_number}"
-        identity = str(resolved_source)
+        identity = str(resolved_source.resolve())
         first_origin = state.seen_sources.get(identity)
         if first_origin is not None:
             flattened_lines.extend(

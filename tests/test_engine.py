@@ -642,6 +642,39 @@ def test_repeated_source_is_commented_after_first_occurrence(tmp_path: Path) -> 
     )
 
 
+def test_symlink_and_real_source_share_physical_duplicate_identity(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    physical = tmp_path / "physical" / "top.sv"
+    physical.parent.mkdir()
+    physical.write_text("module top; endmodule\n", encoding="utf-8")
+    logical = tmp_path / "logical" / "top.sv"
+    logical.parent.mkdir()
+    logical.symlink_to(physical)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text(
+        "logical/top.sv\nphysical/top.sv\n",
+        encoding="utf-8",
+    )
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"// symlink target: {physical}\n"
+        f"{logical}\n"
+        "// ff: duplicate physical source; "
+        f"first: {top_filelist}:1; duplicate: {top_filelist}:2\n"
+        f"// {physical}\n"
+    )
+
+
 def test_nested_missing_source_reports_complete_source_chain(
     tmp_path: Path,
 ) -> None:
