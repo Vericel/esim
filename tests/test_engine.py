@@ -619,17 +619,13 @@ def test_recursive_filelist_cycle_reports_complete_source_chain(
     )
 
 
-def test_repeated_filelist_references_and_sources_are_not_deduplicated(
-    tmp_path: Path,
-) -> None:
+def test_repeated_source_is_commented_after_first_occurrence(tmp_path: Path) -> None:
     from ff import FlattenRequest, flatten_filelist
 
     source = tmp_path / "top.sv"
     source.write_text("module top; endmodule\n", encoding="utf-8")
-    child_filelist = tmp_path / "child.f"
-    child_filelist.write_text("top.sv\ntop.sv\n", encoding="utf-8")
     top_filelist = tmp_path / "top.f"
-    top_filelist.write_text("-F child.f\n-F child.f\n", encoding="utf-8")
+    top_filelist.write_text("top.sv\ntop.sv\n", encoding="utf-8")
 
     result = flatten_filelist(
         FlattenRequest(
@@ -638,7 +634,12 @@ def test_repeated_filelist_references_and_sources_are_not_deduplicated(
         )
     )
 
-    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n" * 4
+    assert result.output_filelist.read_text(encoding="utf-8") == (
+        f"{source}\n"
+        "// ff: duplicate physical source; "
+        f"first: {top_filelist}:1; duplicate: {top_filelist}:2\n"
+        f"// {source}\n"
+    )
 
 
 def test_nested_missing_source_reports_complete_source_chain(

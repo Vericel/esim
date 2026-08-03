@@ -41,6 +41,12 @@ class FlattenResult:
     output_filelist: Path
 
 
+@dataclass
+class _FlattenState:
+    input_filelists: dict[Path, Path]
+    seen_sources: dict[str, str] = field(default_factory=dict)
+
+
 def _absolute_logical_path(path: Path, base_directory: Path) -> Path:
     if not path.is_absolute():
         path = base_directory / path
@@ -281,7 +287,7 @@ def _flatten_lines(
     request: FlattenRequest,
     filelist_stack: tuple[Path, ...],
     source_chain: tuple[str, ...],
-    input_filelists: dict[Path, Path],
+    state: _FlattenState,
 ) -> list[str]:
     if request.logger is not None:
         request.logger.debug(f"reading filelist: {filelist}")
@@ -504,7 +510,7 @@ def _flatten_lines(
                     "  suggestion: grant read permission to the filelist"
                 )
             child_identity = child_filelist.resolve()
-            input_filelists.setdefault(child_identity, child_filelist)
+            state.input_filelists.setdefault(child_identity, child_filelist)
             reference = f"{filelist}:{line_number} -> {child_filelist}"
             next_source_chain = source_chain + (reference,)
             if child_identity in filelist_stack:
@@ -534,7 +540,7 @@ def _flatten_lines(
                         request,
                         filelist_stack + (child_identity,),
                         next_source_chain,
-                        input_filelists,
+                        state,
                     )
             )
             continue
@@ -697,12 +703,25 @@ def _flatten_lines(
             request.logger.debug(
                 f"resolved source: {filelist}:{line_number} -> {resolved_source}"
             )
-        annotation = _symlink_target_annotation(resolved_source)
-        if annotation is not None:
-            flattened_lines.append(annotation)
         rendered_source = str(resolved_source)
         if trailing_comment is not None:
             rendered_source = f"{rendered_source} {trailing_comment}"
+        origin = f"{filelist}:{line_number}"
+        identity = str(resolved_source)
+        first_origin = state.seen_sources.get(identity)
+        if first_origin is not None:
+            flattened_lines.extend(
+                [
+                    "// ff: duplicate physical source; "
+                    f"first: {first_origin}; duplicate: {origin}",
+                    f"// {rendered_source}",
+                ]
+            )
+            continue
+        state.seen_sources[identity] = origin
+        annotation = _symlink_target_annotation(resolved_source)
+        if annotation is not None:
+            flattened_lines.append(annotation)
         flattened_lines.append(rendered_source)
     if condition_open_lines:
         raise FlattenError(
@@ -785,14 +804,16 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             "  suggestion: choose a file path for the flattened filelist"
         )
     top_filelist_identity = top_filelist.resolve()
-    input_filelists = {top_filelist_identity: top_filelist}
+    state = _FlattenState(
+        input_filelists={top_filelist_identity: top_filelist},
+    )
     flattened_lines = _flatten_lines(
         top_filelist,
         top_filelist.parent,
         request,
         (top_filelist_identity,),
         (),
-        input_filelists,
+        state,
     )
     if request.log_file is not None:
         log_file = _absolute_logical_path(
@@ -800,7 +821,9 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
             request.working_directory,
         )
         conflicting_input = (
-            input_filelists.get(log_file.resolve()) if log_file.exists() else None
+            state.input_filelists.get(log_file.resolve())
+            if log_file.exists()
+            else None
         )
         if conflicting_input is not None:
             raise FlattenError(
@@ -817,7 +840,7 @@ def flatten_filelist(request: FlattenRequest) -> FlattenResult:
     if flattened_lines:
         flattened_content += "\n"
     if output_filelist.exists():
-        conflicting_input = input_filelists.get(output_filelist.resolve())
+        conflicting_input = state.input_filelists.get(output_filelist.resolve())
         if conflicting_input is not None:
             raise FlattenError(
                 "output conflicts with an input filelist\n"
