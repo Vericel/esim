@@ -977,10 +977,29 @@ ff /proj/tb/top.f</code></pre>
         <ul>
           <li>ff 使用当前引用栈检测递归循环，真实路径身份相同的循环会失败。</li>
           <li>同一 filelist 在不同分支或位置被多次引用不等于循环，每次都按位置展开。</li>
-          <li>重复源码和选项也保留原顺序与次数，不自动去重。</li>
-          <li>启用 DEBUG 时，ff 可以提示重复条目的来源，但不改变输出。</li>
+          <li>普通源码和 <code>-v</code> library file 分别按 symlink 解析后的物理路径去重；一个文件同时作为普通源码和 <code>-v</code> 条目时，两者都保留活动。</li>
+          <li>首次条目保留原逻辑路径和顺序；后续重复条目会转换为注释，注明首次与重复的 <code>filelist:line</code>，不会静默消失。</li>
+          <li>重复条目仍会先完成路径展开、存在性、类型和可读性校验；无效的第二次引用不会被去重逻辑掩盖。</li>
+          <li><code>-y</code>、<code>+incdir+</code>、透传选项、注释和空行保留原顺序与重复。</li>
+          <li>启用 DEBUG 时，ff 还会记录重复类型、物理路径、两个来源位置和规范化条目。</li>
           <li><code>-f/-F</code> 行的尾部注释会提升为展开内容之前的独立注释。</li>
         </ul>
+
+        <div class="example">
+          <p class="example-title">示例：重复物理源文件保留为可追溯注释</p>
+          <div class="example-step">
+            <span class="example-label">输入</span>
+            <pre><code>rtl/top.sv
+rtl/current/top.sv</code></pre>
+          </div>
+          <div class="example-step">
+            <span class="example-label">结果</span>
+            <pre><code>/proj/rtl/top.sv
+// ff: duplicate physical source; first: /proj/top.f:1; duplicate: /proj/top.f:2
+// /proj/rtl/current/top.sv</code></pre>
+          </div>
+          <p class="muted">上例假定 <code>rtl/current/top.sv</code> 是指向 <code>rtl/top.sv</code> 的 symlink。</p>
+        </div>
       </section>
 
       <section id="environment">
@@ -1043,7 +1062,7 @@ ff /proj/tb/top.f</code></pre>
           <li>普通路径条目的尾部注释保留在规范化路径后。</li>
           <li><code>-f/-F</code> 的尾部注释提升为展开内容前的独立注释。</li>
           <li>多目录 <code>+incdir+</code> 的尾部注释提升为拆分组之前的独立注释。</li>
-          <li>除 symlink target annotation 外，ff 不主动增加其他注释。</li>
+          <li>ff 仅主动增加 symlink target annotation 和 duplicate file annotation。</li>
         </ul>
 
         <h3>可识别路径条目</h3>

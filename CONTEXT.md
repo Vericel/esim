@@ -32,6 +32,14 @@ _Avoid_: Stack trace
 flat filelist 中紧邻 symlink 路径条目的 `ff` 生成注释，记录该逻辑绝对路径跟随 symlink 后的物理路径。仿真器仍使用注释后保留 symlink 的逻辑路径。
 _Avoid_: Original path, source expression
 
+**Physical compiled-file identity**:
+普通源码或 `-v` library file 路径跟随 symlink 后得到的真实绝对路径。`ff` 用它判断两个不同的逻辑路径是否指向同一物理编译文件。普通源码和 `-v` 分属两个独立去重域。
+_Avoid_: Basename, logical path identity
+
+**Duplicate file annotation**:
+flat filelist 中由 `ff` 生成的两部分注释：元数据行记录首次条目和重复条目的 `filelist:line`，随后将重复的规范化条目逐行注释。它保留调试证据，但防止仿真器再次编译同一物理文件。
+_Avoid_: Silent deletion
+
 **Predefined macro**:
 由 `ff` 调用者提供、用于判定 filelist 条件分支的无值 Verilog 标识符。它仅表达“已定义”或“未定义”，可以来自直接命令行调用，也可以由 esim 从 TC 配置中读取后传入。
 _Avoid_: HDL compilation define

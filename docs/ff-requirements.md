@@ -129,7 +129,7 @@ ff top.f --debug -l ./my.log
 - 普通 path entry 的尾部注释保留在规范化路径后。
 - `-f/-F` 的尾部注释提升为展开内容前的独立注释。
 - 多目录 `+incdir+` 的尾部注释提升为拆分组之前的独立注释。
-- 除 symlink target annotation 外，`ff` 不主动增加其他注释。
+- `ff` 仅主动增加 symlink target annotation 和 duplicate file annotation。
 
 ### 4.4 路径条目
 
@@ -158,7 +158,11 @@ source/path
 - `-F` 子 filelist 及其相对内容以当前 filelist 的逻辑所在目录为基准。
 - 递归展开所有 `-f/-F`，输出中不再包含它们。
 - 使用当前引用栈检测循环；同一 filelist 在不同分支或位置重复引用不是循环，仍按次展开。
-- 重复源码或选项保留原顺序和次数，不自动去重；DEBUG 中可提示重复来源。
+- 普通源码和 `-v` library file 各自按 physical compiled-file identity 去重，两个去重域互不影响。
+- 同一去重域中首次出现的条目保持活动并保留它的逻辑路径与顺序；后续重复条目转换为 duplicate file annotation，不静默删除。
+- 每次出现都必须先完成环境变量展开以及存在性、类型和可读性校验，再判断是否重复。
+- `-f/-F`、`-y`、`+incdir+`、透传选项、原始注释和空行不参与文件去重，保留既有顺序和重复。
+- DEBUG 记录重复条目的类型、物理身份、首次位置、重复位置和规范化条目。
 
 ## 6. 环境变量
 
