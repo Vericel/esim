@@ -5,6 +5,9 @@
 开发和 CI 使用 CPython 3.11+；兼容矩阵覆盖 3.11–3.14。Pyright 需要
 Node 24，但 Node 不属于 ff 运行时或发布制品。Linux 与 WSL2 均受支持；
 在 WSL2 中优先把仓库放在 Linux 文件系统以获得更稳定的权限语义和性能。
+`.[dev]` 同时安装精确版本的 `setuptools` 和 `wheel`，因为分发
+测试使用 `pip wheel --no-build-isolation` 验证当前开发环境的打包 seam。
+这两项仍是开发工具，不进入 esim 的运行依赖或离线 wheelhouse。
 
 ```bash
 python3.11 -m venv .venv
