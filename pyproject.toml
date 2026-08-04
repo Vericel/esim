@@ -15,7 +15,7 @@ dev = [
     "pre-commit==4.6.0",
     "pytest==8.4.2",
     "pytest-cov==7.1.0",
-    "ruff==0.15.22",
+    "ruff==0.16.1",
     "setuptools==83.0.0",
     "wheel==0.47.0",
 ]
