@@ -12,8 +12,12 @@ python3 -m pip install --no-index --find-links ./wheelhouse esim==0.2.0
 ```
 
 需要 CPython 3.11+，支持 Linux 和 WSL2。wheelhouse 需包含 esim、
-`botticelle-onelog`、Rich 及其依赖；
-onelog 0.1.0 对应 [v0.1.0](https://github.com/BottiCelle/onelog/releases/tag/v0.1.0)。
+`onelogg`、Rich 及其依赖；当前固定的 onelogg 0.1.1 对应
+[PyPI 发布](https://pypi.org/project/onelogg/0.1.1/)和
+[v0.1.1](https://github.com/BottiCelle/onelog/releases/tag/v0.1.1)。
+分发名是 `onelogg`，Python 导入名仍是 `onelog`。请使用干净环境安装；不要与
+PyPI 上无关的 `onelog` 分发或旧 `botticelle-onelog` 分发混装，因为它们可能
+共同写入 `onelog` 导入路径。
 
 ## 基础用法
 

@@ -23,7 +23,7 @@ flattening engine ─┤
 - ff CLI 是引擎的薄适配层。
 - esim 在进程内直接调用同一引擎，不启动 ff 子进程。
 - 实现基线为 CPython 3.11+，支持 Linux 和 WSL2。
-- CLI 使用正式打包、版本化的 `BottiCelle/onelog` 及其 Rich 依赖；它们随 ff/esim 发行，目标机无需联网安装。
+- CLI 使用正式 PyPI 分发 `onelogg>=0.1.1,<0.2` 及其 Rich 依赖，Python 导入名保持 `onelog`；它们随 ff/esim 发行，目标机无需联网安装。
 - onelog 在 ff 和 esim 中均关闭 summary。
 - 展平引擎不配置 root logger，不调用 `log.fatal()`。
 

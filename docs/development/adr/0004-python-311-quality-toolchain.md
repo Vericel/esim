@@ -1,5 +1,9 @@
 # Require Python 3.11 for the quality toolchain
 
+> ADR-0005 supersedes this document's onelog distribution identity, dependency
+> range, and fixed-source decision. Its Python and quality-toolchain decisions
+> remain in force.
+
 `ff` 0.2.0 and its reusable flattening engine require CPython 3.11 or newer
 on Linux and WSL2. Continuous integration covers CPython 3.11 through 3.14.
 This supersedes only the Python-version decision in ADR-0003; its packaged

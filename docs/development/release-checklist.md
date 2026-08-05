@@ -11,7 +11,7 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
 
 ## 验证与制品
 
-- [ ] 在干净 CPython 3.11 环境安装固定 onelog commit 和 `.[dev]`。
+- [ ] 在干净 CPython 3.11 环境安装 `onelogg==0.1.1` 和 `.[dev]`。
 - [ ] 执行 `npm ci` 和 `bash scripts/check.sh`。
 - [ ] 使用空目录执行：
 
@@ -20,7 +20,7 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
     bash scripts/build-wheelhouse.sh dist/wheelhouse
   ```
 
-- [ ] 检查 wheelhouse 只包含 esim、botticelle-onelog、Rich 和运行时传递依赖。
+- [ ] 检查 wheelhouse 只包含 esim、onelogg、Rich 和运行时传递依赖。
 - [ ] 在独立干净 venv 中再次使用 `--no-index` 安装并运行 `ff --help`。
 - [ ] 使用 `sha256sum -c dist/wheelhouse/SHA256SUMS` 校验全部 wheel。
 - [ ] 把 wheelhouse 压缩包和 `SHA256SUMS` 作为发布制品保留。

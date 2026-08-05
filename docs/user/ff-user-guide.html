@@ -780,10 +780,14 @@
         <h3>wheelhouse 需包含</h3>
         <ul class="rule-list">
           <li><code>esim</code> 0.2.0 wheel</li>
-          <li><code>botticelle-onelog</code> 0.1.x wheel</li>
+          <li><code>onelogg</code> 0.1.1 wheel（Python 导入名为 <code>onelog</code>）</li>
           <li>Rich wheel</li>
           <li>Rich 的传递依赖 wheel</li>
         </ul>
+
+        <div class="note">
+          <p><strong>环境隔离：</strong>请使用干净环境安装，不要把 <code>onelogg</code> 与 PyPI 上无关的 <code>onelog</code> 分发或旧 <code>botticelle-onelog</code> 分发混装；它们可能共同写入 <code>onelog</code> 导入路径。</p>
+        </div>
 
         <p>安装后检查 CLI 是否可用：</p>
         <pre><code>ff --help</code></pre>

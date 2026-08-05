@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  ONELOG_COMMIT: 7738cac48b383624b9b5a6bf3434a2a40210c568
+  ONELOGG_VERSION: 0.1.1
 
 jobs:
   python:
@@ -29,10 +29,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - run: python -m venv .venv
-      - name: Install fixed runtime dependency
+      - name: Install published runtime dependency
         run: >-
           .venv/bin/python -m pip install
-          "git+https://github.com/BottiCelle/onelog.git@${ONELOG_COMMIT}"
+          "onelogg==${ONELOGG_VERSION}"
       - run: .venv/bin/python -m pip install -e ".[dev]"
       - run: .venv/bin/python -m pytest -q
       - run: .venv/bin/python -m pip check
@@ -51,10 +51,10 @@ jobs:
           node-version: "24"
           cache: npm
       - run: python -m venv .venv
-      - name: Install fixed runtime dependency
+      - name: Install published runtime dependency
         run: >-
           .venv/bin/python -m pip install
-          "git+https://github.com/BottiCelle/onelog.git@${ONELOG_COMMIT}"
+          "onelogg==${ONELOGG_VERSION}"
       - run: .venv/bin/python -m pip install -e ".[dev]"
       - run: npm ci
       - run: bash scripts/check.sh

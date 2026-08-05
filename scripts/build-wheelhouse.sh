@@ -4,7 +4,7 @@ set -euo pipefail
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 output="${1:-$project_root/dist/wheelhouse}"
 python_command="${FF_PYTHON:-python3}"
-onelog_commit="7738cac48b383624b9b5a6bf3434a2a40210c568"
+onelogg_version="0.1.1"
 
 mkdir -p "$output"
 if [[ -n "$(find "$output" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
@@ -16,7 +16,7 @@ temporary_directory="$(mktemp -d)"
 trap 'rm -rf -- "$temporary_directory"' EXIT
 
 "$python_command" -m pip wheel \
-    "git+https://github.com/BottiCelle/onelog.git@$onelog_commit" \
+    "onelogg==$onelogg_version" \
     --no-build-isolation \
     --wheel-dir "$output"
 "$python_command" -m pip wheel "$project_root" \
