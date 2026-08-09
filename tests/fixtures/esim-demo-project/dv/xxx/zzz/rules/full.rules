@@ -1,0 +1,24 @@
+description: Complete three-step Rules demonstration for xxx.zzz
+tags:
+  - complete-rules
+  - three-step
+
+include:
+  - ./full-base.rules
+
+filelist: $DV_HOME/xxx/zzz/tb/top.f
+simulator: vcs
+flow: three-step
+
+ff:
+  args:
+    - -d COMPLETE_ZZZ
+
+build:
+  analyze:
+    args:
+      - +define+COMPLETE_ZZZ
+
+run:
+  args:
+    - +ntb_random_seed=31

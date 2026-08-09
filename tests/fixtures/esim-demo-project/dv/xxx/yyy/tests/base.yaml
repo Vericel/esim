@@ -1,0 +1,11 @@
+description: Shared testcase fragment for the xxx.yyy demo
+tags:
+  - base
+
+run:
+  args:
+    - +ESIM_DEMO_BASE=yyy
+  hooks:
+    before:
+      commands:
+        - source $DV_HOME/dtb_common/env/common_setup.sh && echo "xxx.yyy base testcase setup complete"

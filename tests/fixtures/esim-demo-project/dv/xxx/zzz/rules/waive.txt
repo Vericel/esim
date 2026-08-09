@@ -1,0 +1,2 @@
+# DTB-local glob rules supplement dtb_common rules.
+*EXPECTED_ERROR_FOR_ZZZ_DEMO*

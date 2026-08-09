@@ -1,0 +1,19 @@
+description: Complete traditional-suffix feature testcase for xxx.zzz
+owner: verification-platform
+tags:
+  - complete-tc
+  - traditional-suffix
+
+include:
+  - ../fragments/complete-base.tc
+
+run:
+  args:
+    - +ESIM_DEMO_CASE=complete
+  hooks:
+    before:
+      commands:
+        - echo "zzz run setup complete"
+    after:
+      commands:
+        - echo "zzz run post-processing complete"

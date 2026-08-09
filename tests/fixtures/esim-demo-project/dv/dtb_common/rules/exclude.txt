@@ -1,0 +1,6 @@
+// Y-2026.03 emits these benign lines during a successful compile.
+error messages and associated data to Synopsys\.
+^FlexNet Licensing checkout error: No such feature exists\.$
+^FlexNet Licensing error:-5,(?:147|357)$
+^get display error$
+(?:^|\s)-lerrorinf(?:\s|$)

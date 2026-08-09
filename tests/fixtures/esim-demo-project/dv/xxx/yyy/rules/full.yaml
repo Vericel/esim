@@ -1,0 +1,47 @@
+description: Complete two-step Rules demonstration for xxx.yyy
+tags:
+  - complete-rules
+  - duplicate
+
+include:
+  - $DV_HOME/dtb_common/rules/vcs_base.rules
+  - ${ESIM_DEMO_YYY_RULES}/full-left.rules
+  - ./full-right.yaml
+
+filelist: ${ESIM_DEMO_FILELIST}
+simulator: vcs
+flow: two-step
+
+metadata:
+  purpose: demonstrate ignored top-level fields
+
+ff:
+  args:
+    - -d COMPLETE_YYY
+  timeout: 60
+  hooks:
+    before:
+      commands:
+        - echo "yyy rules-entry ff before"
+    after:
+      commands:
+        - echo "yyy rules-entry ff after"
+
+build:
+  args:
+    - -top top_tb
+  hooks:
+    before:
+      commands:
+        - echo "yyy rules-entry build before"
+    after:
+      commands:
+        - echo "yyy rules-entry build after"
+
+run:
+  args:
+    - '+RULES_LABEL="$ESIM_DEMO_LABEL"'
+  hooks:
+    after:
+      commands:
+        - echo "yyy rules-entry run after"

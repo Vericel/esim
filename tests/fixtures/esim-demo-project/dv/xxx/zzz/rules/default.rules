@@ -1,0 +1,27 @@
+description: Default three-step VCS rules for the xxx.zzz demo
+tags:
+  - vcs
+  - three-step
+
+include:
+  - $DV_HOME/dtb_common/rules/vcs_base.rules
+
+filelist: $DV_HOME/xxx/zzz/tb/top.f
+flow: three-step
+
+ff:
+  args:
+    - -d ESIM_DEMO ESIM_ZZZ
+
+build:
+  analyze:
+    args:
+      - -full64 -sverilog
+  elaborate:
+    args:
+      - -full64 top_tb
+
+run:
+  args:
+    - +ntb_random_seed=1
+    - +ESIM_DEMO_DTB=zzz

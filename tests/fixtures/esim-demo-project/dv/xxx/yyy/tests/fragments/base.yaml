@@ -1,0 +1,20 @@
+description: Base fragment ignored in favor of the complete entry description
+owner: ignored-base-owner
+tags:
+  - base
+  - duplicate
+
+include:
+  - ./shared.yaml
+
+build:
+  args:
+    - +define+BASE_TC
+  hooks:
+    before:
+      commands:
+        - echo "yyy testcase-base build before"
+
+run:
+  args:
+    - +BASE_TC=1

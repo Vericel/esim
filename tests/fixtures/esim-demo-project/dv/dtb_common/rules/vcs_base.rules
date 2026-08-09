@@ -1,0 +1,15 @@
+description: Shared VCS configuration for the esim demo
+tags:
+  - vcs
+
+simulator: vcs
+
+ff:
+  hooks:
+    before:
+      commands:
+        - source $DV_HOME/dtb_common/env/common_setup.sh && echo "common ff setup complete"
+
+run:
+  args:
+    - +UVM_VERBOSITY=UVM_LOW

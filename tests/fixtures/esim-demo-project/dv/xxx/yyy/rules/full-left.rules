@@ -1,0 +1,23 @@
+description: Left branch of the complete yyy Rules graph
+tags:
+  - left
+  - duplicate
+
+include:
+  - ../tests/fragments/shared.yaml
+
+simulator: vcs
+flow: two-step
+
+ff:
+  args:
+    - -d COMPLETE_LEFT
+
+build:
+  args:
+    - -full64
+  hooks:
+    before:
+      commands:
+        - echo "yyy rules-left build before"
+      continue_on_error: true

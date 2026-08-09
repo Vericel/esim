@@ -1,0 +1,47 @@
+description: Shared three-step phase-hook fragment for xxx.zzz
+tags:
+  - vcs
+  - three-step-base
+
+include:
+  - $DV_HOME/dtb_common/rules/vcs_base.rules
+
+simulator: vcs
+flow: three-step
+
+ff:
+  args:
+    - -d COMPLETE_ZZZ_BASE
+  hooks:
+    after:
+      commands:
+        - echo "zzz ff post-processing complete"
+
+build:
+  hooks:
+    before:
+      commands:
+        - echo "zzz build setup complete"
+    after:
+      commands:
+        - echo "zzz build post-processing complete"
+  analyze:
+    args:
+      - -full64 -sverilog
+    hooks:
+      before:
+        commands:
+          - echo "zzz analyze setup complete"
+      after:
+        commands:
+          - echo "zzz analyze post-processing complete"
+  elaborate:
+    args:
+      - -full64 top_tb
+    hooks:
+      before:
+        commands:
+          - echo "zzz elaborate setup complete"
+      after:
+        commands:
+          - echo "zzz elaborate post-processing complete"

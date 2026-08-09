@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "*.rules": "yaml",
+    "*.tc": "yaml"
+  }
+}

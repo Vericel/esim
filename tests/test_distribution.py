@@ -41,6 +41,7 @@ def test_esim_wheel_preserves_the_standalone_ff_command(
     assert "Version: 0.2.0" in metadata
     assert "Requires-Python: >=3.11" in metadata
     assert "ff = ff.cli:main" in entry_points
+    assert "esim = esim.cli:main" in entry_points
 
 
 def test_wheel_uses_versioned_onelog_dependency(tmp_path: Path) -> None:
@@ -73,6 +74,7 @@ def test_wheel_uses_versioned_onelog_dependency(tmp_path: Path) -> None:
 
     assert "ff/_vendor/onelog.py" not in names
     assert "Requires-Dist: botticelle-onelog<0.2,>=0.1" in metadata
+    assert "Requires-Dist: PyYAML<7,>=6.0" in metadata
 
 
 def test_wheelhouse_builder_preserves_and_rejects_nonempty_output(

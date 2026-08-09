@@ -5,14 +5,15 @@
 ## 开始工作前
 
 1. 阅读本文件和根目录 `CONTEXT.md`。
-2. 根据任务阅读 `docs/requirements/ff.md`、相关 ADR、设计和实施计划。
+2. 根据任务阅读 `docs/requirements/` 下对应的需求、相关 ADR、设计和实施计划。
 3. 运行 `git status --short`，识别并保护用户已有的修改和未跟踪文件。
 4. 明确任务范围、可观察行为、验证方式以及需要同步更新的文档。
 
 ## 权威来源与优先级
 
 - `CONTEXT.md`：领域术语和统一语言。代码、测试和文档使用其中的术语，避免自创新同义词。
-- `docs/requirements/ff.md`：可观察行为的权威契约，是实现和测试的主要依据。
+- `docs/requirements/ff.md`：`ff` 可观察行为的权威契约。
+- `docs/requirements/esim.md`：`esim` TC/Rules、执行流程和运行产物的权威契约。
 - `docs/development/adr/`：跨功能、长期有效的架构决策。重要架构变化新增 ADR，不静默改写已接受决策的历史。
 - `docs/development/designs/`：单项功能经用户确认的设计，不得擅自扩大需求。
 - `docs/development/plans/`：正式、可审阅、纳入版本控制的实施计划。

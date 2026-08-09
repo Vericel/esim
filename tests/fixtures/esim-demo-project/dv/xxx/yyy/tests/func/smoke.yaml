@@ -1,0 +1,20 @@
+description: Two-step YAML smoke testcase for xxx.yyy
+owner: verification-team
+tags:
+  - smoke
+  - func
+  - yaml
+
+include:
+  - ../base.yaml
+
+run:
+  args:
+    - +ESIM_DEMO_CASE=smoke
+  hooks:
+    before:
+      commands:
+        - source $DV_HOME/xxx/yyy/env/setup.sh && echo "xxx.yyy smoke testcase setup complete"
+    after:
+      commands:
+        - echo "xxx.yyy smoke testcase post-processing complete"

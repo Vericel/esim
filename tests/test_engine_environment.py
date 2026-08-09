@@ -2,6 +2,43 @@ from pathlib import Path
 
 import pytest
 
+DEMO_DV = Path(__file__).parent / "fixtures/esim-demo-project/dv"
+
+
+def test_demo_nested_error_reports_source_and_environment_chains(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenError, FlattenRequest, flatten_filelist
+
+    case_root = DEMO_DV / "xxx/yyy/tb/ff_cases/environment-cycle"
+    top = case_root / "top.f"
+    middle = case_root / "nested/middle.f"
+    leaf = case_root / "nested/leaf.f"
+
+    with pytest.raises(FlattenError) as caught:
+        flatten_filelist(
+            FlattenRequest(
+                top_filelist=top,
+                working_directory=tmp_path,
+                environment={
+                    "FF_DEMO_CYCLE_A": "$FF_DEMO_CYCLE_B",
+                    "FF_DEMO_CYCLE_B": "${FF_DEMO_CYCLE_A}",
+                },
+            )
+        )
+
+    assert str(caught.value) == (
+        "environment variable expansion cycle\n"
+        "  source chain:\n"
+        f"    {top}:1 -> {middle}\n"
+        f"    {middle}:1 -> {leaf}\n"
+        f"  at: {leaf}:1\n"
+        "  input: $FF_DEMO_CYCLE_A/missing.sv\n"
+        "  expansion chain: FF_DEMO_CYCLE_A -> FF_DEMO_CYCLE_B -> "
+        "FF_DEMO_CYCLE_A\n"
+        "  suggestion: remove the recursive environment variable reference"
+    )
+
 
 @pytest.mark.parametrize(
     "entry",
@@ -158,6 +195,30 @@ def test_filelist_reference_path_expands_environment_variables(
         FlattenRequest(
             top_filelist=top_filelist,
             working_directory=tmp_path,
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
+
+def test_engine_can_expand_from_an_invocation_environment_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    source = tmp_path / "project/rtl/top.sv"
+    source.parent.mkdir(parents=True)
+    source.write_text("module top; endmodule\n", encoding="utf-8")
+    monkeypatch.delenv("SNAPSHOT_ROOT", raising=False)
+    top_filelist = tmp_path / "top.f"
+    top_filelist.write_text("$SNAPSHOT_ROOT/rtl/top.sv\n", encoding="utf-8")
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=top_filelist,
+            working_directory=tmp_path,
+            environment={"SNAPSHOT_ROOT": str(tmp_path / "project")},
         )
     )
 

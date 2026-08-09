@@ -22,6 +22,9 @@ npm ci
 `botticelle-onelog`。修改 Python 最低版本、运行依赖或固定提交前，必须先取得
 用户决定并同步需求、README、用户文档、ADR 和发布文档。
 
+esim 使用 `PyYAML>=6.0,<7` 安全解析 TC/Rules 并生成运行快照；
+该 wheel 必须与其他运行依赖一起收入离线 wheelhouse。
+
 ## 测试与质量门禁
 
 ```bash
@@ -52,8 +55,9 @@ FF_PYTHON=.venv/bin/python \
   bash scripts/build-wheelhouse.sh /tmp/esim-wheelhouse
 ```
 
-命令从固定 onelog commit 构建 wheel，收集 Rich 及传递依赖，构建 esim 0.2.0，
-在干净 venv 中使用 `--no-index` 安装并运行 `ff --help`，最后生成
+命令从固定 onelog commit 构建 wheel，收集 Rich、PyYAML 及传递依赖，构建 esim 0.2.0，
+在干净 venv 中使用 `--no-index` 安装并运行 `ff --help` 与
+`esim --help`，最后生成
 `SHA256SUMS`。开发依赖和 Node 不进入 wheelhouse。
 
 ## CI

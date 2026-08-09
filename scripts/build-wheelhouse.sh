@@ -17,6 +17,7 @@ trap 'rm -rf -- "$temporary_directory"' EXIT
 
 "$python_command" -m pip wheel \
     "git+https://github.com/BottiCelle/onelog.git@$onelog_commit" \
+    "PyYAML>=6.0,<7" \
     --no-build-isolation \
     --wheel-dir "$output"
 "$python_command" -m pip wheel "$project_root" \
@@ -31,6 +32,7 @@ trap 'rm -rf -- "$temporary_directory"' EXIT
     esim==0.2.0
 "$temporary_directory/smoke/bin/python" -m pip check
 "$temporary_directory/smoke/bin/ff" --help >/dev/null
+"$temporary_directory/smoke/bin/esim" --help >/dev/null
 
 (
     cd "$output"

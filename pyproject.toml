@@ -8,7 +8,10 @@ version = "0.2.0"
 description = "Verilog/SystemVerilog filelist flattener"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["botticelle-onelog>=0.1,<0.2"]
+dependencies = [
+    "botticelle-onelog>=0.1,<0.2",
+    "PyYAML>=6.0,<7",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -22,6 +25,7 @@ dev = [
 
 [project.scripts]
 ff = "ff.cli:main"
+esim = "esim.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -41,7 +45,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PIE", "RUF"]
 [tool.coverage.run]
 branch = true
 patch = ["subprocess"]
-source = ["ff"]
+source = ["ff", "esim"]
 
 [tool.coverage.report]
 fail_under = 90

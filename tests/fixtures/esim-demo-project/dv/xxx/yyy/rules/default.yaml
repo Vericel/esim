@@ -1,0 +1,23 @@
+description: Default two-step VCS rules for the xxx.yyy demo
+tags:
+  - vcs
+  - two-step
+
+include:
+  - $DV_HOME/dtb_common/rules/vcs_base.rules
+
+filelist: $DV_HOME/xxx/yyy/tb/top.f
+flow: two-step
+
+ff:
+  args:
+    - -d ESIM_DEMO ESIM_YYY
+
+build:
+  args:
+    - -full64 -sverilog -top top_tb
+
+run:
+  args:
+    - +ntb_random_seed=1
+    - +ESIM_DEMO_DTB=yyy
