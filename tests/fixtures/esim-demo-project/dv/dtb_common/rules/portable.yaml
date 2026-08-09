@@ -1,0 +1,23 @@
+description: Portable common Rules selected through logical fallback
+tags:
+  - portable
+  - common-rules
+
+include:
+  - ./vcs_base.rules
+
+filelist: ${ESIM_DEMO_COMMON_FILELIST}
+simulator: vcs
+flow: two-step
+
+ff:
+  args:
+    - -d ESIM_PORTABLE
+
+build:
+  args:
+    - -full64 -sverilog -top top_tb
+
+run:
+  args:
+    - +ESIM_DEMO_RULES=portable

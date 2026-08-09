@@ -15,6 +15,7 @@ bash scripts/run-pyright.sh
 .venv/bin/python scripts/check_docs.py
 .venv/bin/python -m pytest -q \
     --cov=ff \
+    --cov=esim \
     --cov-branch \
     --cov-report=term-missing \
     --cov-fail-under=90

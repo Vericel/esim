@@ -1,0 +1,14 @@
+description: Coverage extension for the xxx.yyy demo
+tags:
+  - coverage
+
+include:
+  - ./default.yaml
+
+build:
+  args:
+    - -cm line+cond+fsm+tgl+branch
+
+run:
+  args:
+    - -cm line+cond+fsm+tgl+branch

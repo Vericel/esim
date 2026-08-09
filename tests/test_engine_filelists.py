@@ -2,6 +2,87 @@ from pathlib import Path
 
 import pytest
 
+DEMO_DV = Path(__file__).parent / "fixtures/esim-demo-project/dv"
+
+
+def test_complete_demo_combines_supported_filelist_syntax_for_vcs(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    yyy_home = DEMO_DV / "xxx/yyy"
+    feature_root = yyy_home / "tb/ff_features"
+    output = tmp_path / "complete.f"
+
+    flatten_filelist(
+        FlattenRequest(
+            top_filelist=yyy_home / "tb/full.f",
+            working_directory=yyy_home / "tb",
+            output_filelist=output,
+            predefined_macros=frozenset(
+                {
+                    "COMPLETE_YYY",
+                    "COMPLETE_LEFT",
+                    "COMPLETE_RIGHT",
+                    "COMPLETE_LEAF",
+                }
+            ),
+            environment={
+                "DV_HOME": str(DEMO_DV),
+                "FF_DEMO_ROOT": "$DV_HOME/xxx/yyy/tb/ff_features",
+                "FF_DEMO_SOURCE_ROOT": "${FF_DEMO_ROOT}/sources",
+                "FF_DEMO_INCLUDE_ROOT": "$FF_DEMO_ROOT/include",
+                "FF_DEMO_LIBRARY_FILE": "$FF_DEMO_ROOT/library/ff_demo_cells.sv",
+                "FF_DEMO_LIBRARY_DIR": "${FF_DEMO_ROOT}/library/search",
+                "FF_DEMO_WORKING_FILELIST": "$FF_DEMO_ROOT/working/working.f",
+            },
+        )
+    )
+
+    lines = output.read_text(encoding="utf-8").splitlines()
+    assert lines[:6] == [
+        "+define+COMPLETE_LEAF",
+        "+define+COMPLETE_LEFT",
+        "+define+COMPLETE_RIGHT",
+        "+define+COMPLETE_YYY",
+        "+define+FF_INPUT_TOP",
+        "+define+FF_INPUT_NESTED",
+    ]
+    assert lines[6:9] == [
+        "// complete demo include directories",
+        f"+incdir+{feature_root / 'include/primary'}",
+        f"+incdir+{feature_root / 'include/secondary'}",
+    ]
+    assert f"-v {feature_root / 'library/ff_demo_cells.sv'}" in lines
+    assert f"-y {feature_root / 'library/search'}" in lines
+    assert "+libext+.sv" in lines
+    assert "-notice" in lines
+    assert f"{feature_root / 'sources/condition_left.sv'} // ifndef branch" in lines
+    assert f"{feature_root / 'sources/condition_right.sv'}" in lines
+    assert f"{feature_root / 'sources/working_source.sv'}" in lines
+    repeated = str(feature_root / "sources/repeated_marker.sv")
+    assert lines.count(repeated) == 2
+    assert "/* repeated relative filelist begins */" in lines
+    assert "inactive_missing.sv" not in "\n".join(lines)
+
+
+def test_demo_lowercase_f_case_uses_its_launch_directory(tmp_path: Path) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    case_root = DEMO_DV / "xxx/yyy/tb/ff_cases/working-directory"
+    launch_directory = case_root / "launch"
+    source = launch_directory / "working_directory_source.sv"
+
+    result = flatten_filelist(
+        FlattenRequest(
+            top_filelist=case_root / "top.f",
+            working_directory=launch_directory,
+            output_filelist=tmp_path / "working-directory.f",
+        )
+    )
+
+    assert result.output_filelist.read_text(encoding="utf-8") == f"{source}\n"
+
 
 def test_uppercase_f_recursively_uses_each_filelist_directory(
     tmp_path: Path,

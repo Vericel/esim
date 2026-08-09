@@ -9,7 +9,7 @@
 
 权威持久化产物是纯文本 flat filelist，不是 source manifest。第一版不考虑 mixed-language 和 logical library，不生成 JSON、依赖文件或 source map sidecar。
 
-`ff` 不读取 TC YAML。`esim` 拥有 TC configuration，负责解析并把 filelist 和预定义宏传给展平引擎。TC YAML 的字段命名、合并和优先级留待 esim 讨论。
+`ff` 不读取 TC/Rules YAML。`esim` 拥有这两类配置，从 Effective TC 取得 Rules-only top-level filelist，并把 `ff.args` 中的预定义宏转成结构化输入传给展平引擎。完整配置契约见 [`esim` 需求](esim.md)。
 
 ## 2. 软件架构
 
@@ -168,6 +168,9 @@ source/path
 - 在普通源码、`-f/-F`、`-v/-y` 和 `+incdir+` 的路径中展开。
 - 支持同一路径多变量，并递归展开变量值中的变量，直到完全展开。
 - 任一层缺失、空值或循环引用都是错误，报错同时显示 source chain 和 environment expansion chain。
+- Python engine 的 `FlattenRequest.environment` 可传入一次调用的环境快照；
+  缺省时使用当前进程环境。`esim` 传入与 TC/Rules 解析相同的快照，
+  保证配置与 filelist 展开不会观察到不同时刻的环境。
 - 不支持 `${NAME:-default}`、`$(command)`、反引号命令、`~` 或 `~user`。
 - 展开后仍为相对路径时，沿用当前 logical entry 原本的路径基准。
 
@@ -207,11 +210,11 @@ source/path
 - 错误包含原始条目、解析结果、行号和可行的修复建议。
 - 展平引擎通过结构化 `FlattenError` 报告可预期失败，不退出宿主进程。
 - ff CLI 在最外层捕获 `FlattenError`，完成临时文件清理后可调用 `log.fatal()` 以退出码 1 结束。
-- esim 捕获同一错误后把当前 invocation 标记为 prepare/ff 失败，跳过 cache/build/run/check，但仍执行 `on_failure` 和恰好一次 `finalize`。
+- esim 捕获同一错误后把当前 invocation 标记为 ff 失败，跳过后续用户 hook、build 和 run，但仍执行不可配置的内部 cleanup，保存结果并释放资源。
 - regression 中一个 case 的 ff 失败不得直接终止其他独立 case。
 
-## 10. 待后续讨论
+## 10. 与 esim 的边界
 
-- TC YAML 中 ff 字段的最终命名（包括 `macro`/`marco` 拼写）、默认值和配置合并优先级。
-- ff 内存结构化结果与 esim 缓存指纹的详细契约。
-- esim 的 TC YAML 解析、调用链、缓存与调度实现。
+- esim 的 TC/Rules schema、合并优先级、`ff.args` adapter、仿真目录和 Stage action 由 [`esim` 需求](esim.md) 定义。
+- ff 引擎只依赖结构化输入，不得反向依赖 YAML 或 esim CLI。
+- esim 首版不实现自动缓存 fingerprint；以后如引入，需单独定义 ff 结构化结果与 fingerprint 的契约。

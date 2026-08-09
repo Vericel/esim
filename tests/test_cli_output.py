@@ -2,6 +2,30 @@ import subprocess
 import sys
 from pathlib import Path
 
+DEMO_DV = Path(__file__).parent / "fixtures/esim-demo-project/dv"
+
+
+def test_demo_empty_source_case_writes_default_flat_filelist(
+    tmp_path: Path,
+) -> None:
+    ff_command = Path(sys.executable).with_name("ff")
+    top_filelist = DEMO_DV / "xxx/yyy/tb/ff_cases/empty.f"
+
+    completed = subprocess.run(
+        [str(ff_command), str(top_filelist)],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = tmp_path / "flattened.f"
+    assert (
+        completed.returncode,
+        completed.stderr,
+        output.read_text(encoding="utf-8") if output.exists() else None,
+    ) == (0, "", "// A valid filelist may select zero source paths.\n")
+
 
 def test_cli_writes_default_flat_filelist(tmp_path: Path) -> None:
     source = tmp_path / "top.sv"

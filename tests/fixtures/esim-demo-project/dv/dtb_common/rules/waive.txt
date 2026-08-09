@@ -1,0 +1,2 @@
+// A successful UVM summary still contains the substring "error".
+*UVM_ERROR : 0*

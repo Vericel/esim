@@ -2,6 +2,7 @@ import os
 import re
 import stat
 import tempfile
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -32,6 +33,7 @@ class FlattenRequest:
     predefined_macros: frozenset[str] = field(default_factory=frozenset[str])
     log_file: Path | None = None
     logger: _DebugLogger | None = None
+    environment: Mapping[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -159,6 +161,7 @@ def _expand_environment_variables(
     filelist: Path,
     line_number: int,
     source_chain: tuple[str, ...],
+    environment: Mapping[str, str],
 ) -> str:
     def expand(current_value: str, expansion_chain: tuple[str, ...]) -> str:
         def replace(match: re.Match[str]) -> str:
@@ -174,7 +177,7 @@ def _expand_environment_variables(
                     "  suggestion: remove the recursive environment "
                     "variable reference"
                 )
-            if name not in os.environ:
+            if name not in environment:
                 raise FlattenError(
                     "environment variable is not set\n"
                     f"{_source_chain_section(source_chain)}"
@@ -183,7 +186,7 @@ def _expand_environment_variables(
                     f"  variable: {name}\n"
                     f"  suggestion: export {name} before running ff"
                 )
-            if not os.environ[name]:
+            if not environment[name]:
                 raise FlattenError(
                     "environment variable is empty\n"
                     f"{_source_chain_section(source_chain)}"
@@ -193,7 +196,7 @@ def _expand_environment_variables(
                     f"  suggestion: export {name} with a non-empty value "
                     "before running ff"
                 )
-            return expand(os.environ[name], (*expansion_chain, name))
+            return expand(environment[name], (*expansion_chain, name))
 
         return _ENVIRONMENT_VARIABLE_PATTERN.sub(replace, current_value)
 
@@ -205,6 +208,7 @@ def _expand_path_value(
     filelist: Path,
     line_number: int,
     source_chain: tuple[str, ...],
+    environment: Mapping[str, str],
 ) -> str:
     if "*" in value or "?" in value or ("[" in value and "]" in value):
         raise FlattenError(
@@ -246,6 +250,7 @@ def _expand_path_value(
         filelist,
         line_number,
         source_chain,
+        environment,
     )
     if "$" in _ENVIRONMENT_VARIABLE_PATTERN.sub("", expanded_value):
         raise FlattenError(
@@ -483,6 +488,7 @@ def _flatten_lines(
                 filelist,
                 line_number,
                 source_chain,
+                request.environment if request.environment is not None else os.environ,
             )
             child_filelist = _absolute_logical_path(
                 Path(expanded_child_reference),
@@ -546,6 +552,7 @@ def _flatten_lines(
                 filelist,
                 line_number,
                 source_chain,
+                request.environment if request.environment is not None else os.environ,
             )
             library_file = _absolute_logical_path(
                 Path(expanded_library),
@@ -583,6 +590,7 @@ def _flatten_lines(
                 filelist,
                 line_number,
                 source_chain,
+                request.environment if request.environment is not None else os.environ,
             )
             library_directory = _absolute_logical_path(
                 Path(expanded_library_directory),
@@ -625,6 +633,9 @@ def _flatten_lines(
                     filelist,
                     line_number,
                     source_chain,
+                    request.environment
+                    if request.environment is not None
+                    else os.environ,
                 )
                 include_directory = _absolute_logical_path(
                     Path(expanded_include_directory),
@@ -674,6 +685,7 @@ def _flatten_lines(
             filelist,
             line_number,
             source_chain,
+            request.environment if request.environment is not None else os.environ,
         )
         resolved_source = _absolute_logical_path(Path(expanded_source), path_base)
         if not resolved_source.is_file():

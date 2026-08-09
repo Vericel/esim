@@ -1,0 +1,24 @@
+description: Extended traditional-suffix fragment included by a YAML TC
+owner: ignored-extended-owner
+tags:
+  - extended
+  - duplicate
+
+include:
+  - ./shared.yaml
+
+build:
+  args:
+    - +define+EXTENDED_TC
+  hooks:
+    after:
+      commands:
+        - echo "yyy testcase-extended build after"
+
+run:
+  args:
+    - '+FEATURE_LABEL="$ESIM_DEMO_LABEL" +FEATURE_SCOPE=$$unit'
+  hooks:
+    before:
+      commands:
+        - echo "yyy testcase-extended run before"

@@ -1,0 +1,20 @@
+description: Three-step traditional-suffix smoke testcase for xxx.zzz
+owner: verification-team
+tags:
+  - smoke
+  - func
+  - traditional-suffix
+
+include:
+  - ../base.tc
+
+run:
+  args:
+    - +ESIM_DEMO_CASE=smoke
+  hooks:
+    before:
+      commands:
+        - source $DV_HOME/xxx/zzz/env/setup.sh && echo "xxx.zzz smoke testcase setup complete"
+    after:
+      commands:
+        - echo "xxx.zzz smoke testcase post-processing complete"

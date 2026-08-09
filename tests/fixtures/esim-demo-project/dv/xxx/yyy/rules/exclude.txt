@@ -1,0 +1,2 @@
+// DTB-local regex rules use single-line search semantics.
+^known_yyy_error: waived locally$

@@ -1,0 +1,17 @@
+description: Shared cross-role diamond leaf for xxx.yyy
+owner: ignored-fragment-owner
+tags:
+  - shared-leaf
+  - duplicate
+
+ff:
+  args:
+    - -d COMPLETE_LEAF
+
+run:
+  args:
+    - +SHARED_LEAF=1
+  hooks:
+    before:
+      commands:
+        - echo "yyy shared-leaf run before"

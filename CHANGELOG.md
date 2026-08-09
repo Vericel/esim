@@ -4,6 +4,14 @@
 
 ## Unreleased
 
+### Added
+
+- 新增 `esim` CLI，支持 TC/Rules YAML 组合、VCS two-step/three-step、
+  hooks、统一日志判定、waiver 合并、stage action 和独立 `check`。
+- 新增 `PyYAML>=6.0,<7` 运行依赖，仅使用 safe load/dump 解析配置。
+- 新增 VS Code 与 Vim/gVim 编辑器支持，将 `*.tc` 和 `*.rules`
+  按标准 YAML 语法高亮。
+
 ## 0.2.0 - 2026-08-03
 
 ### Changed

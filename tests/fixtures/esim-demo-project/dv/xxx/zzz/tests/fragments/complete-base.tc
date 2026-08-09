@@ -1,0 +1,8 @@
+description: Shared complete testcase fragment for xxx.zzz
+owner: ignored-fragment-owner
+tags:
+  - complete-base
+
+run:
+  args:
+    - +ESIM_DEMO_BASE=zzz-complete

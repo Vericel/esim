@@ -1,0 +1,22 @@
+description: Right branch of the complete yyy Rules graph
+tags:
+  - right
+  - duplicate
+
+include:
+  - ../tests/fragments/shared.yaml
+
+simulator: vcs
+flow: two-step
+
+ff:
+  args:
+    - -d COMPLETE_RIGHT
+
+build:
+  args:
+    - -sverilog
+  hooks:
+    after:
+      commands:
+        - echo "yyy rules-right build after"

@@ -3,6 +3,31 @@ from pathlib import Path
 
 import pytest
 
+DEMO_DV = Path(__file__).parent / "fixtures/esim-demo-project/dv"
+
+
+def test_complete_demo_preserves_a_symlink_source_and_annotates_its_target(
+    tmp_path: Path,
+) -> None:
+    from ff import FlattenRequest, flatten_filelist
+
+    feature_root = DEMO_DV / "xxx/yyy/tb/ff_features"
+    output = tmp_path / "symlink.f"
+
+    flatten_filelist(
+        FlattenRequest(
+            top_filelist=feature_root / "symlink.f",
+            working_directory=tmp_path,
+            output_filelist=output,
+            environment={"FF_DEMO_SOURCE_ROOT": str(feature_root / "sources")},
+        )
+    )
+
+    assert output.read_text(encoding="utf-8") == (
+        f"// symlink target: {feature_root / 'sources/repeated_marker.sv'}\n"
+        f"{feature_root / 'sources/repeated_link.sv'}\n"
+    )
+
 
 def test_success_atomically_replaces_existing_output_inode(tmp_path: Path) -> None:
     from ff import FlattenRequest, flatten_filelist
