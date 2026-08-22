@@ -4,7 +4,7 @@ set -euo pipefail
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 output="${1:-$project_root/dist/wheelhouse}"
 python_command="${FF_PYTHON:-python3}"
-onelog_commit="7738cac48b383624b9b5a6bf3434a2a40210c568"
+onelog_commit="d60dc49701944d88c90f3bd7fabf5bbbdb7d6f8c"
 
 mkdir -p "$output"
 if [[ -n "$(find "$output" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then

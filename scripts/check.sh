@@ -9,8 +9,8 @@ if [[ ! -x .venv/bin/python ]]; then
     exit 1
 fi
 
-.venv/bin/ruff format --check src tests scripts typings
-.venv/bin/ruff check src tests scripts typings
+.venv/bin/ruff format --check src tests scripts
+.venv/bin/ruff check src tests scripts
 bash scripts/run-pyright.sh
 .venv/bin/python scripts/check_docs.py
 .venv/bin/python -m pytest -q \

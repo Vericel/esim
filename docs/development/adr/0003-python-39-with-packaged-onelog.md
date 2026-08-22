@@ -1,7 +1,7 @@
 # Use Python 3.9 with packaged onelog for CLI logging
 
-> ADR-0004 supersedes this document's Python-version decision. The onelog
-> distribution remains `botticelle-onelog`.
+> ADR-0004 supersedes this document's Python-version decision. ADR-0007
+> supersedes its onelog distribution identity, minimum version, and fixed commit.
 
 `ff` and its reusable flattening engine target Python 3.9 or newer; the CLI depends on the versioned `botticelle-onelog` distribution, whose own metadata declares Rich. The CLI owns onelog's global configuration and passes a logger into the engine, while the engine never configures root logging or calls `fatal()`, preserving safe in-process use by `esim`; this supersedes ADR-0002's standard-library-only runtime decision.
 

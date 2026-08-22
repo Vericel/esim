@@ -12,14 +12,14 @@ Node 24，但 Node 不属于 ff 运行时或发布制品。Linux 与 WSL2 均受
 ```bash
 python3.11 -m venv .venv
 .venv/bin/python -m pip install \
-  "git+https://github.com/BottiCelle/onelog.git@7738cac48b383624b9b5a6bf3434a2a40210c568"
+  "git+https://github.com/BottiCelle/onelog.git@d60dc49701944d88c90f3bd7fabf5bbbdb7d6f8c"
 .venv/bin/python -m pip install -e ".[dev]"
 npm ci
 .venv/bin/pre-commit install --hook-type pre-commit --hook-type pre-push
 ```
 
 固定源码提交的仓库名是 BottiCelle/onelog，Python 发行名是
-`botticelle-onelog`。修改 Python 最低版本、运行依赖或固定提交前，必须先取得
+`onelogg`，Python 导入名仍是 `onelog`。修改 Python 最低版本、运行依赖或固定提交前，必须先取得
 用户决定并同步需求、README、用户文档、ADR 和发布文档。
 
 esim 使用 `PyYAML>=6.0,<7` 安全解析 TC/Rules 并生成运行快照；
@@ -55,7 +55,7 @@ FF_PYTHON=.venv/bin/python \
   bash scripts/build-wheelhouse.sh /tmp/esim-wheelhouse
 ```
 
-命令从固定 onelog commit 构建 wheel，收集 Rich、PyYAML 及传递依赖，构建 esim 0.2.0，
+命令从固定 onelog commit 构建 `onelogg` wheel，收集 Rich、PyYAML 及传递依赖，构建 esim 0.2.0，
 在干净 venv 中使用 `--no-index` 安装并运行 `ff --help` 与
 `esim --help`，最后生成
 `SHA256SUMS`。开发依赖和 Node 不进入 wheelhouse。

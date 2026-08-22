@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  ONELOG_COMMIT: 7738cac48b383624b9b5a6bf3434a2a40210c568
+  ONELOG_COMMIT: d60dc49701944d88c90f3bd7fabf5bbbdb7d6f8c
 
 jobs:
   python:
