@@ -9,7 +9,7 @@ description = "Verilog/SystemVerilog filelist flattener"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "botticelle-onelog>=0.1,<0.2",
+    "onelogg>=0.1.2,<0.2",
     "PyYAML>=6.0,<7",
 ]
 

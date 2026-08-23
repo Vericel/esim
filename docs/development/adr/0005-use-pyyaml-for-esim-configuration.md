@@ -1,5 +1,8 @@
 # Use PyYAML for esim configuration
 
+> ADR-0007 supersedes this document's onelog distribution identity. The PyYAML
+> decision and compatible 6.x constraint remain in force.
+
 This decision supersedes the sentence in ADR-0004 that limited runtime
 dependencies to `botticelle-onelog`. It does not change ADR-0004's Python 3.11
 baseline, quality toolchain, logging ownership, or offline wheelhouse decisions.

@@ -22,7 +22,7 @@ class FlattenError(Exception):
 
 
 class _DebugLogger(Protocol):
-    def debug(self, message: str) -> None: ...
+    def debug(self, msg: str) -> None: ...
 
 
 @dataclass(frozen=True)

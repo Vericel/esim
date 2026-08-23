@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+### Changed
+
+- 日志运行依赖迁移到带 PEP 561 内联类型的
+  `onelogg>=0.1.2,<0.2`，删除重复的本地 `onelog` stub。
+
 ### Added
 
 - 新增 `esim` CLI，支持 TC/Rules YAML 组合、VCS two-step/three-step、
