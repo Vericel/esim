@@ -8,6 +8,6 @@
     "typecheck": "pyright --project pyrightconfig.json && pyright --project pyrightconfig.tests.json"
   },
   "devDependencies": {
-    "pyright": "1.1.411"
+    "pyright": "1.1.413"
   }
 }
