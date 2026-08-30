@@ -16,7 +16,7 @@ Python 3.12 起 `venv` 不再默认提供 `setuptools`。`test_distribution.py`
 1. 在 `.[dev]` 中以精确版本声明 `setuptools` 和 `wheel`。
 2. 在开发指南和验证文档中说明分发测试的构建工具前提。
 3. 在干净 CPython 3.11–3.14 环境中验证分发测试，再运行完整
-   `scripts/check.sh`。
+   `tools/quality/check.sh`。
 4. 提交并推送 `main`，跟踪 GitHub Actions 直至完成。
 
 ## 边界

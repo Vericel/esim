@@ -13,7 +13,7 @@
 
 - `docs/user/ff-user-guide.md` 与 `docs/user/esim-user-guide.md` 是唯一内容源。
 - 同目录的 `.html` 是确定性生成并纳入版本控制的用户制品。
-- `python scripts/generate_user_guides.py` 更新两份 HTML；`--check` 只检查并在
+- `python tools/docs/generate_user_guides.py` 更新两份 HTML；`--check` 只检查并在
   生成物过期时返回非零状态。
 - README 同时链接每份指南的 Markdown 和 HTML。
 

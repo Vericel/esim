@@ -7,8 +7,8 @@ the existing esim wheel contents and offline wheelhouse behavior.
 
 ## Public seams
 
-- `scripts/build-wheel.sh <output-directory>` builds the local project wheel.
-- `scripts/build-wheelhouse.sh <output-directory>` continues to build and verify
+- `tools/packaging/build-wheel.sh <output-directory>` builds the local project wheel.
+- `tools/packaging/build-wheelhouse.sh <output-directory>` continues to build and verify
   the complete offline wheelhouse.
 - Distribution tests verify wheel metadata, entry points, dependencies, and that
   local wheel construction does not create or update project-root build

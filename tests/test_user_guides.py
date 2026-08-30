@@ -26,7 +26,7 @@ def test_generator_cli_creates_both_standalone_user_guides(tmp_path: Path) -> No
     completed = subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -65,7 +65,7 @@ def test_generator_check_reports_each_stale_user_guide(tmp_path: Path) -> None:
         )
     command = [
         sys.executable,
-        str(project_root / "scripts" / "generate_user_guides.py"),
+        str(project_root / "tools" / "docs" / "generate_user_guides.py"),
         "--root",
         str(tmp_path),
     ]
@@ -115,7 +115,7 @@ def test_generator_separates_intro_and_uses_explicit_section_ids(
     subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -149,7 +149,7 @@ def test_generator_uses_collapsible_mobile_navigation(tmp_path: Path) -> None:
     subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -187,7 +187,7 @@ def test_generator_adds_offline_syntax_colours_to_fenced_code(
     subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -228,7 +228,7 @@ def test_generator_uses_multihue_palette_and_code_language_labels(
     subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -264,7 +264,7 @@ def test_generator_keeps_desktop_navigation_visible_without_javascript(
     subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -303,7 +303,7 @@ def test_generator_renders_chapters_sections_and_two_level_navigation(
     subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -342,7 +342,7 @@ def test_generator_rejects_flat_guides_without_chapter_sections(
     completed = subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],
@@ -384,7 +384,7 @@ def test_generator_rejects_guides_with_fewer_than_two_chapters(
     completed = subprocess.run(
         [
             sys.executable,
-            str(project_root / "scripts" / "generate_user_guides.py"),
+            str(project_root / "tools" / "docs" / "generate_user_guides.py"),
             "--root",
             str(tmp_path),
         ],

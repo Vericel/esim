@@ -18,7 +18,7 @@
 - Pyright 1.1.411 在 Node 24 上运行；`src/` 使用 strict，测试与工程脚本使用 basic。
 - pytest-cov 7.1.0 对 `src/ff` 统计 branch coverage，低于 90% 失败。
 - pre-commit 4.6.0 在 commit 阶段自动格式化和执行安全修复，再运行 Pyright；pre-push 执行完整测试与覆盖率。
-- `scripts/check.sh` 是本地完整质量入口；CI 调用相同命令，不维护另一套语义。
+- `tools/quality/check.sh` 是本地完整质量入口；CI 调用相同命令，不维护另一套语义。
 
 ## 测试组织
 
@@ -28,7 +28,7 @@
 
 ## 新增可执行 seam
 
-`python scripts/check_docs.py` 检查仓库 Markdown/HTML 中的本地链接和 fragment。成功返回 0；失败返回 1，并输出稳定的 `path:line: target: reason` 诊断。外部 URL、邮件链接和纯模板占位符不进行网络访问。
+`python tools/quality/check_docs.py` 检查仓库 Markdown/HTML 中的本地链接和 fragment。成功返回 0；失败返回 1，并输出稳定的 `path:line: target: reason` 诊断。外部 URL、邮件链接和纯模板占位符不进行网络访问。
 
 分发 seam 通过 wheel metadata 和干净环境离线安装验证 Python 3.11、版本 0.2.0、onelog 依赖范围及 console entry point。
 

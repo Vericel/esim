@@ -7,7 +7,7 @@
 ## 全局约束
 
 - 不改变 ff CLI 或公开引擎行为。
-- 行为新增只发生在 distribution seam 与 `scripts/check_docs.py` 命令 seam，严格使用红—绿 TDD。
+- 行为新增只发生在 distribution seam 与 `tools/quality/check_docs.py` 命令 seam，严格使用红—绿 TDD。
 - 测试拆分与 Ruff 格式化属于行为不变重构；每批后运行相关测试并最终全量回归。
 - Node 和开发依赖不得进入 `[project.dependencies]` 或 wheelhouse。
 - 每项运行时、文档和发布声明同步更新全部权威文档。
@@ -39,13 +39,13 @@
 
 1. 每个周期只增加一个 `tests/test_docs_check.py` 行为测试并确认失败。
 2. 依次实现有效链接、缺失文件、fragment、HTML href/src、外部 URL 忽略和稳定诊断。
-3. 添加 `scripts/check.sh` 汇总离线质量门禁。
+3. 添加 `tools/quality/check.sh` 汇总离线质量门禁。
 4. 运行覆盖率；只为真实可观察分支补测试，不用无理由 pragma 游戏覆盖率。
 
 ### 5. CI、wheelhouse 与发布治理
 
 1. 添加 GitHub Actions 三类 jobs 与 3.11–3.14 矩阵；只授予 contents: read。
-2. 添加 `scripts/build-wheelhouse.sh`，从固定 onelog commit 构建完整 wheelhouse，在干净 venv 中离线安装 ff 0.2.0 并运行 `ff --help`。
+2. 添加 `tools/packaging/build-wheelhouse.sh`，从固定 onelog commit 构建完整 wheelhouse，在干净 venv 中离线安装 ff 0.2.0 并运行 `ff --help`。
 3. 添加每周 pip/npm/github-actions Dependabot，只提 PR、不自动合并。
 4. 添加 CHANGELOG、开发指南和人工发布清单，更新 AGENTS 的准确命令与版本门禁。
 

@@ -20,7 +20,7 @@
 2. 先调整测试，使其要求 complete fixture 无忽略字段，独立 fixture 产生完整 WARNING。
 3. 运行最小测试并确认预期失败。
 4. 最小化修改 fixture 使测试通过，同步说明。
-5. 运行相关回归和 Ruff；全量测试与 `scripts/check.sh` 留到 pre-push/PR 边界。
+5. 运行相关回归和 Ruff；全量测试与 `tools/quality/check.sh` 留到 pre-push/PR 边界。
 
 ## 后续：完整 TC 参考入口
 

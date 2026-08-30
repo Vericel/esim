@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 output="${1:-$project_root/dist/wheelhouse}"
 python_command="${FF_PYTHON:-python3}"
 onelog_commit="d60dc49701944d88c90f3bd7fabf5bbbdb7d6f8c"
@@ -20,7 +20,7 @@ trap 'rm -rf -- "$temporary_directory"' EXIT
     "PyYAML>=6.0,<7" \
     --no-build-isolation \
     --wheel-dir "$output"
-FF_PYTHON="$python_command" bash "$project_root/scripts/build-wheel.sh" "$output"
+FF_PYTHON="$python_command" bash "$project_root/tools/packaging/build-wheel.sh" "$output"
 
 "$python_command" -m venv "$temporary_directory/smoke"
 "$temporary_directory/smoke/bin/python" -m pip install \

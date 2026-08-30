@@ -52,4 +52,4 @@
 - `docs/requirements/ff.md` 每项已支持行为都映射到 demo 文件、操作命令或公开
   seam 测试。
 - 正向综合场景的 flat filelist 与已知字面值一致，并可被 VCS Y-2026.03 消费。
-- 相关回归、完整 pytest、`scripts/check.sh` 和真实 esim/VCS smoke 通过。
+- 相关回归、完整 pytest、`tools/quality/check.sh` 和真实 esim/VCS smoke 通过。
