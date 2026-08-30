@@ -59,7 +59,7 @@ jobs:
       - run: .venv/bin/python -m pip install -e ".[dev]"
       - run: npm ci
         working-directory: tools/typecheck
-      - run: bash scripts/check.sh
+      - run: bash tools/quality/check.sh
 
   package:
     name: Offline wheelhouse
@@ -73,7 +73,7 @@ jobs:
           cache: pip
       - run: python -m venv .venv
       - name: Build and smoke-test wheelhouse
-        run: FF_PYTHON=.venv/bin/python bash scripts/build-wheelhouse.sh
+        run: FF_PYTHON=.venv/bin/python bash tools/packaging/build-wheelhouse.sh
       - name: Create release archive
         run: tar -czf dist/esim-0.2.0-wheelhouse.tar.gz -C dist wheelhouse
       - uses: actions/upload-artifact@v7

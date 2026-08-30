@@ -91,7 +91,7 @@ public seams，仅在外部进程边界使用 scripted runner。当前已实现�
 
 ```bash
 .venv/bin/python -m compileall -q src
-bash scripts/check.sh
+bash tools/quality/check.sh
 FF_PYTHON=.venv/bin/python \
-  bash scripts/build-wheelhouse.sh /tmp/esim-wheelhouse
+  bash tools/packaging/build-wheelhouse.sh /tmp/esim-wheelhouse
 ```

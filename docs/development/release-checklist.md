@@ -12,17 +12,17 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
 ## 验证与制品
 
 - [ ] 在干净 CPython 3.11 环境安装固定 onelog commit（`onelogg` 0.1.2）和 `.[dev]`。
-- [ ] 在创建 release tag 前执行 `npm --prefix tools/typecheck ci` 和 `bash scripts/check.sh`；确认
+- [ ] 在创建 release tag 前执行 `npm --prefix tools/typecheck ci` 和 `bash tools/quality/check.sh`；确认
   90% branch coverage 门禁通过。
 - [ ] 确认 ff/esim User Guide 的 Markdown 与 standalone HTML 均存在，且
-  `scripts/generate_user_guides.py --check` 通过。
+  `tools/docs/generate_user_guides.py --check` 通过。
 - [ ] 两份 User Guide 均显示章标题、章内节卡片和两级章节导航；没有退化为
   同级主题平铺。
 - [ ] 使用空目录执行：
 
   ```bash
   FF_PYTHON=.venv/bin/python \
-    bash scripts/build-wheelhouse.sh dist/wheelhouse
+    bash tools/packaging/build-wheelhouse.sh dist/wheelhouse
   ```
 
 - [ ] 检查 wheelhouse 只包含 esim、onelogg、Rich、PyYAML 和运行时传递依赖。

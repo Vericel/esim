@@ -16,7 +16,7 @@ evidence from the tests that were added or affected and from Python syntax/lint 
   for changed Python files.
 - Pre-commit runs only the fast Ruff hooks.
 - Local pre-push does not run the complete coverage gate.
-- Immediately before creating a release tag, run ash scripts/check.sh, which remains
+- Immediately before creating a release tag, run ash tools/quality/check.sh, which remains
   the single complete local gate.
 - Pull-request CI runs the same complete gate as the remote enforcement boundary.
 - Full gates may still be run earlier when a user explicitly requests them or risk warrants it.

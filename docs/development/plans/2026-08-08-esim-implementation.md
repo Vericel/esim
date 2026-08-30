@@ -41,5 +41,5 @@ engine interface。
 
 - 每个红绿循环运行最小相关 pytest node/file。
 - 切片完成后运行所有 esim 相关测试。
-- 最终运行 `.venv/bin/python -m pytest`、`bash scripts/check.sh`、
+- 最终运行 `.venv/bin/python -m pytest`、`bash tools/quality/check.sh`、
   离线 wheelhouse 验证、`git diff --check` 与需求逐项审计。

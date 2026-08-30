@@ -35,4 +35,4 @@
 - 特性矩阵中每项首版能力都有 demo 文件、命令或自动测试证据；不以单个超大 TC 冒充覆盖。
 - yyy 保持 YAML/two-step，zzz 保持 `.tc/.rules`/three-step，并各自展示不同能力组合。
 - 自动测试通过公共 seam 验证已知字面值和产物。
-- `.venv/bin/python -m pytest`、`bash scripts/check.sh` 和真实 Y-2026.03 代表性运行有实际结果记录。
+- `.venv/bin/python -m pytest`、`bash tools/quality/check.sh` 和真实 Y-2026.03 代表性运行有实际结果记录。
