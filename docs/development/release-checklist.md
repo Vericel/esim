@@ -30,8 +30,8 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
   `ff --help` 与 `esim --help`。
 - [ ] 使用 `sha256sum -c dist/wheelhouse/SHA256SUMS` 校验全部 wheel。
 - [ ] 把 wheelhouse 压缩包和 `SHA256SUMS` 作为发布制品保留。
-- [ ] 确认源码制品保留 `.vscode/settings.json` 和 `editors/`；如果只分发
-  wheelhouse，额外附上 `editors/` 目录。
+- [ ] 确认源码制品保留 `.vscode/settings.json` 和 `tools/editors/`；如果只分发
+  wheelhouse，额外附上 `tools/editors/` 目录。
 - [ ] 面向用户的发布包同时包含 `docs/user/` 下四份 User Guide 文件。
 
 ## 人工发布
