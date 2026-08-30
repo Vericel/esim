@@ -12,7 +12,7 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
 ## 验证与制品
 
 - [ ] 在干净 CPython 3.11 环境安装固定 onelog commit（`onelogg` 0.1.2）和 `.[dev]`。
-- [ ] 在创建 release tag 前执行 `npm ci` 和 `bash scripts/check.sh`；确认
+- [ ] 在创建 release tag 前执行 `npm --prefix tools/typecheck ci` 和 `bash scripts/check.sh`；确认
   90% branch coverage 门禁通过。
 - [ ] 确认 ff/esim User Guide 的 Markdown 与 standalone HTML 均存在，且
   `scripts/generate_user_guides.py --check` 通过。

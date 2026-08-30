@@ -50,6 +50,7 @@ jobs:
         with:
           node-version: "24"
           cache: npm
+          cache-dependency-path: tools/typecheck/package-lock.json
       - run: python -m venv .venv
       - name: Install fixed runtime dependency
         run: >-
@@ -57,6 +58,7 @@ jobs:
           "git+https://github.com/BottiCelle/onelog.git@${ONELOG_COMMIT}"
       - run: .venv/bin/python -m pip install -e ".[dev]"
       - run: npm ci
+        working-directory: tools/typecheck
       - run: bash scripts/check.sh
 
   package:

@@ -87,7 +87,7 @@ tests/
 ## 代码与依赖
 
 - 生产代码必须兼容 CPython 3.11，不使用更高版本才提供的语法或标准库 API。
-- 开发依赖使用 `.[dev]` extra 中的精确版本；Pyright 1.1.411 使用 Node 24 和 `package-lock.json`，Node、Pyright 与其他质量工具不得进入运行依赖或发布 wheelhouse。
+- 开发依赖使用 `.[dev]` extra 中的精确版本；Pyright 1.1.411 使用 Node 24 和 `tools/typecheck/package-lock.json`，Node、Pyright 与其他质量工具不得进入运行依赖或发布 wheelhouse。
 - CLI 层只负责参数解析、调用应用逻辑和呈现结果；核心业务规则放入可独立理解和测试的模块。
 - 优先使用小而清晰的接口；不做与当前需求无关的重构，不提前实现未来功能。
 - 代码标识符和测试函数名使用英文；CLI 参数、输出和错误信息保持现有英文风格，除非需求明确要求本地化。

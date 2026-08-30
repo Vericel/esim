@@ -2,10 +2,10 @@
 set -euo pipefail
 
 if command -v npm >/dev/null 2>&1; then
-    npm run typecheck --silent
+    npm --prefix tools/typecheck run typecheck --silent
 elif [[ -x .tools/node/bin/node ]]; then
-    .tools/node/bin/node node_modules/pyright/index.js --project pyrightconfig.json
-    .tools/node/bin/node node_modules/pyright/index.js --project pyrightconfig.tests.json
+    .tools/node/bin/node tools/typecheck/node_modules/pyright/index.js --project tools/typecheck/pyrightconfig.json
+    .tools/node/bin/node tools/typecheck/node_modules/pyright/index.js --project tools/typecheck/pyrightconfig.tests.json
 else
     echo "Node 24 and npm are required for Pyright" >&2
     exit 1

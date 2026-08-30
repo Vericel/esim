@@ -18,7 +18,7 @@ python3.11 -m venv .venv
 .venv/bin/python -m pip install \
   "git+https://github.com/BottiCelle/onelog.git@d60dc49701944d88c90f3bd7fabf5bbbdb7d6f8c"
 .venv/bin/python -m pip install -e ".[dev]"
-npm ci
+npm --prefix tools/typecheck ci
 .venv/bin/pre-commit install --hook-type pre-commit
 ```
 
