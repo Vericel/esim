@@ -1,6 +1,6 @@
 # esim 首版特性矩阵
 
-本矩阵以 `docs/requirements/esim.md` 的首版边界为准。正常能力由 fixture
+本矩阵记录 esim 首版的公开能力边界。正常能力由 fixture
 文件和可执行命令展示；会使工程非法或故意失败的能力由 pytest 在 `tmp_path`
 副本中构造，不污染可直接运行的 demo。
 

@@ -1,6 +1,6 @@
 # ff 完整特性矩阵
 
-本矩阵以 `docs/requirements/ff.md` 为权威契约。可同时成功的语法集成在
+本矩阵记录 ff 的公开能力边界。可同时成功的语法集成在
 `xxx/yyy/tb/full.f`；需要特定启动目录、零源码或故意失败的场景放在
 `xxx/yyy/tb/ff_cases/`。输出权限、symlink 替换等需要可变状态的场景必须
 在 `tmp_path` 或 `/tmp` 副本上运行。
