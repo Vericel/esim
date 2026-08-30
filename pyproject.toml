@@ -16,7 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "markdown-it-py==4.2.0",
-    "pre-commit==4.6.1",
+    "pre-commit==4.6.2",
     "Pygments==2.20.0",
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
