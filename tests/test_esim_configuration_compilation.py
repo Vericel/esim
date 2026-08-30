@@ -171,13 +171,11 @@ def test_compile_expands_rules_and_tc_include_graphs_in_global_order(
         "+ESIM_DEMO_CASE=smoke",
         "+CLI=1",
     )
-    assert compiled.effective_tc.ff.hooks.before is not None
-    assert compiled.effective_tc.ff.hooks.before.commands == (
+    assert compiled.effective_tc.ff.hooks.before == (
         "source $DV_HOME/dtb_common/env/common_setup.sh && "
         'echo "common ff setup complete"',
     )
-    assert compiled.effective_tc.run.hooks.before is not None
-    assert compiled.effective_tc.run.hooks.before.commands == (
+    assert compiled.effective_tc.run.hooks.before == (
         "source $DV_HOME/dtb_common/env/common_setup.sh && "
         'echo "xxx.yyy base testcase setup complete"',
         "source $DV_HOME/xxx/yyy/env/setup.sh && "
@@ -227,7 +225,21 @@ def test_compile_maps_three_step_build_and_elaborate_cli_arguments(
     assert compiled.resolved_rules.build.elaborate.argv == ("-full64", "top_tb")
 
 
-def test_complete_yaml_demo_composes_every_configuration_layer(
+def test_complete_tc_is_canonical_and_yaml_name_is_a_relative_symlink() -> None:
+    features = (
+        Path(__file__).parent / "fixtures/esim-demo-project/dv/xxx/yyy/tests/features"
+    )
+    canonical = features / "complete.tc"
+    alias = features / "complete.yaml"
+
+    assert canonical.is_file()
+    assert not canonical.is_symlink()
+    assert alias.is_symlink()
+    assert alias.readlink() == Path("complete.tc")
+    assert alias.resolve() == canonical.resolve()
+
+
+def test_complete_tc_demo_composes_every_configuration_layer(
     tmp_path: Path,
 ) -> None:
     fixture = Path(__file__).parent / "fixtures" / "esim-demo-project"
@@ -272,10 +284,10 @@ def test_complete_yaml_demo_composes_every_configuration_layer(
         *compiled.resolved_rules.merge_order,
         tests_directory / "fragments/base.yaml",
         tests_directory / "fragments/extended.tc",
-        tests_directory / "features/complete.yaml",
+        tests_directory / "features/complete.tc",
     )
     assert compiled.effective_tc.description == (
-        "Complete YAML feature testcase for xxx.yyy"
+        "Complete TC reference testcase for xxx.yyy"
     )
     assert compiled.effective_tc.owner == "verification-platform"
     assert compiled.effective_tc.tags == (
@@ -295,6 +307,7 @@ def test_complete_yaml_demo_composes_every_configuration_layer(
             "COMPLETE_LEAF",
             "COMPLETE_LEFT",
             "COMPLETE_RIGHT",
+            "COMPLETE_TC_ENTRY",
             "COMPLETE_YYY",
         }
     )
@@ -320,30 +333,35 @@ def test_complete_yaml_demo_composes_every_configuration_layer(
         "+CLI=1",
     )
     build_before = compiled.effective_tc.build.hooks.before
-    assert build_before is not None
-    assert build_before.commands == (
+    assert build_before == (
         'echo "yyy rules-left build before"',
         'echo "yyy rules-entry build before"',
         'echo "yyy testcase-base build before"',
+        'echo "yyy testcase-entry build before"',
     )
-    assert build_before.continue_on_error is False
-    assert compiled.effective_tc.ff.hooks.before is not None
-    assert compiled.effective_tc.ff.hooks.after is not None
-    assert compiled.effective_tc.build.hooks.after is not None
-    assert compiled.effective_tc.run.hooks.before is not None
-    assert compiled.effective_tc.run.hooks.after is not None
-    assert set(compiled.ignored_fields) == {
-        IgnoredField(source=rules / "full.yaml", path="metadata"),
-        IgnoredField(source=rules / "full.yaml", path="ff.timeout"),
-        IgnoredField(
-            source=tests_directory / "features/complete.yaml",
-            path="metadata",
-        ),
-        IgnoredField(
-            source=tests_directory / "features/complete.yaml",
-            path="run.enabled",
-        ),
-    }
+    assert compiled.effective_tc.build.hooks.continue_on_error is True
+    ff_before = compiled.effective_tc.ff.hooks.before
+    assert ff_before == (
+        "source $DV_HOME/dtb_common/env/common_setup.sh && "
+        'echo "common ff setup complete"',
+        'echo "yyy rules-entry ff before"',
+        'echo "yyy testcase-entry ff before"',
+    )
+    ff_after = compiled.effective_tc.ff.hooks.after
+    assert ff_after == (
+        'echo "yyy rules-entry ff after"',
+        'echo "yyy testcase-entry ff after"',
+    )
+    build_after = compiled.effective_tc.build.hooks.after
+    assert build_after == (
+        'echo "yyy rules-right build after"',
+        'echo "yyy rules-entry build after"',
+        'echo "yyy testcase-extended build after"',
+        'echo "yyy testcase-entry build after"',
+    )
+    assert compiled.effective_tc.run.hooks.before
+    assert compiled.effective_tc.run.hooks.after
+    assert compiled.ignored_fields == ()
     assert [
         (diagnostic.source, diagnostic.include_chain)
         for diagnostic in compiled.diagnostics
@@ -355,7 +373,7 @@ def test_complete_yaml_demo_composes_every_configuration_layer(
         (
             shared,
             (
-                tests_directory / "features/complete.yaml",
+                tests_directory / "features/complete.tc",
                 tests_directory / "fragments/base.yaml",
                 shared,
             ),
@@ -363,7 +381,7 @@ def test_complete_yaml_demo_composes_every_configuration_layer(
         (
             shared,
             (
-                tests_directory / "features/complete.yaml",
+                tests_directory / "features/complete.tc",
                 tests_directory / "fragments/extended.tc",
                 shared,
             ),
@@ -393,9 +411,8 @@ flow: two-step
 ff:
   timeout: 10
   hooks:
-    before:
-      commands: []
-      enabled: true
+    before: []
+    enabled: true
 build:
   args: []
 """,
@@ -424,7 +441,7 @@ run:
     assert compiled.ignored_fields == (
         IgnoredField(source=entry_rules, path="name"),
         IgnoredField(source=entry_rules, path="ff.timeout"),
-        IgnoredField(source=entry_rules, path="ff.hooks.before.enabled"),
+        IgnoredField(source=entry_rules, path="ff.hooks.enabled"),
         IgnoredField(source=entry_tc, path="metadata"),
         IgnoredField(source=entry_tc, path="run.cwd"),
     )
@@ -453,8 +470,7 @@ build:
 run:
   hooks:
     before:
-      commands:
-        - echo $BUILD_VALUE $$unit
+      - echo $BUILD_VALUE $$unit
 """,
         encoding="utf-8",
     )
@@ -478,13 +494,10 @@ run:
         "alpha beta",
         "$unit",
     )
-    assert compiled.effective_tc.run.hooks.before is not None
-    assert compiled.effective_tc.run.hooks.before.commands == (
-        "echo $BUILD_VALUE $$unit",
-    )
+    assert compiled.effective_tc.run.hooks.before == ("echo $BUILD_VALUE $$unit",)
 
 
-def test_hook_continue_on_error_is_inherited_until_explicitly_overridden(
+def test_phase_hooks_append_command_lists_and_inherit_shared_continue_on_error(
     tmp_path: Path,
 ) -> None:
     dv_home = tmp_path / "dv"
@@ -504,8 +517,8 @@ flow: two-step
 build:
   hooks:
     before:
-      commands: [echo base]
-      continue_on_error: true
+      - echo base
+    continue_on_error: true
 """,
         encoding="utf-8",
     )
@@ -515,7 +528,7 @@ include: [./base.rules]
 build:
   hooks:
     before:
-      commands: [echo entry]
+      - echo entry
 """,
         encoding="utf-8",
     )
@@ -529,10 +542,14 @@ build:
         CompileRequest(located=compiler.locate(request), run_request=request)
     )
 
-    before = compiled.effective_tc.build.hooks.before
-    assert before is not None
-    assert before.commands == ("echo base", "echo entry")
-    assert before.continue_on_error is True
+    hooks = compiled.effective_tc.build.hooks
+    assert hooks.before == ("echo base", "echo entry")
+    assert hooks.after == ()
+    assert hooks.continue_on_error is True
+    assert yaml.safe_load(compiled.tc_yaml)["build"]["hooks"] == {
+        "before": ["echo base", "echo entry"],
+        "continue_on_error": True,
+    }
 
 
 @pytest.mark.parametrize("spelling", ["yes", "no", "True", "FALSE"])
@@ -557,8 +574,8 @@ flow: two-step
 build:
   hooks:
     before:
-      commands: [echo build]
-      continue_on_error: {spelling}
+      - echo build
+    continue_on_error: {spelling}
 """,
         encoding="utf-8",
     )
@@ -625,9 +642,13 @@ def test_compile_renders_resolved_rules_and_effective_tc_snapshots(
         ("run: null", "run"),
         ("run:\n  hooks: null", "run.hooks"),
         ("run:\n  hooks:\n    before: null", "run.hooks.before"),
+        (
+            "run:\n  hooks:\n    before:\n      commands: [echo old]",
+            "run.hooks.before",
+        ),
     ],
 )
-def test_compile_rejects_explicit_null_structural_mapping(
+def test_compile_rejects_invalid_structural_nodes(
     tmp_path: Path,
     yaml_fragment: str,
     field: str,

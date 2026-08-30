@@ -13,8 +13,6 @@ run:
     - +ESIM_DEMO_CASE=smoke
   hooks:
     before:
-      commands:
-        - source $DV_HOME/xxx/zzz/env/setup.sh && echo "xxx.zzz smoke testcase setup complete"
+      - source $DV_HOME/xxx/zzz/env/setup.sh && echo "xxx.zzz smoke testcase setup complete"
     after:
-      commands:
-        - echo "xxx.zzz smoke testcase post-processing complete"
+      - echo "xxx.zzz smoke testcase post-processing complete"

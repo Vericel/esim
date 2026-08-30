@@ -14,34 +14,27 @@ ff:
     - -d COMPLETE_ZZZ_BASE
   hooks:
     after:
-      commands:
-        - echo "zzz ff post-processing complete"
+      - echo "zzz ff post-processing complete"
 
 build:
   hooks:
     before:
-      commands:
-        - echo "zzz build setup complete"
+      - echo "zzz build setup complete"
     after:
-      commands:
-        - echo "zzz build post-processing complete"
+      - echo "zzz build post-processing complete"
   analyze:
     args:
       - -full64 -sverilog
     hooks:
       before:
-        commands:
-          - echo "zzz analyze setup complete"
+        - echo "zzz analyze setup complete"
       after:
-        commands:
-          - echo "zzz analyze post-processing complete"
+        - echo "zzz analyze post-processing complete"
   elaborate:
     args:
       - -full64 top_tb
     hooks:
       before:
-        commands:
-          - echo "zzz elaborate setup complete"
+        - echo "zzz elaborate setup complete"
       after:
-        commands:
-          - echo "zzz elaborate post-processing complete"
+        - echo "zzz elaborate post-processing complete"

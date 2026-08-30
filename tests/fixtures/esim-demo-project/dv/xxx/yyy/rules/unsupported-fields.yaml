@@ -1,0 +1,8 @@
+include:
+  - ./default.yaml
+
+metadata:
+  purpose: demonstrate ignored top-level fields
+
+ff:
+  timeout: 60

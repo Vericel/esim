@@ -134,16 +134,14 @@ ff:
     - -d FPGA USE_DDR
   hooks:
     before:
-      commands:
-        - source $DV_HOME/xxx/yyy/tb/setup.sh && echo ff-ready
+      - source $DV_HOME/xxx/yyy/tb/setup.sh && echo ff-ready
 
 build:
   args:
     - -full64 -sverilog
   hooks:
     after:
-      commands:
-        - python $DV_HOME/xxx/yyy/tb/check_build.py
+      - python $DV_HOME/xxx/yyy/tb/check_build.py
 
 run:
   args:
@@ -171,10 +169,9 @@ run:
     - +UVM_TESTNAME=smoke_test +ntb_random_seed=1
   hooks:
     before:
-      commands:
-        - python $DV_HOME/xxx/yyy/tests/scripts/create_input.py --case smoke
-        - csh -f -c 'source $DV_HOME/xxx/yyy/tb/env.csh; ./prepare.csh'
-      continue_on_error: false
+      - python $DV_HOME/xxx/yyy/tests/scripts/create_input.py --case smoke
+      - csh -f -c 'source $DV_HOME/xxx/yyy/tb/env.csh; ./prepare.csh'
+    continue_on_error: false
 ```
 
 `schema_version`、`kind`、`type`、`name`、`metadata` 均不是首版源 schema 字段。
@@ -229,9 +226,9 @@ Resolved Rules 由 Rules 入口图生成。Effective TC 由 Resolved Rules、TC 
 ### 6.2 字段合并
 
 - 所有 phase `args` 列表按全局顺序追加，保留顺序和重复项。
-- 同名 hook 的 `commands` 以相同方式追加，不对 after 做反向执行。
+- 同名 `hooks.before`/`hooks.after` 列表以相同方式追加，不对 after 做反向执行。
 - `tags` 追加后稳定去重，保留每个值的首次出现位置。Rules tags 进入 Effective TC。
-- hook `continue_on_error` 由后层显式值覆盖前层，缺失时继承，合并后仍缺失则为 `false`。
+- phase `hooks.continue_on_error` 由后层显式值覆盖前层，缺失时继承，合并后仍缺失则为 `false`。
 - `description`、`owner` 使用入口专属规则，不参与 include 继承。
 - `filelist` 采用恰好一次声明，不覆盖也不追加。
 - `simulator`/`flow` 采用一致性合并，相同值可重复，冲突值报错。
@@ -310,23 +307,21 @@ CLI 阶段参数映射：
 ```yaml
 hooks:
   before:
-    commands:
-      - echo ready && ./prepare.sh
-    continue_on_error: false
+    - echo ready && ./prepare.sh
   after:
-    commands:
-      - python post_process.py --mode check
+    - python post_process.py --mode check
+  continue_on_error: false
 ```
 
 规则如下：
 
-- `hooks`、`before`、`after` 是可选 mapping，空 mapping 合法。
-- `commands` 必须是 `list[str]`，标量简写非法。
-- `commands` 缺失或为 `[]` 都不增加命令，也不清除前层命令。
+- `hooks` 是可选 mapping，空 mapping 合法。
+- `before`/`after` 必须是 `list[str]`，标量简写非法。
+- `before`/`after` 缺失或为 `[]` 都不增加命令，也不清除前层命令。
 - 每条 command 必须是非空单行字符串；包含 CR/LF 或仅空白的值非法。
 - `continue_on_error` 只接受规范小写 YAML 布尔量 `true`/`false`；字符串、数字、`yes/no` 均非法。
-- 只声明 `continue_on_error` 的片段可以为其他层合并进来的 commands 提供配置。
-- 最终没有 command 的 hook 从生成快照省略，不执行也不生成日志。
+- 一个 phase 的 `continue_on_error` 同时作用于 before 和 after；只声明该字段的片段可以为其他层合并进来的命令提供配置。
+- 最终没有 command 的 before/after 从生成快照省略，不执行也不生成日志。
 
 每条 command 均以仿真目录为工作目录，由独立的以下进程执行：
 
@@ -336,7 +331,7 @@ hooks:
 
 同一 hook 的 commands 不共享 `cd`、`export` 或 shell function。需要 csh/zsh 时，用户应在 command 中显式调用，或执行带 shebang 的脚本。hook command 保持原文并由 Bash 完成变量和 shell 语法解析，不使用 args 的 `$$` 规则。
 
-`continue_on_error: true` 只在某条 command 非零退出后继续当前 hook 的剩余 commands。该 hook 最终仍失败，不进入后续 hook、工具或阶段。Command failure 不能被 waiver 放过。
+`continue_on_error: true` 只在某条 command 非零退出后继续当前 before/after 列表的剩余 commands。该 hook 最终仍失败，不进入后续 hook、工具或阶段。Command failure 不能被 waiver 放过。
 
 ### 8.4 three-step 执行顺序
 

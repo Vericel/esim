@@ -62,10 +62,10 @@ def _validate_canonical_hook_booleans(text: str, source: Path) -> None:
                 return value_node
         return None
 
-    def validate_hook(hook: Node | None, field: str) -> None:
-        if hook is None:
+    def validate_hooks(hooks: Node | None, field: str) -> None:
+        if hooks is None:
             return
-        value = child(hook, "continue_on_error")
+        value = child(hooks, "continue_on_error")
         if value is None:
             return
         if (
@@ -81,14 +81,7 @@ def _validate_canonical_hook_booleans(text: str, source: Path) -> None:
 
     def validate_phase(phase: Node | None, field: str) -> None:
         hooks = child(phase, "hooks") if phase is not None else None
-        validate_hook(
-            child(hooks, "before") if hooks else None,
-            f"{field}.hooks.before",
-        )
-        validate_hook(
-            child(hooks, "after") if hooks else None,
-            f"{field}.hooks.after",
-        )
+        validate_hooks(hooks, f"{field}.hooks")
 
     validate_phase(child(root, "ff"), "ff")
     build = child(root, "build")

@@ -12,13 +12,11 @@ build:
     - +define+EXTENDED_TC
   hooks:
     after:
-      commands:
-        - echo "yyy testcase-extended build after"
+      - echo "yyy testcase-extended build after"
 
 run:
   args:
     - '+FEATURE_LABEL="$ESIM_DEMO_LABEL" +FEATURE_SCOPE=$$unit'
   hooks:
     before:
-      commands:
-        - echo "yyy testcase-extended run before"
+      - echo "yyy testcase-extended run before"

@@ -12,8 +12,7 @@ build:
     - +define+BASE_TC
   hooks:
     before:
-      commands:
-        - echo "yyy testcase-base build before"
+      - echo "yyy testcase-base build before"
 
 run:
   args:

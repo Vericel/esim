@@ -18,5 +18,4 @@ build:
     - -sverilog
   hooks:
     after:
-      commands:
-        - echo "yyy rules-right build after"
+      - echo "yyy rules-right build after"

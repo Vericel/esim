@@ -23,7 +23,6 @@ from esim.model import (
     EffectiveTestcase,
     FfConfiguration,
     Flow,
-    HookSpec,
     IgnoredField,
     LocatedInvocation,
     PhaseConfiguration,
@@ -46,15 +45,10 @@ class CompileRequest:
 
 
 @dataclass(frozen=True)
-class _HookFragment:
-    commands: tuple[str, ...]
-    continue_on_error: bool | None
-
-
-@dataclass(frozen=True)
 class _PhaseHooksFragment:
-    before: _HookFragment | None = None
-    after: _HookFragment | None = None
+    before: tuple[str, ...] = ()
+    after: tuple[str, ...] = ()
+    continue_on_error: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -344,13 +338,12 @@ class ConfigurationCompiler:
     @staticmethod
     def _hooks_snapshot(hooks: PhaseHooks) -> dict[str, object]:
         snapshot: dict[str, object] = {}
-        for timing, hook in (("before", hooks.before), ("after", hooks.after)):
-            if hook is None or not hook.commands:
-                continue
-            hook_snapshot: dict[str, object] = {"commands": list(hook.commands)}
-            if hook.continue_on_error:
-                hook_snapshot["continue_on_error"] = True
-            snapshot[timing] = hook_snapshot
+        if hooks.before:
+            snapshot["before"] = list(hooks.before)
+        if hooks.after:
+            snapshot["after"] = list(hooks.after)
+        if hooks.continue_on_error:
+            snapshot["continue_on_error"] = True
         return snapshot
 
     def _load_graph(
@@ -588,24 +581,14 @@ class ConfigurationCompiler:
         def record(path: str) -> None:
             ignored.append(IgnoredField(source=source, path=path))
 
-        def visit_hook(value: object, prefix: str) -> None:
-            if not isinstance(value, dict):
-                return
-            hook = cast(dict[str, object], value)
-            for key in hook:
-                if key not in {"commands", "continue_on_error"}:
-                    record(f"{prefix}.{key}")
-
         def visit_hooks(value: object, prefix: str) -> None:
             if not isinstance(value, dict):
                 return
             hooks = cast(dict[str, object], value)
-            for key, item in hooks.items():
+            for key in hooks:
                 path = f"{prefix}.{key}"
-                if key not in {"before", "after"}:
+                if key not in {"before", "after", "continue_on_error"}:
                     record(path)
-                else:
-                    visit_hook(item, path)
 
         def visit_phase(
             value: object,
@@ -824,28 +807,34 @@ class ConfigurationCompiler:
             return _PhaseHooksFragment()
         value = phase["hooks"]
         hooks = self._mapping(value, path, f"{phase_name}.hooks")
+        continue_value = hooks.get("continue_on_error")
+        if continue_value is not None and not isinstance(continue_value, bool):
+            raise ConfigurationError(
+                "continue_on_error must be a boolean\n"
+                f"  source: {path}\n"
+                f"  field: {phase_name}.hooks.continue_on_error"
+            )
         return _PhaseHooksFragment(
-            before=self._hook(hooks, "before", phase_name, path),
-            after=self._hook(hooks, "after", phase_name, path),
+            before=self._hook_commands(hooks, "before", phase_name, path),
+            after=self._hook_commands(hooks, "after", phase_name, path),
+            continue_on_error=continue_value,
         )
 
-    def _hook(
+    def _hook_commands(
         self,
         hooks: dict[str, object],
         timing: str,
         phase_name: str,
         path: Path,
-    ) -> _HookFragment | None:
+    ) -> tuple[str, ...]:
         if timing not in hooks:
-            return None
-        value = hooks[timing]
-        hook = self._mapping(value, path, f"{phase_name}.hooks.{timing}")
-        commands_value = hook.get("commands", [])
+            return ()
+        commands_value = hooks[timing]
         if not isinstance(commands_value, list):
             raise ConfigurationError(
                 "hook commands must be nonempty single-line strings\n"
                 f"  source: {path}\n"
-                f"  field: {phase_name}.hooks.{timing}.commands"
+                f"  field: {phase_name}.hooks.{timing}"
             )
         command_items = cast(list[object], commands_value)
         if any(
@@ -858,19 +847,9 @@ class ConfigurationCompiler:
             raise ConfigurationError(
                 "hook commands must be nonempty single-line strings\n"
                 f"  source: {path}\n"
-                f"  field: {phase_name}.hooks.{timing}.commands"
+                f"  field: {phase_name}.hooks.{timing}"
             )
-        continue_value = hook.get("continue_on_error")
-        if continue_value is not None and not isinstance(continue_value, bool):
-            raise ConfigurationError(
-                "continue_on_error must be a boolean\n"
-                f"  source: {path}\n"
-                f"  field: {phase_name}.hooks.{timing}.continue_on_error"
-            )
-        return _HookFragment(
-            commands=tuple(cast(list[str], command_items)),
-            continue_on_error=continue_value,
-        )
+        return tuple(cast(list[str], command_items))
 
     @staticmethod
     def _mapping(value: object, path: Path, field: str) -> dict[str, object]:
@@ -1038,21 +1017,8 @@ class ConfigurationCompiler:
         later: _PhaseHooksFragment,
     ) -> _PhaseHooksFragment:
         return _PhaseHooksFragment(
-            before=ConfigurationCompiler._merge_hook(earlier.before, later.before),
-            after=ConfigurationCompiler._merge_hook(earlier.after, later.after),
-        )
-
-    @staticmethod
-    def _merge_hook(
-        earlier: _HookFragment | None,
-        later: _HookFragment | None,
-    ) -> _HookFragment | None:
-        if earlier is None:
-            return later
-        if later is None:
-            return earlier
-        return _HookFragment(
-            commands=(*earlier.commands, *later.commands),
+            before=(*earlier.before, *later.before),
+            after=(*earlier.after, *later.after),
             continue_on_error=(
                 later.continue_on_error
                 if later.continue_on_error is not None
@@ -1071,17 +1037,10 @@ class ConfigurationCompiler:
 
     @staticmethod
     def _finalize_hooks(hooks: _PhaseHooksFragment) -> PhaseHooks:
-        def finalize(hook: _HookFragment | None) -> HookSpec | None:
-            if hook is None or not hook.commands:
-                return None
-            return HookSpec(
-                commands=hook.commands,
-                continue_on_error=bool(hook.continue_on_error),
-            )
-
         return PhaseHooks(
-            before=finalize(hooks.before),
-            after=finalize(hooks.after),
+            before=hooks.before,
+            after=hooks.after,
+            continue_on_error=bool(hooks.continue_on_error),
         )
 
     @staticmethod

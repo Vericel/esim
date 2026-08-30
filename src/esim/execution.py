@@ -10,7 +10,7 @@ from esim.log_policy import (
     LogEvaluationRequest,
     LogPolicy,
 )
-from esim.model import Action, HookSpec, PhaseHooks, RunStatus
+from esim.model import Action, PhaseHooks, RunStatus
 from esim.process import CommandSpec, ProcessRunner
 from esim.simulators import SimulatorPlan, ToolStep
 from esim.workspace import WorkspaceLayout
@@ -100,6 +100,7 @@ class ExecutionEngine:
             "ff",
             "before",
             run.hooks.ff.before,
+            run.hooks.ff.continue_on_error,
             commands,
             evaluations,
         ):
@@ -119,6 +120,7 @@ class ExecutionEngine:
             "ff",
             "after",
             run.hooks.ff.after,
+            run.hooks.ff.continue_on_error,
             commands,
             evaluations,
         )
@@ -134,6 +136,7 @@ class ExecutionEngine:
             "build",
             "before",
             run.hooks.build.before,
+            run.hooks.build.continue_on_error,
             commands,
             evaluations,
         ):
@@ -145,6 +148,7 @@ class ExecutionEngine:
                 step.phase,
                 "before",
                 phase_hooks.before,
+                phase_hooks.continue_on_error,
                 commands,
                 evaluations,
             ):
@@ -156,6 +160,7 @@ class ExecutionEngine:
                 step.phase,
                 "after",
                 phase_hooks.after,
+                phase_hooks.continue_on_error,
                 commands,
                 evaluations,
             ):
@@ -167,6 +172,7 @@ class ExecutionEngine:
             "build",
             "after",
             run.hooks.build.after,
+            run.hooks.build.continue_on_error,
             commands,
             evaluations,
         )
@@ -185,6 +191,7 @@ class ExecutionEngine:
                 "run",
                 "before",
                 run.hooks.run.before,
+                run.hooks.run.continue_on_error,
                 commands,
                 evaluations,
             )
@@ -199,6 +206,7 @@ class ExecutionEngine:
                 "run",
                 "after",
                 run.hooks.run.after,
+                run.hooks.run.continue_on_error,
                 commands,
                 evaluations,
             )
@@ -290,15 +298,16 @@ class ExecutionEngine:
         run: PreparedRun,
         phase: str,
         timing: str,
-        hook: HookSpec | None,
+        hook_commands: tuple[str, ...],
+        continue_on_error: bool,
         commands: list[CommandRecord],
         evaluations: list[LogEvaluation],
     ) -> bool:
-        if hook is None or not hook.commands:
+        if not hook_commands:
             return True
         log_path = run.layout.hook_log(phase, timing)
         command_failed = False
-        for index, command in enumerate(hook.commands):
+        for index, command in enumerate(hook_commands):
             argv = ("/bin/bash", "-o", "pipefail", "-c", command)
             result = self._process_runner.run(
                 CommandSpec(
@@ -318,7 +327,7 @@ class ExecutionEngine:
             )
             if result.returncode != 0:
                 command_failed = True
-                if not hook.continue_on_error:
+                if not continue_on_error:
                     break
         log_passed = self._evaluate_log(
             run,

@@ -1,0 +1,38 @@
+description: Complete TC reference testcase for xxx.yyy
+owner: verification-platform
+tags:
+  - complete-tc
+  - duplicate
+
+include:
+  - ../fragments/base.yaml
+  - $ESIM_DEMO_YYY_TESTS/fragments/extended.tc
+
+ff:
+  args:
+    - -d COMPLETE_TC_ENTRY
+  hooks:
+    before:
+      - echo "yyy testcase-entry ff before"
+    after:
+      - echo "yyy testcase-entry ff after"
+
+build:
+  args:
+    - +define+COMPLETE_TC
+  hooks:
+    before:
+      - echo "yyy testcase-entry build before"
+    after:
+      - echo "yyy testcase-entry build after"
+    continue_on_error: true
+
+run:
+  args:
+    - +ntb_random_seed=$ESIM_DEMO_SEED
+    - +ESIM_DEMO_CASE=complete
+  hooks:
+    before:
+      - echo "yyy testcase-entry run before"
+    after:
+      - echo "yyy testcase-entry run after"
