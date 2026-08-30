@@ -20,7 +20,7 @@
 ## 实施阶段
 
 1. 确认 VS Code/Vim 的最小关联方式与现有 release 边界。
-2. 新增仓库级 VS Code 关联和可分享的 `editors/` 文件。
+2. 新增仓库级 VS Code 关联和可分享的 `tools/editors/` 文件。
 3. 更新项目入口与 release 检查说明。
 4. 验证 JSON/Vim 脚本、文档链接、diff 和工作区边界。
 

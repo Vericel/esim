@@ -569,4 +569,4 @@ result 状态并返回 0；不会拿 build/hook 日志代替仿真结论。
 | 运行目录 | `$DV_TMP/<dtb-key>/<rules-key>/<test-key>/` |
 
 filelist 规则见 [ff User Guide](ff-user-guide.md)。`.tc`/`.rules` 的 VS Code 和
-Vim/gVim 文件关联见 [编辑器支持](../../editors/README.md)。
+Vim/gVim 文件关联见 [编辑器支持](../../tools/editors/README.md)。

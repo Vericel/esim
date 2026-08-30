@@ -50,5 +50,5 @@ shell 参数传入，也可使用 `-b='-full64 -debug_access+all'` 形式。
   [离线 HTML](docs/user/ff-user-guide.html)
 - esim User Guide：[Markdown](docs/user/esim-user-guide.md) ·
   [离线 HTML](docs/user/esim-user-guide.html)
-- [VS Code 与 Vim/gVim 语法高亮](editors/README.md)
+- [VS Code 与 Vim/gVim 语法高亮](tools/editors/README.md)
 - [变更记录](CHANGELOG.md)
