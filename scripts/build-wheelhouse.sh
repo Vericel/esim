@@ -20,10 +20,7 @@ trap 'rm -rf -- "$temporary_directory"' EXIT
     "PyYAML>=6.0,<7" \
     --no-build-isolation \
     --wheel-dir "$output"
-"$python_command" -m pip wheel "$project_root" \
-    --no-build-isolation \
-    --no-deps \
-    --wheel-dir "$output"
+FF_PYTHON="$python_command" bash "$project_root/scripts/build-wheel.sh" "$output"
 
 "$python_command" -m venv "$temporary_directory/smoke"
 "$temporary_directory/smoke/bin/python" -m pip install \

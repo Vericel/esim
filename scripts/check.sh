@@ -12,6 +12,7 @@ fi
 .venv/bin/ruff format --check src tests scripts
 .venv/bin/ruff check src tests scripts
 bash scripts/run-pyright.sh
+.venv/bin/python scripts/generate_user_guides.py --check
 .venv/bin/python scripts/check_docs.py
 .venv/bin/python -m pytest -q \
     --cov=ff \

@@ -7,7 +7,7 @@ import pytest
 
 from esim.execution import ExecutionEngine, ExecutionHooks, PreparedRun
 from esim.log_policy import LogPolicy, WaiverSources
-from esim.model import Action, Flow, HookSpec, PhaseHooks, RunStatus
+from esim.model import Action, Flow, PhaseHooks, RunStatus
 from esim.simulators import SimulatorPlanRequest
 from esim.simulators.vcs import VcsAdapter
 from esim.workspace import WorkspaceLayout
@@ -169,8 +169,8 @@ def test_run_hooks_use_independent_bash_commands_and_aggregate_logs(
             ),
             hooks=ExecutionHooks(
                 run=PhaseHooks(
-                    before=HookSpec(commands=("echo before-one", "echo before-two")),
-                    after=HookSpec(commands=("echo after-run",)),
+                    before=("echo before-one", "echo before-two"),
+                    after=("echo after-run",),
                 )
             ),
         )
@@ -239,8 +239,8 @@ def test_build_action_reuses_flat_filelist_and_preserves_existing_run_log(
             ),
             hooks=ExecutionHooks(
                 build=PhaseHooks(
-                    before=HookSpec(commands=("echo pre-build",)),
-                    after=HookSpec(commands=("echo post-build",)),
+                    before=("echo pre-build",),
+                    after=("echo post-build",),
                 )
             ),
         )
@@ -416,8 +416,8 @@ def test_three_step_execution_preserves_nested_build_hook_order(
     )
     policy = LogPolicy()
 
-    def one_command(text: str) -> HookSpec:
-        return HookSpec(commands=(f"echo {text}",))
+    def one_command(text: str) -> tuple[str, ...]:
+        return (f"echo {text}",)
 
     report = ExecutionEngine(process_runner=runner, log_policy=policy).execute(
         PreparedRun(
@@ -508,10 +508,8 @@ def test_hook_continue_on_error_finishes_only_the_current_hook_then_stops(
             ),
             hooks=ExecutionHooks(
                 build=PhaseHooks(
-                    before=HookSpec(
-                        commands=("command-one", "command-two"),
-                        continue_on_error=True,
-                    )
+                    before=("command-one", "command-two"),
+                    continue_on_error=True,
                 )
             ),
         )

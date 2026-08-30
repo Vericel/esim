@@ -1,0 +1,9 @@
+description: Unsupported TC fields warning demonstration for xxx.yyy
+
+metadata:
+  ticket: ignored-demo-value
+
+run:
+  args:
+    - +ESIM_DEMO_CASE=unsupported-fields
+  enabled: true

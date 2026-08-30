@@ -18,6 +18,5 @@ build:
     - -full64
   hooks:
     before:
-      commands:
-        - echo "yyy rules-left build before"
-      continue_on_error: true
+      - echo "yyy rules-left build before"
+    continue_on_error: true

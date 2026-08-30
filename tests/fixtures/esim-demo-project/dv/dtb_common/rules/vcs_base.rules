@@ -7,8 +7,7 @@ simulator: vcs
 ff:
   hooks:
     before:
-      commands:
-        - source $DV_HOME/dtb_common/env/common_setup.sh && echo "common ff setup complete"
+      - source $DV_HOME/dtb_common/env/common_setup.sh && echo "common ff setup complete"
 
 run:
   args:

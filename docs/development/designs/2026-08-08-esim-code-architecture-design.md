@@ -141,7 +141,7 @@ Application 在构造时接收一份环境快照，至少包含 `DV_HOME`、`DV_
 - `ConfigType.TC/RULES`
 - `Simulator.VCS`
 - `Flow.TWO_STEP/THREE_STEP`
-- `HookSpec(commands, continue_on_error)`
+- `PhaseHooks(before, after, continue_on_error)`
 - `PhaseSpec(args, argv, hooks)`
 - `BuildSpec`
 - `ResolvedRules`
@@ -539,7 +539,7 @@ check 不构建 ExecutionEngine，不启动 ProcessRunner，也不调用 ff。
 Execution 内部使用声明式、不对外暴露的 plan node：
 
 ```text
-HookNode(before/after, commands, continue_on_error, log)
+HookNode(before/after, phase-level continue_on_error, log)
 FlattenNode(request, log)
 ToolNode(phase, argv, log, detector)
 ```

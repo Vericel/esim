@@ -13,5 +13,4 @@ run:
     - +SHARED_LEAF=1
   hooks:
     before:
-      commands:
-        - echo "yyy shared-leaf run before"
+      - echo "yyy shared-leaf run before"

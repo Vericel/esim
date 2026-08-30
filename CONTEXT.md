@@ -193,11 +193,11 @@ hook command、ff、编译器、仿真器或其他受 esim 管理的进程以非
 _Avoid_: Log finding, waived exit code
 
 **Hook command continuation**:
-hook 节点的 `continue_on_error` 只决定某条 command 非零退出后是否继续执行同一节点的剩余 commands。它不放过 Command failure，不把 hook 改判为成功，也不允许进入后续 hook、工具或阶段。该字段只接受 YAML 规范小写布尔量 `true`/`false`；字符串、数字和 `yes`/`no` 均非法。合并时后层显式值覆盖前层，缺失则继承，最终缺省为 `false`。
+phase `hooks` 节点的 `continue_on_error` 同时控制该 phase 的 before/after 命令列表：某条 command 非零退出后是否继续当前列表的剩余 commands。它不放过 Command failure，不把 hook 改判为成功，也不允许进入后续 hook、工具或阶段。该字段只接受 YAML 规范小写布尔量 `true`/`false`；字符串、数字和 `yes`/`no` 均非法。合并时后层显式值覆盖前层，缺失则继承，最终缺省为 `false`。
 _Avoid_: Ignore failure, continue simulation
 
 **Hook command execution**:
-`hooks`、`before`、`after` 均为可选映射，空映射合法。hook 的 `commands` 字段必须是字符串列表，即使只有一条也不允许标量简写；缺失或空列表都不增加命令，且空列表不清除前层命令。每个列表项必须是非空单行 shell 字符串，含 CR/LF 或仅空白的项是已知字段值错误。每个 command 由独立的 `/bin/bash -o pipefail -c` 进程执行；同一 hook 的 commands 不共享 `cd`、export 或 shell function，但 stdout/stderr 依次汇入同一 hook 日志。合并后没有 command 的 hook 从生成快照中省略，不执行也不生成日志；仅声明 `continue_on_error` 的片段可为后续合并进来的 commands 提供配置。esim 不读取用户 `$SHELL`，也不提供 YAML `shell` 字段；需要 csh/zsh 时由 command 显式调用解释器，或直接执行带 shebang 的脚本。
+`hooks` 是可选映射，空映射合法；`before` 和 `after` 是可选字符串列表，即使只有一条也不允许标量简写。缺失或空列表都不增加命令，且空列表不清除前层命令。每个列表项必须是非空单行 shell 字符串，含 CR/LF 或仅空白的项是已知字段值错误。每个 command 由独立的 `/bin/bash -o pipefail -c` 进程执行；同一 hook 的 commands 不共享 `cd`、export 或 shell function，但 stdout/stderr 依次汇入同一 hook 日志。合并后没有 command 的 before/after 从生成快照中省略，不执行也不生成日志；仅声明 `continue_on_error` 的片段可为后续合并进来的 before/after 命令提供配置。esim 不读取用户 `$SHELL`，也不提供 YAML `shell` 字段；需要 csh/zsh 时由 command 显式调用解释器，或直接执行带 shebang 的脚本。
 _Avoid_: Shared shell session, login shell, implicit user shell
 
 **esim cleanup**:

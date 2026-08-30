@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="esim 中文用户指南" />
+  <title>esim User Guide</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --accent: #2563eb;
+      --accent-deep: #1d4ed8;
+      --accent-alt: #7c3aed;
+      --accent-warm: #f59e0b;
+      --ink: #172033;
+      --muted: #5d6b82;
+      --line: #d9e2f0;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --page: #eef2f7;
+      --sidebar: #111827;
+      --code: #0b1020;
+      --code-ink: #dbeafe;
+      --shadow: 0 16px 45px rgba(30, 41, 59, 0.1);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 1rem; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 95% 0%, rgba(124, 58, 237, 0.11),
+          transparent 30rem),
+        radial-gradient(circle at 55% 0%, rgba(37, 99, 235, 0.08),
+          transparent 34rem),
+        var(--page);
+      font: 16px/1.72 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+      overflow-wrap: anywhere;
+    }
+    a { color: var(--accent-deep); text-underline-offset: 0.18em; }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid #60a5fa;
+      outline-offset: 3px;
+      border-radius: 0.2rem;
+    }
+    code, pre { font-family: "SFMono-Regular", Consolas, monospace; }
+    :not(pre) > code {
+      padding: 0.1em 0.32em;
+      border-radius: 0.28rem;
+      color: #1e3a8a;
+      background: #e8eefc;
+      font-size: 0.92em;
+    }
+    pre {
+      position: relative;
+      margin: 1rem 0;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      color: var(--code-ink);
+      background: var(--code);
+      border-radius: 0;
+      line-height: 1.55;
+    }
+    pre code { color: inherit; background: transparent; }
+    .highlight {
+      margin: 1rem 0;
+      overflow: hidden;
+      background: var(--code);
+      border: 1px solid #26344f;
+      border-radius: 0.72rem;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.18);
+    }
+    .highlight pre { margin: 0; }
+    .code-toolbar {
+      display: flex;
+      min-height: 2.35rem;
+      align-items: center;
+      padding: 0.38rem 0.7rem 0.38rem 1rem;
+      color: #9fb0cc;
+      background: #121a2c;
+      border-bottom: 1px solid #26344f;
+    }
+    .code-language {
+      font-size: 0.7rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .syntax-comment { color: #7d9b96; font-style: italic; }
+    .syntax-key { color: #7dd3fc; }
+    .syntax-command { color: #c4b5fd; font-weight: 650; }
+    .syntax-variable { color: #fbbf24; }
+    .syntax-number { color: #fb7185; }
+    .syntax-string { color: #86efac; }
+    .syntax-operator { color: #fda4af; }
+    .layout {
+      display: grid;
+      grid-template-columns: 18rem minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 2rem 1.4rem;
+      overflow-y: auto;
+      color: #dbe5f5;
+      background:
+        linear-gradient(180deg, var(--sidebar), #172554 58%, #1e1b4b);
+    }
+    .brand {
+      display: flex;
+      gap: 0.7rem;
+      align-items: center;
+      color: white;
+      text-decoration: none;
+    }
+    .brand-mark {
+      display: grid;
+      width: 2.6rem;
+      height: 2.6rem;
+      place-items: center;
+      color: #111827;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa 70%);
+      border-radius: 0.65rem;
+      font-weight: 800;
+    }
+    .sidebar ul { margin: 1.5rem 0 0; padding: 0; list-style: none; }
+    .desktop-nav { display: block; }
+    .nav-panel { display: none; }
+    .sidebar li + li { margin-top: 0.18rem; }
+    .sidebar .nav-chapter + .nav-chapter { margin-top: 0.8rem; }
+    .sidebar li a {
+      display: block;
+      padding: 0.43rem 0.62rem;
+      color: #c5d2e7;
+      border-radius: 0.4rem;
+      text-decoration: none;
+      font-size: 0.88rem;
+      transition: color 150ms ease, background 150ms ease;
+    }
+    .sidebar .nav-chapter-link {
+      color: #eef4ff;
+      font-size: 0.84rem;
+      font-weight: 760;
+    }
+    .sidebar .nav-sections {
+      margin: 0.18rem 0 0.35rem 0.72rem;
+      padding-left: 0.52rem;
+      border-left: 1px solid rgba(147, 197, 253, 0.22);
+    }
+    .sidebar .nav-section-link {
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
+      color: #adbbd1;
+      font-size: 0.78rem;
+    }
+    .sidebar li a:hover, .sidebar li a[aria-current="true"] {
+      color: white;
+      background: rgba(59, 130, 246, 0.24);
+    }
+    .content {
+      width: min(100%, 78rem);
+      padding: 3rem clamp(1.25rem, 4vw, 4.5rem) 5rem;
+    }
+    .hero {
+      margin-bottom: 2rem;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      color: white;
+      background:
+        linear-gradient(120deg, #172554, #2563eb 55%, #7c3aed);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+    }
+    .hero .badge {
+      color: #bfdbfe;
+      font-size: 0.76rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+    }
+    .hero h1 {
+      margin: 0.5rem 0 0;
+      font-size: clamp(2.1rem, 6vw, 4.2rem);
+      line-height: 1.06;
+    }
+    .introduction { margin: 0 0 2rem; font-size: 1.08rem; color: var(--muted); }
+    .chapter { margin-top: 3.6rem; scroll-margin-top: 1rem; }
+    .chapter:first-of-type { margin-top: 2.4rem; }
+    .chapter-header {
+      margin-bottom: 1.25rem;
+      padding: 0 0.25rem;
+    }
+    .chapter-header h2 { margin-bottom: 0; }
+    .chapter-header p { max-width: 68rem; color: var(--muted); }
+    .chapter-sections { display: grid; gap: 1.35rem; }
+    section {
+      margin-top: 0;
+      padding: clamp(1.25rem, 3vw, 2.2rem);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 0.8rem;
+      box-shadow: var(--shadow);
+    }
+    h2 {
+      margin-top: 0;
+      color: var(--accent-deep);
+      font-size: clamp(1.45rem, 3vw, 2rem);
+    }
+    h2::after {
+      display: block;
+      width: 3.2rem;
+      height: 0.22rem;
+      margin-top: 0.55rem;
+      background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+      border-radius: 99rem;
+      content: "";
+    }
+    h3 { margin-top: 1.8rem; }
+    .chapter section > h3:first-child {
+      margin-top: 0;
+      color: var(--ink);
+      font-size: clamp(1.28rem, 2.4vw, 1.7rem);
+    }
+    h4 { margin: 1.7rem 0 0.65rem; color: var(--accent-deep); }
+    blockquote {
+      margin: 1.2rem 0;
+      padding: 0.7rem 1rem;
+      background: #eff6ff;
+      border-left: 0.3rem solid #2563eb;
+    }
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 0.65rem 0.8rem;
+      border: 1px solid var(--line);
+      text-align: left;
+    }
+    th { background: #eef3fb; }
+    .copy-button {
+      margin-left: auto;
+      padding: 0.3rem 0.55rem;
+      color: #dbeafe;
+      background: #23304a;
+      border: 1px solid #405271;
+      border-radius: 0.35rem;
+      cursor: pointer;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --accent-deep: #93c5fd;
+        --ink: #e6edf7;
+        --muted: #aab6cc;
+        --line: #2b3853;
+        --surface: #111827;
+        --surface-soft: #151f32;
+        --page: #080d18;
+      }
+      :not(pre) > code { color: #bfdbfe; background: #1e293b; }
+      th { background: #182338; }
+      blockquote { background: #111f39; }
+    }
+    @media (max-width: 860px) {
+      .layout { display: block; }
+      .sidebar { position: static; height: auto; padding: 1.2rem; }
+      .desktop-nav { display: none; }
+      .nav-panel { display: block; }
+      .nav-panel > summary {
+        display: block;
+        margin-top: 1rem;
+        padding: 0.55rem 0.7rem;
+        color: white;
+        background: rgba(59, 130, 246, 0.3);
+        border-radius: 0.4rem;
+        cursor: pointer;
+        font-weight: 650;
+      }
+      .nav-panel:not([open]) > ul { display: none; }
+      .nav-panel[open] > ul { display: block; columns: 2; }
+      .content { padding-top: 1.5rem; }
+    }
+    @media (max-width: 520px) { .sidebar ul { columns: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+    @media print {
+      :root { color-scheme: light; }
+      body { color: #000; background: #fff; }
+      .sidebar, .copy-button { display: none; }
+      .layout { display: block; }
+      .content { width: 100%; padding: 0; }
+      .hero, section {
+        color: #000;
+        background: #fff;
+        box-shadow: none;
+        break-inside: avoid;
+      }
+      a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="sidebar" aria-label="章节导航">
+      <a class="brand" href="#top">
+        <span class="brand-mark">esim</span><strong>User Guide</strong>
+      </a>
+      <ul class="desktop-nav">
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#getting-started">第一章 入门与环境</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#overview">了解 esim</a></li>
+            <li><a class="nav-section-link" href="#install">安装与环境</a></li>
+            <li><a class="nav-section-link" href="#project-layout">项目目录</a></li>
+            <li><a class="nav-section-link" href="#quick-start">快速开始</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#selectors-and-configuration">第二章 选择器与配置模型</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#selectors">Selector 与搜索</a></li>
+            <li><a class="nav-section-link" href="#configuration">Rules 与 TC schema</a></li>
+            <li><a class="nav-section-link" href="#include-merge">include 与合并</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#simulation-flow">第三章 仿真流程</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#two-step">two-step 配置</a></li>
+            <li><a class="nav-section-link" href="#three-step">three-step 配置</a></li>
+            <li><a class="nav-section-link" href="#arguments">CLI 阶段参数与 args</a></li>
+            <li><a class="nav-section-link" href="#hooks">Phase hooks</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#workspace-cache-vcs">第四章 Workspace、缓存与 VCS</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#simulation-directory">仿真目录与锁</a></li>
+            <li><a class="nav-section-link" href="#cache-actions">完整运行、keep 与 Stage action</a></li>
+            <li><a class="nav-section-link" href="#vcs">VCS 命令与受管产物</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#logs-results-troubleshooting">第五章 日志、结果与排错</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#logging-waivers">日志、finding 与 waiver</a></li>
+            <li><a class="nav-section-link" href="#snapshots">快照与结果</a></li>
+            <li><a class="nav-section-link" href="#recheck">独立日志重检</a></li>
+            <li><a class="nav-section-link" href="#errors">错误与退出码</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#reference-chapter">第六章 参考</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#reference">配置速查</a></li>
+          </ul></li>
+      </ul>
+      <details class="nav-panel">
+        <summary>章节导航</summary>
+        <ul class="mobile-nav">
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#getting-started">第一章 入门与环境</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#overview">了解 esim</a></li>
+            <li><a class="nav-section-link" href="#install">安装与环境</a></li>
+            <li><a class="nav-section-link" href="#project-layout">项目目录</a></li>
+            <li><a class="nav-section-link" href="#quick-start">快速开始</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#selectors-and-configuration">第二章 选择器与配置模型</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#selectors">Selector 与搜索</a></li>
+            <li><a class="nav-section-link" href="#configuration">Rules 与 TC schema</a></li>
+            <li><a class="nav-section-link" href="#include-merge">include 与合并</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#simulation-flow">第三章 仿真流程</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#two-step">two-step 配置</a></li>
+            <li><a class="nav-section-link" href="#three-step">three-step 配置</a></li>
+            <li><a class="nav-section-link" href="#arguments">CLI 阶段参数与 args</a></li>
+            <li><a class="nav-section-link" href="#hooks">Phase hooks</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#workspace-cache-vcs">第四章 Workspace、缓存与 VCS</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#simulation-directory">仿真目录与锁</a></li>
+            <li><a class="nav-section-link" href="#cache-actions">完整运行、keep 与 Stage action</a></li>
+            <li><a class="nav-section-link" href="#vcs">VCS 命令与受管产物</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#logs-results-troubleshooting">第五章 日志、结果与排错</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#logging-waivers">日志、finding 与 waiver</a></li>
+            <li><a class="nav-section-link" href="#snapshots">快照与结果</a></li>
+            <li><a class="nav-section-link" href="#recheck">独立日志重检</a></li>
+            <li><a class="nav-section-link" href="#errors">错误与退出码</a></li>
+          </ul></li>
+        <li class="nav-chapter"><a class="nav-chapter-link" href="#reference-chapter">第六章 参考</a>
+          <ul class="nav-sections">
+            <li><a class="nav-section-link" href="#reference">配置速查</a></li>
+          </ul></li>
+        </ul>
+      </details>
+    </nav>
+    <main class="content" id="top">
+      <header class="hero">
+        <span class="badge">ESIM · 中文用户指南</span>
+        <h1>esim User Guide</h1>
+      </header>
+      <div class="introduction"><p><code>esim</code> 是面向 Synopsys VCS 的单用例 EDA 仿真运行器。它从一个 TC 入口和
+一个 Rules 入口出发，按 Rules→TC→CLI 合并 YAML，在固定仿真目录中执行
+ff→build→run，并保存配置、日志、waiver 和结果快照。本指南面向 Linux/WSL2
+上的 TC 作者和仿真使用者。</p>
+</div>
+<article class="chapter" id="getting-started">
+<header class="chapter-header">
+<h2>第一章 入门与环境</h2>
+</header>
+<div class="chapter-sections">
+<section id="overview">
+<h3>了解 esim</h3>
+<p>一次 esim invocation 只运行一个 Effective TC：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>TC selector + Rules selector
+          │
+          ▼
+YAML include 与配置合并
+          │
+          ▼
+ff → build → run → 日志判定
+          │
+          ▼
+tc.yaml / rules.yaml / result.yaml / 完整日志
+</code></pre>
+</div>
+<p>首版只实现 VCS adapter，支持 two-step 和 three-step。esim 不是 Makefile
+或通用任务编排器：YAML 不提供 suite/regression、任意 cwd、timeout、全局
+environment、enabled、prepare、on_failure 或 finalize。</p>
+</section>
+<section id="install">
+<h3>安装与环境</h3>
+<p>esim 需要 CPython 3.11+，支持 Linux 和 WSL2。推荐从离线 wheelhouse 安装：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>python3 -m pip install <span class="syntax-string">\
+</span>  --no-index <span class="syntax-string">\
+</span>  --find-links ./wheelhouse <span class="syntax-string">\
+</span>  <span class="syntax-variable">esim</span><span class="syntax-operator">=</span><span class="syntax-operator">=</span><span class="syntax-number">0</span>.2.0
+</code></pre>
+</div>
+<p>安装后检查：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>esim --help
+ff --help
+</code></pre>
+</div>
+<p>运行前设置：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code><span class="syntax-command">export</span> <span class="syntax-variable">DV_HOME</span><span class="syntax-operator">=</span>/proj/aaa/dv
+<span class="syntax-command">export</span> <span class="syntax-variable">DV_TMP</span><span class="syntax-operator">=</span>/proj/aaa/dv_tmp
+</code></pre>
+</div>
+<ul>
+<li><code>$DV_HOME</code> 是 TC、Rules、环境脚本和 testbench 的项目根。</li>
+<li><code>$DV_TMP</code> 是仿真目录根，运行时产物不会写回源码目录。</li>
+</ul>
+</section>
+<section id="project-layout">
+<h3>项目目录</h3>
+<p>推荐组织方式：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>$DV_HOME/
+├── dtb_common/
+│   ├── env/
+│   └── rules/
+│       ├── default.rules
+│       ├── waive.txt
+│       └── exclude.txt
+└── xxx/yyy/
+    ├── env/
+    ├── rules/
+    │   ├── coverage.rules
+    │   ├── waive.txt
+    │   └── exclude.txt
+    ├── tb/
+    │   └── top.f
+    └── tests/
+        ├── base.tc
+        └── func/smoke.tc
+</code></pre>
+</div>
+<p>waiver 文件位于 <code>rules/</code>，不是 <code>tb/</code>。<code>dtb_common</code> 规则始终生效，入口
+TC 所属 DTB 的规则在其后补充。</p>
+</section>
+<section id="quick-start">
+<h3>快速开始</h3>
+<p>最常用命令：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code><span class="syntax-comment"># 逻辑 TC，缺省选择 default Rules
+</span>esim xxx.yyy:func.smoke
+
+<span class="syntax-comment"># 选择 coverage Rules，追加 run 参数
+</span>esim xxx.yyy:func.smoke -f coverage -r <span class="syntax-string">&quot;+ntb_random_seed=17&quot;</span>
+
+<span class="syntax-comment"># 使用绝对 TC/Rules
+</span>esim /proj/aaa/dv/xxx/yyy/tests/func/smoke.tc <span class="syntax-string">\
+</span>  -f /proj/aaa/dv/dtb_common/rules/coverage.rules
+</code></pre>
+</div>
+<p>默认完整运行会清理这一个目标仿真目录，重新执行 ff、build 和 run。成功后
+检查：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>cat <span class="syntax-string">&quot;</span><span class="syntax-variable">$DV_TMP</span><span class="syntax-string">/xxx.yyy/default/func.smoke/result.yaml</span><span class="syntax-string">&quot;</span>
+</code></pre>
+</div>
+</section>
+</div>
+</article>
+<article class="chapter" id="selectors-and-configuration">
+<header class="chapter-header">
+<h2>第二章 选择器与配置模型</h2>
+</header>
+<div class="chapter-sections">
+<section id="selectors">
+<h3>Selector 与搜索</h3>
+<h4>TC selector</h4>
+<p>位置参数接受：</p>
+<ol>
+<li><code>.tc</code>/<code>.yaml</code> 文件的绝对路径；</li>
+<li><code>&lt;dotted-dtb&gt;:&lt;dotted-test&gt;</code> 逻辑 selector。</li>
+</ol>
+<p><code>xxx.yyy:func.smoke</code> 按顺序搜索：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>$DV_HOME/xxx/yyy/tests/func/smoke.tc
+$DV_HOME/xxx/yyy/tests/func/smoke.yaml
+</code></pre>
+</div>
+<p>绝对 TC 必须位于 <code>$DV_HOME/&lt;dtb&gt;/tests/</code> 结构内。显式相对路径非法。</p>
+<h4>Rules selector</h4>
+<p><code>-f/--rules</code> 接受 Rules 逻辑名或 <code>.rules</code>/<code>.yaml</code> 绝对路径；缺省等价于
+<code>-f default</code>。逻辑名按以下顺序搜索：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>$DV_HOME/&lt;dtb&gt;/rules/&lt;name&gt;.rules
+$DV_HOME/&lt;dtb&gt;/rules/&lt;name&gt;.yaml
+$DV_HOME/dtb_common/rules/&lt;name&gt;.rules
+$DV_HOME/dtb_common/rules/&lt;name&gt;.yaml
+</code></pre>
+</div>
+<p>Rules 绝对路径必须位于入口 DTB 或 <code>dtb_common</code> 的合法 <code>rules/</code> 目录。</p>
+</section>
+<section id="configuration">
+<h3>Rules 与 TC schema</h3>
+<p><code>.tc</code>、<code>.rules</code> 和 <code>.yaml</code> 都是标准 YAML。文件路径决定角色；源文件不要用
+<code>type</code> 或 <code>name</code> 声明身份。</p>
+<p>需要一份复杂、覆盖 two-step TC 全部受支持字段的参考时，查看
+<a href="../../tests/fixtures/esim-demo-project/dv/xxx/yyy/tests/features/complete.tc"><code>tests/fixtures/esim-demo-project/dv/xxx/yyy/tests/features/complete.tc</code></a>。
+同目录的 <code>complete.yaml</code> 是指向它的兼容符号链接。Rules-only 字段和
+three-step-only 字段不属于该 TC。</p>
+<h4>共享字段</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>include</code></td>
+<td><code>list[str]</code></td>
+<td>按顺序组合其他配置片段</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>非空字符串</td>
+<td>只采用 CLI 入口文件的值</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code>list[str]</code></td>
+<td>按合并顺序追加并稳定去重</td>
+</tr>
+<tr>
+<td><code>ff</code></td>
+<td>phase mapping</td>
+<td>filelist 展平阶段</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>build mapping</td>
+<td>two-step 或 three-step build</td>
+</tr>
+<tr>
+<td><code>run</code></td>
+<td>phase mapping</td>
+<td>仿真运行阶段</td>
+</tr>
+</tbody>
+</table>
+<h4>Rules-only 字段</h4>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>filelist</code></td>
+<td>path string</td>
+<td>整个有效配置必须恰好声明一次</td>
+</tr>
+<tr>
+<td><code>simulator</code></td>
+<td>enum</td>
+<td>首版只接受小写 <code>vcs</code></td>
+</tr>
+<tr>
+<td><code>flow</code></td>
+<td>enum</td>
+<td>小写 <code>two-step</code> 或 <code>three-step</code></td>
+</tr>
+</tbody>
+</table>
+<p>多个 Rules 可以重复声明相同 simulator/flow；冲突值报错。filelist 即使展开
+后相同也不能多次声明。Rules 不能声明 <code>owner</code>。</p>
+<h4>TC-only 字段</h4>
+<p><code>owner</code> 是可选的非空单行字符串，只采用入口 TC 的值。TC 不能声明
+<code>filelist</code>、<code>simulator</code> 或 <code>flow</code>。</p>
+<p><code>tags</code> 建议主要写在 TC；Rules 只标记 <code>vcs</code>、<code>coverage</code> 等有意义的执行
+特征。未知字段会被忽略，终端打印 WARNING，并以来源路径和字段路径记录到
+<code>result.yaml.ignored_fields</code>；已知字段放错角色或 flow 则直接报错。</p>
+</section>
+<section id="include-merge">
+<h3>include 与合并</h3>
+<p>include 即使只有一个文件也必须写成列表：</p>
+<div class="highlight language-yaml">
+<div class="code-toolbar"><span class="code-language">YAML</span></div>
+<pre><code><span class="syntax-key">include</span>:
+  - <span class="syntax-string">../base.tc</span>
+  - <span class="syntax-string">./fragments/feature.yaml</span>
+</code></pre>
+</div>
+<ul>
+<li>TC 和 Rules 可以 include 对方或同类片段。</li>
+<li>include 必须写带 <code>.tc</code>、<code>.rules</code> 或 <code>.yaml</code> 后缀的精确路径。</li>
+<li>相对路径以声明 include 的 YAML 文件目录为基准。</li>
+<li>支持 <code>$NAME</code>/<code>${NAME}</code> 递归展开；缺失、空值和循环引用报错。</li>
+<li>不支持 shell default、命令替换、反引号、tilde 或 glob。</li>
+<li>include 图按列表顺序深度优先后序合并。</li>
+<li>活动链重复是循环；菱形重复只合并第一次并记录诊断。</li>
+</ul>
+<p>完整优先级从低到高：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>较早 Rules includes
+→ 较晚 Rules includes
+→ 入口 Rules
+→ 较早 TC includes
+→ 较晚 TC includes
+→ 入口 TC
+→ CLI 阶段参数
+</code></pre>
+</div>
+<p>phase args 和 before/after 命令列表依次追加并保留重复；tags 追加后稳定去重；
+phase 的 <code>hooks.continue_on_error</code> 由后层显式值覆盖，缺省为 <code>false</code>。</p>
+</section>
+</div>
+</article>
+<article class="chapter" id="simulation-flow">
+<header class="chapter-header">
+<h2>第三章 仿真流程</h2>
+</header>
+<div class="chapter-sections">
+<section id="two-step">
+<h3>two-step 配置</h3>
+<p>Rules 示例：</p>
+<div class="highlight language-yaml">
+<div class="code-toolbar"><span class="code-language">YAML</span></div>
+<pre><code><span class="syntax-key">description</span>: <span class="syntax-string">VCS</span><span class="syntax-string"> </span><span class="syntax-string">default</span><span class="syntax-string"> </span><span class="syntax-string">build</span><span class="syntax-string"> </span><span class="syntax-string">rules</span>
+<span class="syntax-key">tags</span>: [<span class="syntax-variable">vcs</span>]
+
+<span class="syntax-key">include</span>:
+  - <span class="syntax-string">./common.rules</span>
+
+<span class="syntax-key">filelist</span>: <span class="syntax-string">$DV_HOME/xxx/yyy/tb/top.f</span>
+<span class="syntax-key">simulator</span>: <span class="syntax-string">vcs</span>
+<span class="syntax-key">flow</span>: <span class="syntax-string">two-step</span>
+
+<span class="syntax-key">ff</span>:
+  <span class="syntax-key">args</span>:
+    - <span class="syntax-string">-d</span><span class="syntax-string"> </span><span class="syntax-string">FPGA</span><span class="syntax-string"> </span><span class="syntax-string">USE_DDR</span>
+
+<span class="syntax-key">build</span>:
+  <span class="syntax-key">args</span>:
+    - <span class="syntax-string">-full64</span><span class="syntax-string"> </span><span class="syntax-string">-sverilog</span><span class="syntax-string"> </span><span class="syntax-string">-top</span><span class="syntax-string"> </span><span class="syntax-string">top_tb</span>
+  <span class="syntax-key">hooks</span>:
+    <span class="syntax-key">after</span>:
+      - <span class="syntax-string">python</span><span class="syntax-string"> </span><span class="syntax-string">$DV_HOME/xxx/yyy/tb/check_build.py</span>
+
+<span class="syntax-key">run</span>:
+  <span class="syntax-key">args</span>:
+    - <span class="syntax-string">+UVM_VERBOSITY=UVM_MEDIUM</span>
+</code></pre>
+</div>
+<p>TC 示例：</p>
+<div class="highlight language-yaml">
+<div class="code-toolbar"><span class="code-language">YAML</span></div>
+<pre><code><span class="syntax-key">description</span>: <span class="syntax-string">Basic</span><span class="syntax-string"> </span><span class="syntax-string">smoke</span><span class="syntax-string"> </span><span class="syntax-string">testcase</span>
+<span class="syntax-key">owner</span>: <span class="syntax-string">dv-team</span>
+<span class="syntax-key">tags</span>: [<span class="syntax-variable">smoke</span>, <span class="syntax-variable">func</span>]
+
+<span class="syntax-key">include</span>:
+  - <span class="syntax-string">../base.tc</span>
+
+<span class="syntax-key">build</span>:
+  <span class="syntax-key">args</span>:
+    - <span class="syntax-string">+define+SMOKE_TEST</span>
+
+<span class="syntax-key">run</span>:
+  <span class="syntax-key">args</span>:
+    - <span class="syntax-string">+UVM_TESTNAME=smoke_test</span><span class="syntax-string"> </span><span class="syntax-string">+ntb_random_seed=1</span>
+</code></pre>
+</div>
+<p>two-step 只允许直接的 <code>build.args</code> 和 build hooks；出现
+<code>build.analyze</code>/<code>build.elaborate</code>，即使是空映射也报错。</p>
+</section>
+<section id="three-step">
+<h3>three-step 配置</h3>
+<div class="highlight language-yaml">
+<div class="code-toolbar"><span class="code-language">YAML</span></div>
+<pre><code><span class="syntax-key">filelist</span>: <span class="syntax-string">$DV_HOME/xxx/yyy/tb/top.f</span>
+<span class="syntax-key">simulator</span>: <span class="syntax-string">vcs</span>
+<span class="syntax-key">flow</span>: <span class="syntax-string">three-step</span>
+
+<span class="syntax-key">build</span>:
+  <span class="syntax-key">hooks</span>:
+    <span class="syntax-key">before</span>:
+      - <span class="syntax-string">echo</span><span class="syntax-string"> </span><span class="syntax-string">build-ready</span>
+  <span class="syntax-key">analyze</span>:
+    <span class="syntax-key">args</span>:
+      - <span class="syntax-string">-full64</span><span class="syntax-string"> </span><span class="syntax-string">-sverilog</span>
+  <span class="syntax-key">elaborate</span>:
+    <span class="syntax-key">args</span>:
+      - <span class="syntax-string">-full64</span><span class="syntax-string"> </span><span class="syntax-string">top_tb</span>
+
+<span class="syntax-key">run</span>:
+  <span class="syntax-key">args</span>:
+    - <span class="syntax-string">+UVM_TESTNAME=smoke_test</span>
+</code></pre>
+</div>
+<p>three-step 不允许直接 <code>build.args</code>。执行顺序固定为：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>build.before
+→ analyze.before → analyze → analyze log check → analyze.after
+→ elaborate.before → elaborate → elaborate log check → elaborate.after
+→ build.after
+</code></pre>
+</div>
+<p>任一用户 hook、主命令或日志检查失败都会截断其后用户节点；esim 自身的
+cleanup 仍会保存结果和释放资源。</p>
+</section>
+<section id="arguments">
+<h3>CLI 阶段参数与 args</h3>
+<table>
+<thead>
+<tr>
+<th>flow</th>
+<th><code>-b</code></th>
+<th><code>-e</code></th>
+<th><code>-r</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>two-step</code></td>
+<td><code>build.args</code></td>
+<td>非法</td>
+<td><code>run.args</code></td>
+</tr>
+<tr>
+<td><code>three-step</code></td>
+<td><code>build.analyze.args</code></td>
+<td><code>build.elaborate.args</code></td>
+<td><code>run.args</code></td>
+</tr>
+</tbody>
+</table>
+<p>每个选项可重复，每次接收一个 POSIX argv fragment：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>esim xxx.yyy:func.smoke <span class="syntax-string">\
+</span>  -b <span class="syntax-string">&quot;-full64 -debug_access+all&quot;</span> <span class="syntax-string">\
+</span>  -r <span class="syntax-string">&quot;+ntb_random_seed=7 +UVM_VERBOSITY=UVM_HIGH&quot;</span>
+</code></pre>
+</div>
+<ul>
+<li>args 必须是字符串列表；每个字符串可以包含多个参数。</li>
+<li>fragments 合并后使用 POSIX <code>shlex</code> 分词并直接构造 argv，不经过 shell。</li>
+<li><code>&amp;&amp;</code>、<code>;</code>、<code>|</code> 在 args 中只是普通 token。</li>
+<li>token 支持 <code>$NAME</code>/<code>${NAME}</code> 递归展开；引号只分组，不抑制展开。</li>
+<li>args 中 <code>$$</code> 产生一个字面量 <code>$</code>。</li>
+<li>非字符串、不配对 quoting、shell default、命令替换、tilde 和 glob 非法。</li>
+<li><code>ff.args</code> 首版只开放 <code>-d/--define</code>；ff 输入、输出、日志和 debug 由 esim
+管理，不能在 YAML 中覆盖。</li>
+</ul>
+</section>
+<section id="hooks">
+<h3>Phase hooks</h3>
+<p>ff、two-step build、three-step 外层 build、analyze、elaborate 和 run 均可配置：</p>
+<div class="highlight language-yaml">
+<div class="code-toolbar"><span class="code-language">YAML</span></div>
+<pre><code><span class="syntax-key">run</span>:
+  <span class="syntax-key">hooks</span>:
+    <span class="syntax-key">before</span>:
+      - <span class="syntax-string">source</span><span class="syntax-string"> </span><span class="syntax-string">$DV_HOME/xxx/yyy/env/setup.sh</span><span class="syntax-string"> </span><span class="syntax-string">&amp;&amp;</span><span class="syntax-string"> </span><span class="syntax-string">echo</span><span class="syntax-string"> </span><span class="syntax-string">ready</span>
+      - <span class="syntax-string">csh</span><span class="syntax-string"> </span><span class="syntax-string">-f</span><span class="syntax-string"> </span><span class="syntax-string">-c</span><span class="syntax-string"> </span><span class="syntax-string">&#x27;source</span><span class="syntax-string"> </span><span class="syntax-string">setup.csh;</span><span class="syntax-string"> </span><span class="syntax-string">./prepare.csh&#x27;</span>
+    <span class="syntax-key">after</span>:
+      - <span class="syntax-string">python</span><span class="syntax-string"> </span><span class="syntax-string">post_process.py</span><span class="syntax-string"> </span><span class="syntax-string">--mode</span><span class="syntax-string"> </span><span class="syntax-string">check</span>
+    <span class="syntax-key">continue_on_error</span>: <span class="syntax-string">false</span>
+</code></pre>
+</div>
+<ul>
+<li><code>hooks</code> 是可选 mapping，空 mapping 合法。</li>
+<li><code>before</code>/<code>after</code> 必须是字符串列表，不能使用标量简写。</li>
+<li>每条 command 必须是非空单行字符串。</li>
+<li>每条 command 在仿真目录中由独立的
+<code>/bin/bash -o pipefail -c &lt;command&gt;</code> 执行。</li>
+<li>同一 hook 的 commands 不共享 <code>cd</code>、export 或 shell function。</li>
+<li>需要 csh/zsh 时在 command 中显式调用，或执行带 shebang 的脚本。</li>
+<li>phase 级 <code>continue_on_error: true</code> 同时作用于 before/after，只会继续当前列表的剩余命令；hook 最终仍失败，
+不进入后续节点。Command failure 不能被 waiver 放过。</li>
+<li>合并后没有 command 的 hook 不执行，也不产生空日志。</li>
+</ul>
+</section>
+</div>
+</article>
+<article class="chapter" id="workspace-cache-vcs">
+<header class="chapter-header">
+<h2>第四章 Workspace、缓存与 VCS</h2>
+</header>
+<div class="chapter-sections">
+<section id="simulation-directory">
+<h3>仿真目录与锁</h3>
+<p>目标目录固定为：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>$DV_TMP/&lt;dotted-dtb-key&gt;/&lt;rules-file-stem&gt;/&lt;dotted-test-key&gt;/
+</code></pre>
+</div>
+<p>例如：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>$DV_TMP/xxx.yyy/default/func.smoke/
+</code></pre>
+</div>
+<p>所有命令都以该目录为工作目录。YAML 不能覆盖 cwd；args/commands 中的相对
+路径自然相对此目录解释。</p>
+<p>esim 在清理、缓存读取或写入之前获取目标目录的非等待式内核锁。锁冲突时
+立即退出 2；锁文件存在本身不代表锁仍有效。主运行和 <code>esim check</code> 使用同一
+把锁。</p>
+</section>
+<section id="cache-actions">
+<h3>完整运行、keep 与 Stage action</h3>
+<h4>默认与 keep</h4>
+<ul>
+<li>默认完整运行只删除精确目标仿真目录，然后重建。</li>
+<li><code>-k/--keep</code> 保留 simulator cache/build artifacts，但仍完整执行
+ff→build→run，并重写快照、waiver 和本次日志。</li>
+<li>keep 不表示自动 cache hit；首版不计算 HDL fingerprint，也不跳过阶段。</li>
+</ul>
+<h4>build action</h4>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>esim xxx.yyy:func.smoke -a build -b <span class="syntax-string">&quot;-debug_access+all&quot;</span>
+</code></pre>
+</div>
+<ul>
+<li>隐含 <code>--keep</code>，复用兼容且可读的 <code>flattened.f</code>，只重做 build。</li>
+<li>two-step 只允许 <code>-b</code>；three-step 允许 <code>-b/-e</code>；<code>-r</code> 非法。</li>
+<li>build 成功后 status 为 <code>NOT_RUN</code>，CLI 返回 0，并保留既有主仿真日志。</li>
+</ul>
+<h4>run action</h4>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>esim xxx.yyy:func.smoke -a run -r <span class="syntax-string">&quot;+ntb_random_seed=18&quot;</span>
+</code></pre>
+</div>
+<ul>
+<li>要求 ff/filelist/build 上游配置兼容且 simulator build artifact 有效。</li>
+<li>只允许 <code>-r</code>，只执行 run，并得到 PASS 或 FAIL。</li>
+</ul>
+<p>Stage action 会重新解析当前 TC/Rules，并在兼容性校验成功后更新快照。esim
+不 hash HDL、header 或 <code>-y</code> library；选择 action 即表示用户确认未执行的
+上游源码依赖没有变化。</p>
+</section>
+<section id="vcs">
+<h3>VCS 命令与受管产物</h3>
+<p>two-step：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>vcs -f &lt;absolute-flattened.f&gt; &lt;merged-build-argv&gt; \
+    -o &lt;absolute-simv&gt; -l &lt;absolute-vcs.log&gt;
+
+&lt;absolute-simv&gt; &lt;merged-run-argv&gt; -l &lt;absolute-simv.log&gt;
+</code></pre>
+</div>
+<p>three-step：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>vlogan -f &lt;absolute-flattened.f&gt; &lt;merged-analyze-argv&gt; \
+       -l &lt;absolute-vlogan.log&gt;
+
+vcs &lt;merged-elaborate-argv&gt; -o &lt;absolute-simv&gt; \
+    -l &lt;absolute-vcs.log&gt;
+
+&lt;absolute-simv&gt; &lt;merged-run-argv&gt; -l &lt;absolute-simv.log&gt;
+</code></pre>
+</div>
+<p>esim 在进程内调用共享 ff engine，固定生成 <code>flattened.f</code> 和 <code>ff.log</code>。VCS
+build artifact 固定为 <code>simv</code> 及其关联目录。用户 args 中出现会覆盖受管输入、
+输出或日志的 <code>-f/-o/-l</code> 时执行前退出 2。</p>
+</section>
+</div>
+</article>
+<article class="chapter" id="logs-results-troubleshooting">
+<header class="chapter-header">
+<h2>第五章 日志、结果与排错</h2>
+</header>
+<div class="chapter-sections">
+<section id="logging-waivers">
+<h3>日志、finding 与 waiver</h3>
+<table>
+<thead>
+<tr>
+<th>节点</th>
+<th>日志</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ff</td>
+<td><code>ff.log</code></td>
+</tr>
+<tr>
+<td>three-step analyze</td>
+<td><code>vlogan.log</code></td>
+</tr>
+<tr>
+<td>two-step build / three-step elaborate</td>
+<td><code>vcs.log</code></td>
+</tr>
+<tr>
+<td>run</td>
+<td><code>simv.log</code></td>
+</tr>
+<tr>
+<td>hook before / after</td>
+<td><code>pre_&lt;phase&gt;.log</code> / <code>post_&lt;phase&gt;.log</code></td>
+</tr>
+</tbody>
+</table>
+<p>同一 hook 的 commands 依次写入同一日志。受管日志每次覆盖、不追加；没有
+执行的 hook 不生成空日志。</p>
+<p>日志 checker 逐行、不区分大小写搜索 <code>fail</code>/<code>error</code> 子串，包括单词内部；
+工具日志还叠加 VCS/ff 专用规则。同一行命中多条规则只产生一个 finding，但
+保留全部原因。任一未放过 finding 使节点失败。进程非零退出是独立的
+Command failure，不能被文本 waiver 放过。</p>
+<p>waiver 来源依次为：</p>
+<ol>
+<li>esim built-in（首版为空）；</li>
+<li><code>$DV_HOME/dtb_common/rules/</code>；</li>
+<li>入口 TC 所属 <code>$DV_HOME/&lt;dtb&gt;/rules/</code>。</li>
+</ol>
+<p>每行一条规则：</p>
+<ul>
+<li>空行、<code>#</code> 和 <code>//</code> 整行注释忽略；不支持行尾注释。</li>
+<li><code>waive.txt</code> 使用区分大小写的 shell glob，对整行匹配。</li>
+<li><code>exclude.txt</code> 使用区分大小写的 regex search，可显式写 <code>(?i)</code>。</li>
+<li>所有 glob/regex 在执行命令前统一严格校验，并一次报告全部非法模式。</li>
+<li>include 文件所在 DTB 不增加 waiver 来源。</li>
+</ul>
+<p>仿真目录中总是生成本次实际使用的 <code>waive.txt</code> 和 <code>exclude.txt</code>。非空来源块
+带 <code>// source: &lt;absolute-path&gt;</code>，保留来源顺序、规则顺序和重复项。</p>
+</section>
+<section id="snapshots">
+<h3>快照与结果</h3>
+<p>第一个用户 hook 之前生成：</p>
+<ul>
+<li><code>rules.yaml</code>：Resolved Rules；</li>
+<li><code>tc.yaml</code>：包含 CLI 最终参数的 Effective TC。</li>
+</ul>
+<p>两者删除 include，只保存合并后的已知有效字段和规范化绝对路径，并分别用
+<code>source</code> 记录入口和实际 merge order。<code>rules.yaml.name</code>、<code>tc.yaml.name</code> 来自
+CLI 入口文件 stem，不读取源 YAML 的 name。</p>
+<p><code>result.yaml</code> 是可原子更新的动态结果，至少记录：</p>
+<ul>
+<li><code>status</code>: <code>PASS</code>、<code>FAIL</code> 或 <code>NOT_RUN</code>；</li>
+<li>本次 action；</li>
+<li>实际阶段/hook、命令退出码和日志；</li>
+<li>findings、waiver 命中和 <code>ignored_fields</code>。</li>
+</ul>
+<p>主要可审计产物：</p>
+<div class="highlight language-text">
+<div class="code-toolbar"><span class="code-language">Text</span></div>
+<pre><code>rules.yaml  tc.yaml  result.yaml
+waive.txt  exclude.txt
+flattened.f  ff.log  vcs.log  vlogan.log  simv.log
+pre_&lt;phase&gt;.log  post_&lt;phase&gt;.log
+</code></pre>
+</div>
+</section>
+<section id="recheck">
+<h3>独立日志重检</h3>
+<p>更新 waiver 后可以只重判既有仿真主日志：</p>
+<div class="highlight language-bash">
+<div class="code-toolbar"><span class="code-language">Bash</span></div>
+<pre><code>esim check /proj/aaa/dv_tmp/xxx.yyy/default/func.smoke
+</code></pre>
+</div>
+<p><code>check</code> 获取同一把锁，重新读取快照、合并 waiver，并且只重检 adapter 指定
+的主日志；VCS 为 <code>simv.log</code>。它不执行 ff、hook、compiler、elaborator 或
+simulator。</p>
+<p>已记录的 run 非零退出仍导致 FAIL。主日志缺失时只打印 warning、保持当前
+result 状态并返回 0；不会拿 build/hook 日志代替仿真结论。</p>
+</section>
+<section id="errors">
+<h3>错误与退出码</h3>
+<h4>主命令</h4>
+<table>
+<thead>
+<tr>
+<th>退出码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>完整运行 PASS，或 build action 成功</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>执行后的 Command failure 或未放过 finding</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>CLI、selector、YAML、schema、路径、waiver、缓存或锁等输入错误</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>esim 内部程序错误</td>
+</tr>
+</tbody>
+</table>
+<h4><code>esim check</code></h4>
+<table>
+<thead>
+<tr>
+<th>退出码</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>未判定为 FAIL；可能 PASS，也可能主日志缺失且状态保持</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>未放过 finding，或已有 run 非零退出</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>仿真目录、快照、waiver 或 CLI 输入错误</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>esim 内部程序错误</td>
+</tr>
+</tbody>
+</table>
+<p>调用方要区分 PASS 与 NOT_RUN 时必须读取 <code>result.yaml</code>，不能只看退出码 0。</p>
+<p>执行前错误优先检查：</p>
+<ol>
+<li>TC/Rules selector 是否为逻辑名或合法绝对路径；</li>
+<li>YAML 顶层及结构字段类型是否正确；</li>
+<li>已知字段是否放在正确角色和 flow；</li>
+<li>include/filelist 环境变量、后缀和可读性；</li>
+<li>filelist 是否恰好声明一次，simulator/flow 是否存在且一致；</li>
+<li>args quoting 和 adapter 保留参数；</li>
+<li>waiver glob/regex；</li>
+<li>Stage action 所需缓存和上游兼容性。</li>
+</ol>
+</section>
+</div>
+</article>
+<article class="chapter" id="reference-chapter">
+<header class="chapter-header">
+<h2>第六章 参考</h2>
+</header>
+<div class="chapter-sections">
+<section id="reference">
+<h3>配置速查</h3>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>命令或位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>默认运行</td>
+<td><code>esim xxx.yyy:func.smoke</code></td>
+</tr>
+<tr>
+<td>选择 Rules</td>
+<td><code>-f coverage</code></td>
+</tr>
+<tr>
+<td>two-step build 参数</td>
+<td><code>-b FRAGMENT</code></td>
+</tr>
+<tr>
+<td>three-step analyze/elaborate 参数</td>
+<td><code>-b FRAGMENT -e FRAGMENT</code></td>
+</tr>
+<tr>
+<td>run 参数</td>
+<td><code>-r FRAGMENT</code></td>
+</tr>
+<tr>
+<td>保留 cache 的完整运行</td>
+<td><code>-k</code></td>
+</tr>
+<tr>
+<td>只做 build/run</td>
+<td><code>-a build</code> / <code>-a run</code></td>
+</tr>
+<tr>
+<td>只重检主日志</td>
+<td><code>esim check &lt;absolute-sim-dir&gt;</code></td>
+</tr>
+<tr>
+<td>TC</td>
+<td>`$DV_HOME/&lt;dtb&gt;/tests/**/*.tc</td>
+</tr>
+<tr>
+<td>Rules</td>
+<td>`$DV_HOME/&lt;dtb&gt;/rules/*.rules</td>
+</tr>
+<tr>
+<td>waiver</td>
+<td>两层 <code>rules/waive.txt</code>、<code>exclude.txt</code></td>
+</tr>
+<tr>
+<td>运行目录</td>
+<td><code>$DV_TMP/&lt;dtb-key&gt;/&lt;rules-key&gt;/&lt;test-key&gt;/</code></td>
+</tr>
+</tbody>
+</table>
+<p>filelist 规则见 <a href="ff-user-guide.md">ff User Guide</a>。<code>.tc</code>/<code>.rules</code> 的 VS Code 和
+Vim/gVim 文件关联见 <a href="../../editors/README.md">编辑器支持</a>。</p>
+</section>
+</div>
+</article>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll(".highlight").forEach((container) => {
+      const block = container.querySelector("pre");
+      const toolbar = container.querySelector(".code-toolbar");
+      if (!block || !toolbar) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "copy-button";
+      button.textContent = "复制";
+      button.addEventListener("click", async () => {
+        const text = block.querySelector("code")?.textContent || block.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = "已复制";
+        }
+        catch { button.hidden = true; }
+        window.setTimeout(() => { button.textContent = "复制"; }, 1400);
+      });
+      toolbar.append(button);
+    });
+    if ("IntersectionObserver" in window) {
+      const links = new Map();
+      document.querySelectorAll('.sidebar a[href^="#"]').forEach((link) => {
+        const id = link.getAttribute("href").slice(1);
+        links.set(id, [...(links.get(id) || []), link]);
+      });
+      const observer = new IntersectionObserver((entries) => {
+        entries.filter((entry) => entry.isIntersecting).forEach((entry) => {
+          links.forEach((group) => group.forEach(
+            (link) => link.removeAttribute("aria-current"),
+          ));
+          const activeIds = [
+            entry.target.closest(".chapter")?.id,
+            entry.target.id,
+          ];
+          activeIds.forEach((id) => links.get(id)?.forEach(
+            (link) => link.setAttribute("aria-current", "true"),
+          ));
+        });
+      }, { rootMargin: "0px 0px -70%" });
+      document.querySelectorAll("main section[id]").forEach(
+        (section) => observer.observe(section),
+      );
+    }
+  </script>
+</body>
+</html>

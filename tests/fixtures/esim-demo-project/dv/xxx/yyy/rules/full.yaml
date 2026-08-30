@@ -12,36 +12,27 @@ filelist: ${ESIM_DEMO_FILELIST}
 simulator: vcs
 flow: two-step
 
-metadata:
-  purpose: demonstrate ignored top-level fields
-
 ff:
   args:
     - -d COMPLETE_YYY
-  timeout: 60
   hooks:
     before:
-      commands:
-        - echo "yyy rules-entry ff before"
+      - echo "yyy rules-entry ff before"
     after:
-      commands:
-        - echo "yyy rules-entry ff after"
+      - echo "yyy rules-entry ff after"
 
 build:
   args:
     - -top top_tb
   hooks:
     before:
-      commands:
-        - echo "yyy rules-entry build before"
+      - echo "yyy rules-entry build before"
     after:
-      commands:
-        - echo "yyy rules-entry build after"
+      - echo "yyy rules-entry build after"
 
 run:
   args:
     - '+RULES_LABEL="$ESIM_DEMO_LABEL"'
   hooks:
     after:
-      commands:
-        - echo "yyy rules-entry run after"
+      - echo "yyy rules-entry run after"

@@ -4,6 +4,10 @@
 单一最小 testcase：yyy 展示 YAML/two-step 的复杂配置组合，zzz 展示
 `.tc/.rules`/three-step 的完整 phase 生命周期，common Rules 展示 selector fallback。
 
+`dv/xxx/yyy/tests/features/complete.tc` 是复杂 two-step TC 的权威参考，
+覆盖当前 TC 可声明的全部受支持字段。同目录 `complete.yaml`
+是指向它的相对符号链接。
+
 逐项需求映射见 [FEATURES.md](FEATURES.md)。测试应先复制整个 fixture，再在副本上
 执行，避免修改版本控制内的输入。
 
@@ -121,7 +125,7 @@ esim xxx.yyy:func.smoke -f portable
 ```bash
 esim xxx.yyy:features.complete -f full
 
-esim "$DV_HOME/xxx/yyy/tests/features/complete.yaml" \
+esim "$DV_HOME/xxx/yyy/tests/features/complete.tc" \
   -f "$DV_HOME/xxx/yyy/rules/full.yaml"
 ```
 

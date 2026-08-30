@@ -23,15 +23,10 @@ class RunStatus(Enum):
 
 
 @dataclass(frozen=True)
-class HookSpec:
-    commands: tuple[str, ...] = ()
-    continue_on_error: bool = False
-
-
-@dataclass(frozen=True)
 class PhaseHooks:
-    before: HookSpec | None = None
-    after: HookSpec | None = None
+    before: tuple[str, ...] = ()
+    after: tuple[str, ...] = ()
+    continue_on_error: bool = False
 
 
 @dataclass(frozen=True)

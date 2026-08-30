@@ -179,7 +179,7 @@ def test_complete_three_step_demo_runs_every_nested_hook_and_cli_argument(
     assert (simulation_directory / "simv.log").is_file()
 
 
-def test_complete_yaml_demo_publishes_every_auditable_workspace_artifact(
+def test_complete_tc_demo_publishes_every_auditable_workspace_artifact(
     tmp_path: Path,
 ) -> None:
     fixture = Path(__file__).parent / "fixtures" / "esim-demo-project"
@@ -191,12 +191,12 @@ def test_complete_yaml_demo_publishes_every_auditable_workspace_artifact(
     simulation_directory = dv_tmp / "xxx.yyy/full/features.complete"
     simulation_directory.mkdir(parents=True)
     (simulation_directory / "stale.txt").write_text("stale\n", encoding="utf-8")
-    responses = [ScriptedResponse(output="phase complete\n") for _ in range(16)]
-    responses[6] = ScriptedResponse(
+    responses = [ScriptedResponse(output="phase complete\n") for _ in range(20)]
+    responses[9] = ScriptedResponse(
         output="VCS compilation complete\n",
         artifacts=(simulation_directory / "simv",),
     )
-    responses[13] = ScriptedResponse(output="UVM_INFO complete simulation\n")
+    responses[17] = ScriptedResponse(output="UVM_INFO complete simulation\n")
     runner = ScriptedProcessRunner(tuple(responses))
     environment = {
         "DV_HOME": str(dv_home),
@@ -247,21 +247,17 @@ def test_complete_yaml_demo_publishes_every_auditable_workspace_artifact(
     )
     assert rules_snapshot["source"]["entry"] == str(yyy_home / "rules/full.yaml")
     assert tc_snapshot["source"]["entry_tc"] == str(
-        yyy_home / "tests/features/complete.yaml"
+        yyy_home / "tests/features/complete.tc"
     )
     assert tc_snapshot["source"]["merge_order"][-1] == str(
-        yyy_home / "tests/features/complete.yaml"
+        yyy_home / "tests/features/complete.tc"
     )
     result = yaml.safe_load(
         (simulation_directory / "result.yaml").read_text(encoding="utf-8")
     )
     assert result["status"] == "PASS"
-    assert {item["path"] for item in result["ignored_fields"]} == {
-        "metadata",
-        "ff.timeout",
-        "run.enabled",
-    }
-    assert len(warnings) == 7
+    assert result["ignored_fields"] == []
+    assert len(warnings) == 3
     duplicate_warnings = [
         warning
         for warning in warnings
@@ -284,6 +280,65 @@ def test_complete_yaml_demo_publishes_every_auditable_workspace_artifact(
         "simv",
     ):
         assert (simulation_directory / name).exists(), name
+
+
+def test_unsupported_fields_each_publish_a_warning_and_result_entry(
+    tmp_path: Path,
+) -> None:
+    fixture = Path(__file__).parent / "fixtures" / "esim-demo-project"
+    project = tmp_path / "project"
+    shutil.copytree(fixture, project)
+    dv_home = project / "dv"
+    dv_tmp = tmp_path / "runs"
+    yyy_home = dv_home / "xxx/yyy"
+    simulation_directory = (
+        dv_tmp / "xxx.yyy/unsupported-fields/features.unsupported-fields"
+    )
+    responses = (
+        ScriptedResponse(output="ff setup complete\n"),
+        ScriptedResponse(
+            output="VCS compilation complete\n",
+            artifacts=(simulation_directory / "simv",),
+        ),
+        ScriptedResponse(output="UVM_INFO simulation complete\n"),
+    )
+    runner = ScriptedProcessRunner(responses)
+    environment = {"DV_HOME": str(dv_home), "DV_TMP": str(dv_tmp)}
+    warnings: list[str] = []
+    log_policy = LogPolicy()
+    application = EsimApplication(
+        environment=environment,
+        configuration=ConfigurationCompiler(environment=environment),
+        workspaces=WorkspaceManager(),
+        execution=ExecutionEngine(process_runner=runner, log_policy=log_policy),
+        log_policy=log_policy,
+        simulators=SimulatorRegistry.default(),
+        warning=warnings.append,
+    )
+
+    outcome = application.run(
+        RunRequest(
+            tc_selector="xxx.yyy:features.unsupported-fields",
+            rules_selector="unsupported-fields",
+        )
+    )
+
+    rules_source = yyy_home / "rules/unsupported-fields.yaml"
+    tc_source = yyy_home / "tests/features/unsupported-fields.yaml"
+    expected_ignored = [
+        {"source": str(rules_source), "path": "metadata"},
+        {"source": str(rules_source), "path": "ff.timeout"},
+        {"source": str(tc_source), "path": "metadata"},
+        {"source": str(tc_source), "path": "run.enabled"},
+    ]
+    assert outcome.status is RunStatus.PASS
+    assert warnings == [
+        f"ignored field: {item['source']}: {item['path']}" for item in expected_ignored
+    ]
+    result = yaml.safe_load(
+        (simulation_directory / "result.yaml").read_text(encoding="utf-8")
+    )
+    assert result["ignored_fields"] == expected_ignored
 
 
 def test_run_action_rejects_changed_build_configuration_before_commands(

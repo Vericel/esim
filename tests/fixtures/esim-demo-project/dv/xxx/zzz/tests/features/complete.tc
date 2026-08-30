@@ -12,8 +12,6 @@ run:
     - +ESIM_DEMO_CASE=complete
   hooks:
     before:
-      commands:
-        - echo "zzz run setup complete"
+      - echo "zzz run setup complete"
     after:
-      commands:
-        - echo "zzz run post-processing complete"
+      - echo "zzz run post-processing complete"

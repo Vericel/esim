@@ -8,6 +8,10 @@
 
 - 日志运行依赖迁移到带 PEP 561 内联类型的
   `onelogg>=0.1.2,<0.2`，删除重复的本地 `onelog` stub。
+- 简化 esim TC/Rules phase hooks：`before`/`after` 直接使用命令列表，
+  `continue_on_error` 上移到 hooks 层并同时作用于两个列表。
+- 将 demo 中覆盖 two-step TC 全部受支持字段的参考实体统一为
+  `complete.tc`，并保留 `complete.yaml` 相对符号链接。
 
 ### Added
 
@@ -16,6 +20,9 @@
 - 新增 `PyYAML>=6.0,<7` 运行依赖，仅使用 safe load/dump 解析配置。
 - 新增 VS Code 与 Vim/gVim 编辑器支持，将 `*.tc` 和 `*.rules`
   按标准 YAML 语法高亮。
+- ff 与 esim User Guide 现在同时提供 Markdown 和可离线打开的 HTML，
+  HTML 从唯一 Markdown 内容源确定性生成，并提供 YAML/Bash 语法高亮、
+  代码语言标签、篇章结构和响应式两级章节导航。
 
 ## 0.2.0 - 2026-08-03
 

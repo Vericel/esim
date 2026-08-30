@@ -27,13 +27,27 @@ public seams，仅在外部进程边界使用 scripted runner。当前已实现�
 | 独立 check 重建 waiver、重判主日志、保留 Command failure 和缺日志 warning | `test_check_rebuilds_waivers_and_preserves_recorded_run_command_failure`、`test_check_warns_and_preserves_status_when_the_primary_log_is_missing` |
 | 真实 esim CLI 组合根、VCS 进程边界和退出码 | `test_real_cli_runs_the_demo_through_the_vcs_process_boundary`、`test_cli_maps_a_controlled_input_error_to_exit_two`、`test_cli_rejects_phase_arguments_that_do_not_belong_to_the_action` |
 | 不存在的 EDA 工具转为可审计 Command failure | `test_missing_tool_is_recorded_as_a_command_failure_in_its_log` |
-| 完整 YAML demo 的跨角色菱形 include 去重诊断、递归环境、args、tag、unknown fields 与 two-step hooks | `test_complete_yaml_demo_composes_every_configuration_layer` |
+| 完整 TC demo 的跨角色菱形 include 去重诊断、递归环境、args、tag、unknown fields 与 two-step hooks | `test_complete_tc_demo_composes_every_configuration_layer` |
 | 完整 three-step demo 的 build/analyze/elaborate/run hooks 与 CLI 阶段参数 | `test_complete_three_step_demo_runs_every_nested_hook_and_cli_argument` |
 | common Rules selector fallback 与环境化 DTB filelist | `test_logical_rules_fall_back_to_a_runnable_common_configuration` |
-| 完整 demo 的条件 flat filelist、默认 clean、快照、unknown field/菱形 include 诊断、日志、waiver 和 simulator artifact | `test_complete_yaml_demo_publishes_every_auditable_workspace_artifact` |
+| 完整 demo 的条件 flat filelist、默认 clean、快照、unknown field/菱形 include 诊断、日志、waiver 和 simulator artifact | `test_complete_tc_demo_publishes_every_auditable_workspace_artifact` |
 
 其余 esim 行为将随 TDD 纵向切片加入本矩阵；在相应测试和实现完成前不视为
 已验证。
+
+## User Guide 生成验证
+
+| 用户文档能力 | 公开验证证据 |
+|---|---|
+| ff/esim Markdown 一次生成两份内嵌样式的 standalone HTML | `test_generator_cli_creates_both_standalone_user_guides` |
+| 质量门禁发现缺失或过期的生成 HTML | `test_generator_check_reports_each_stale_user_guide` |
+| 简介与章节布局分离、中文标题使用稳定显式锚点 | `test_generator_separates_intro_and_uses_explicit_section_ids` |
+| 窄屏使用原生可折叠章节导航 | `test_generator_uses_collapsible_mobile_navigation` |
+| YAML/Bash fenced code 生成离线 token 颜色 | `test_generator_adds_offline_syntax_colours_to_fenced_code` |
+| 页面使用多色层级并显示代码语言标签 | `test_generator_uses_multihue_palette_and_code_language_labels` |
+| 无 JavaScript 时桌面章节导航保持可见 | `test_generator_keeps_desktop_navigation_visible_without_javascript` |
+| H2 章、H3 节生成嵌套内容和两级导航 | `test_generator_renders_chapters_sections_and_two_level_navigation` |
+| 平铺章或少于两章的指南在生成阶段失败 | `test_generator_rejects_flat_guides_without_chapter_sections`、`test_generator_rejects_guides_with_fewer_than_two_chapters` |
 
 ## ff 验证证据
 
@@ -53,7 +67,7 @@ public seams，仅在外部进程边界使用 scripted runner。当前已实现�
 | symlink 逻辑路径、target annotation 和真实身份 | `test_symlinked_*`、`test_all_recognized_simulator_paths_annotate_symlink_targets`、`test_output_symlink_to_nested_input_is_rejected_by_real_identity` |
 | 可读性、输出父目录、原子替换和权限 | `test_unreadable_*`、`test_output_parent_*`、`test_success_atomically_*`、`test_new_output_permissions_*`、`test_flatten_failure_preserves_*` |
 | onelog、`-l`、`--debug`、summary 和日志安全 | `test_cli_log_*`、`test_cli_debug_*`、`test_cli_controlled_failure_*`、`test_cli_rejects_log_*`、`test_cli_replaces_log_symlink_*` |
-| 发布物使用带 PEP 561 内联类型的 onelogg 0.1.2 依赖且不混入 vendor 缓存；开发环境具备 `--no-build-isolation` 所需的精确版本构建工具；wheelhouse 不覆盖非空目录 | `test_esim_wheel_preserves_the_standalone_ff_command`、`test_wheel_uses_typed_onelogg_dependency`、`test_wheelhouse_builder_preserves_and_rejects_nonempty_output` |
+| 发布物使用带 PEP 561 内联类型的 onelogg 0.1.2 依赖且不混入 vendor 缓存；本地 wheel 构建不修改 checkout 中的构建产物；开发环境具备 `--no-build-isolation` 所需的精确版本构建工具；wheelhouse 不覆盖非空目录 | `test_local_wheel_build_leaves_project_build_artifacts_unchanged`、`test_esim_wheel_preserves_the_standalone_ff_command`、`test_wheel_uses_typed_onelogg_dependency`、`test_wheelhouse_builder_preserves_and_rejects_nonempty_output` |
 | 退出码 0/1/2/3 | CLI 成功测试、`test_cli_reports_flatten_error_without_python_traceback`、`test_cli_requires_input_to_be_the_first_argument`、`test_cli_returns_three_for_unexpected_internal_failure` |
 
 ## 回归选择
