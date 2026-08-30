@@ -13,6 +13,10 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
 
 - [ ] 在干净 CPython 3.11 环境安装固定 onelog commit（`onelogg` 0.1.2）和 `.[dev]`。
 - [ ] 执行 `npm ci` 和 `bash scripts/check.sh`。
+- [ ] 确认 ff/esim User Guide 的 Markdown 与 standalone HTML 均存在，且
+  `scripts/generate_user_guides.py --check` 通过。
+- [ ] 两份 User Guide 均显示章标题、章内节卡片和两级章节导航；没有退化为
+  同级主题平铺。
 - [ ] 使用空目录执行：
 
   ```bash
@@ -27,6 +31,7 @@ CI 不创建 tag 或 GitHub Release。发布由维护者人工确认以下项目
 - [ ] 把 wheelhouse 压缩包和 `SHA256SUMS` 作为发布制品保留。
 - [ ] 确认源码制品保留 `.vscode/settings.json` 和 `editors/`；如果只分发
   wheelhouse，额外附上 `editors/` 目录。
+- [ ] 面向用户的发布包同时包含 `docs/user/` 下四份 User Guide 文件。
 
 ## 人工发布
 

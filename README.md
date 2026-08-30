@@ -36,16 +36,19 @@ ff /aaa/bbb/testbench.f -o testbench.f -d MACRO_1 MACRO_2
 当 `-b/-e/-r` 的值以 `-` 开头时，可直接作为后一个已引用的
 shell 参数传入，也可使用 `-b='-full64 -debug_access+all'` 形式。
 
+需要编写复杂 TC 或查看 two-step TC 全部受支持字段时，可参考
+[`complete.tc`](tests/fixtures/esim-demo-project/dv/xxx/yyy/tests/features/complete.tc)。
+`complete.yaml` 是指向该文件的兼容符号链接。
+
 不指定 `-o` 时，默认在当前目录生成 `flattened.f`。
 每个 `-d/--define` 宏既选择 filelist 条件分支，也会在输出开头生成同名
 `+define+MACRO`，供 VCS 编译 HDL 时使用。
 
 ## 详细文档
 
-- [ff User Guide](docs/user/ff-user-guide.html)
-- [esim User Guide](docs/user/esim-user-guide.md)
+- ff User Guide：[Markdown](docs/user/ff-user-guide.md) ·
+  [离线 HTML](docs/user/ff-user-guide.html)
+- esim User Guide：[Markdown](docs/user/esim-user-guide.md) ·
+  [离线 HTML](docs/user/esim-user-guide.html)
 - [VS Code 与 Vim/gVim 语法高亮](editors/README.md)
-- [ff 需求与行为契约](docs/requirements/ff.md)
-- [esim TC/Rules 与仿真流程需求](docs/requirements/esim.md)
-- [开发指南](docs/development/development-guide.md)
 - [变更记录](CHANGELOG.md)
