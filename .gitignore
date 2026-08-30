@@ -12,3 +12,7 @@ dist/
 *.egg-info/
 node_modules/
 .tools/
+novas.conf
+novas.rc
+nul
+verdiLog/

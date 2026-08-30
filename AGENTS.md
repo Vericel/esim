@@ -98,15 +98,15 @@ tests/
 
 ## 验证与完成标准
 
-- TDD 循环中先运行最小相关测试；声称完成前使用项目虚拟环境运行完整测试：`.venv/bin/python -m pytest`。若该环境不存在，使用当前已激活 Python 环境的 `python -m pytest` 并报告实际解释器。
+- TDD 循环中先运行最小相关测试。本地新增或修改 feature 时，声称完成前只要求运行本次新增的测试、受影响的现有测试，以及对本次修改 Python 文件的 Ruff format/check；不默认运行全量 pytest、Pyright 或完整质量门禁。
 - 稳定的部分回归按能力文件运行，例如 `.venv/bin/python -m pytest tests/test_engine_conditions.py`；单条用例使用完整 node ID；跨能力临时筛选可使用 `-k`，但不得把 `-k` 表达式当成持久测试分类。
-- 完整本地质量门禁统一运行 `bash scripts/check.sh`；该入口依次执行 Ruff、Pyright、文档链接检查、90% branch coverage 回归和 `pip check`，CI 必须调用同一入口。
+- 完整本地质量门禁统一运行 `bash scripts/check.sh`；该入口依次执行 Ruff、Pyright、文档链接检查、90% branch coverage 全量回归和 `pip check`。只在推送分支、创建/更新 PR、发布或用户明确要求时执行；pre-push hook 和 PR CI 必须调用同一入口。
 - 离线发布验证使用空输出目录运行 `FF_PYTHON=.venv/bin/python bash scripts/build-wheelhouse.sh <OUTPUT>`；该命令必须完成固定 onelog commit、全部运行依赖、无网络安装 smoke test 和 SHA-256 清单。
 - 修改 CLI、输出格式或错误信息时，同时覆盖 CLI seam 和引擎 API seam 的相关测试。
 - 文档或路径变化后，搜索仓库内引用并确认没有失效链接或旧路径。
 - 完成前检查 `git diff --check` 和 `git status --short`，确认没有覆盖或混入用户的其他改动。
 - 没有实际运行验证时不得声称“完成”或“通过”。环境阻止验证时，明确报告命令、阻碍和未验证范围。
-- 提交前 hook 自动执行 Ruff 格式化、安全修复和 Pyright；pre-push hook 执行完整 branch coverage 回归。hook 不替代完成前的显式全量验证。
+- pre-commit hook 只执行快速 Ruff 格式化与 lint 修复；pre-push hook 执行 `bash scripts/check.sh` 的完整门禁。hook 不替代本地 feature 开发期间对受影响测试的显式验证。
 
 ## Git 规范
 

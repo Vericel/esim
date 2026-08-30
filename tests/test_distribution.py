@@ -1,7 +1,46 @@
+import os
 import subprocess
 import sys
+from hashlib import sha256
 from pathlib import Path
 from zipfile import ZipFile
+
+
+def _snapshot_tree(path: Path) -> tuple[tuple[str, str], ...] | None:
+    if not path.exists():
+        return None
+    return tuple(
+        (str(candidate.relative_to(path)), sha256(candidate.read_bytes()).hexdigest())
+        for candidate in sorted(path.rglob("*"))
+        if candidate.is_file()
+    )
+
+
+def test_local_wheel_build_leaves_project_build_artifacts_unchanged(
+    tmp_path: Path,
+) -> None:
+    project_root = Path(__file__).parents[1]
+    artifacts = (project_root / "build", project_root / "src" / "esim.egg-info")
+    before = tuple(_snapshot_tree(path) for path in artifacts)
+
+    completed = subprocess.run(
+        [
+            "bash",
+            str(project_root / "scripts" / "build-wheel.sh"),
+            str(tmp_path),
+        ],
+        cwd=project_root,
+        check=False,
+        capture_output=True,
+        env={**os.environ, "FF_PYTHON": sys.executable},
+        text=True,
+    )
+
+    assert (
+        completed.returncode,
+        len(list(tmp_path.glob("esim-*.whl"))),
+        tuple(_snapshot_tree(path) for path in artifacts),
+    ) == (0, 1, before), completed.stdout + completed.stderr
 
 
 def test_esim_wheel_preserves_the_standalone_ff_command(
@@ -10,18 +49,14 @@ def test_esim_wheel_preserves_the_standalone_ff_command(
     project_root = Path(__file__).parents[1]
     completed = subprocess.run(
         [
-            sys.executable,
-            "-m",
-            "pip",
-            "wheel",
-            str(project_root),
-            "--no-build-isolation",
-            "--no-deps",
-            "--wheel-dir",
+            "bash",
+            str(project_root / "scripts" / "build-wheel.sh"),
             str(tmp_path),
         ],
+        cwd=project_root,
         check=False,
         capture_output=True,
+        env={**os.environ, "FF_PYTHON": sys.executable},
         text=True,
     )
 
@@ -48,18 +83,14 @@ def test_wheel_uses_typed_onelogg_dependency(tmp_path: Path) -> None:
     project_root = Path(__file__).parents[1]
     completed = subprocess.run(
         [
-            sys.executable,
-            "-m",
-            "pip",
-            "wheel",
-            str(project_root),
-            "--no-build-isolation",
-            "--no-deps",
-            "--wheel-dir",
+            "bash",
+            str(project_root / "scripts" / "build-wheel.sh"),
             str(tmp_path),
         ],
+        cwd=project_root,
         check=False,
         capture_output=True,
+        env={**os.environ, "FF_PYTHON": sys.executable},
         text=True,
     )
 
