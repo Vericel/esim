@@ -5,12 +5,3 @@ repos:
       - id: ruff-format
       - id: ruff-check
         args: [--fix]
-
-  - repo: local
-    hooks:
-      - id: full-quality-gates
-        name: full quality gates
-        entry: bash scripts/check.sh
-        language: system
-        pass_filenames: false
-        stages: [pre-push]

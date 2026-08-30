@@ -19,7 +19,7 @@ python3.11 -m venv .venv
   "git+https://github.com/BottiCelle/onelog.git@d60dc49701944d88c90f3bd7fabf5bbbdb7d6f8c"
 .venv/bin/python -m pip install -e ".[dev]"
 npm ci
-.venv/bin/pre-commit install --hook-type pre-commit --hook-type pre-push
+.venv/bin/pre-commit install --hook-type pre-commit
 ```
 
 固定源码提交的仓库名是 BottiCelle/onelog，Python 发行名是
@@ -32,7 +32,7 @@ esim 使用 `PyYAML>=6.0,<7` 安全解析 TC/Rules 并生成运行快照；
 ## 测试与质量门禁
 
 ```bash
-# 推送分支或创建/更新 PR 前的全量本地门禁
+# 创建 release tag 前的全量本地门禁
 bash scripts/check.sh
 
 # 更新或检查 ff/esim 双格式 User Guide
@@ -56,8 +56,9 @@ bash scripts/check.sh
 
 feature 开发期间只执行新增/受影响测试和 Ruff，不要在每次本地交付时运行
 全量回归。commit hook 自动执行 Ruff format 和 Ruff check 安全修复；
-pre-push hook 通过 `scripts/check.sh` 执行 Pyright、文档检查、完整 branch coverage
-回归和 `pip check`。PR CI 使用同一入口作为远程兜底。
+本地 pre-push 不执行 coverage。创建 release tag 前必须通过 `scripts/check.sh`
+执行 Pyright、文档检查、完整 branch coverage 回归和 `pip check`。
+PR CI 使用同一入口作为远程合入门槛。
 该门禁同时要求两份生成 HTML 与 Markdown 内容源完全同步。
 
 ### User Guide 章节规范

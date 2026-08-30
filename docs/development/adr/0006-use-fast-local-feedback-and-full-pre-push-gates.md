@@ -1,4 +1,4 @@
-# ADR-0006: Use fast local feedback and full pre-push gates
+# ADR-0006: Use fast local feedback and full pre-tag gates
 
 ## Status
 
@@ -15,12 +15,14 @@ evidence from the tests that were added or affected and from Python syntax/lint 
 - Local feature completion requires the new and affected pytest cases plus Ruff format/check
   for changed Python files.
 - Pre-commit runs only the fast Ruff hooks.
-- Pre-push runs `bash scripts/check.sh`, which remains the single complete local gate.
+- Local pre-push does not run the complete coverage gate.
+- Immediately before creating a release tag, run ash scripts/check.sh, which remains
+  the single complete local gate.
 - Pull-request CI runs the same complete gate as the remote enforcement boundary.
 - Full gates may still be run earlier when a user explicitly requests them or risk warrants it.
 
 ## Consequences
 
 Local iteration and ordinary agent handoff are faster. Cross-feature, type, documentation,
-coverage and dependency failures may surface later at pre-push, so developers must install
-both pre-commit and pre-push hooks and treat required PR checks as mandatory.
+coverage and dependency failures may surface in pull-request CI or the pre-tag release
+check, so developers must treat required PR checks and the release checklist as mandatory.
