@@ -26,7 +26,7 @@ def test_local_wheel_build_leaves_project_build_artifacts_unchanged(
     completed = subprocess.run(
         [
             "bash",
-            str(project_root / "scripts" / "build-wheel.sh"),
+            str(project_root / "tools" / "packaging" / "build-wheel.sh"),
             str(tmp_path),
         ],
         cwd=project_root,
@@ -50,7 +50,7 @@ def test_esim_wheel_preserves_the_standalone_ff_command(
     completed = subprocess.run(
         [
             "bash",
-            str(project_root / "scripts" / "build-wheel.sh"),
+            str(project_root / "tools" / "packaging" / "build-wheel.sh"),
             str(tmp_path),
         ],
         cwd=project_root,
@@ -84,7 +84,7 @@ def test_wheel_uses_typed_onelogg_dependency(tmp_path: Path) -> None:
     completed = subprocess.run(
         [
             "bash",
-            str(project_root / "scripts" / "build-wheel.sh"),
+            str(project_root / "tools" / "packaging" / "build-wheel.sh"),
             str(tmp_path),
         ],
         cwd=project_root,
@@ -120,7 +120,7 @@ def test_wheelhouse_builder_preserves_and_rejects_nonempty_output(
     completed = subprocess.run(
         [
             "bash",
-            str(project_root / "scripts" / "build-wheelhouse.sh"),
+            str(project_root / "tools" / "packaging" / "build-wheelhouse.sh"),
             str(output),
         ],
         cwd=project_root,

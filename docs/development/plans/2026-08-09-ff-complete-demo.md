@@ -28,4 +28,4 @@ flattening engine、flat filelist 产物和 esim 集成测试的统一输入。
 - 能力矩阵无未映射的已支持 ff 行为。
 - 至少一个正向综合 filelist 可同时通过 ff CLI、engine 和 esim/VCS 路径。
 - 自动测试不依赖 EDA license，真实仿真作为独立验收。
-- `.venv/bin/python -m pytest`、`bash scripts/check.sh` 和 Git 边界检查实际通过。
+- `.venv/bin/python -m pytest`、`bash tools/quality/check.sh` 和 Git 边界检查实际通过。

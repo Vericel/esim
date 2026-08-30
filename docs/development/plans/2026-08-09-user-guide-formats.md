@@ -6,7 +6,7 @@
 
 ## 阶段一：生成器 seam
 
-1. 为 `scripts/generate_user_guides.py` 写失败的 CLI 测试。
+1. 为 `tools/docs/generate_user_guides.py` 写失败的 CLI 测试。
 2. 实现最小 Markdown→standalone HTML 生成。
 3. 为 `--check` 过期检测写失败测试并实现。
 
@@ -18,14 +18,14 @@
 
 ## 阶段三：质量门禁与文档
 
-1. 把生成同步检查接入 `scripts/check.sh`。
+1. 把生成同步检查接入 `tools/quality/check.sh`。
 2. 更新开发指南、发布清单和验证矩阵。
 3. 校验 HTML 语法、链接、离线边界和生成幂等性。
 
 ## 阶段四：视觉与完整回归
 
 1. 渲染桌面和窄屏页面并检查布局。
-2. 运行相关测试、完整 pytest、`scripts/check.sh` 和 `git diff --check`。
+2. 运行相关测试、完整 pytest、`tools/quality/check.sh` 和 `git diff --check`。
 3. 核对工作区范围，不纳入本地 EDA 产物。
 
 ## 阶段五：视觉质量返工

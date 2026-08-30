@@ -1,6 +1,10 @@
 {
-  "include": ["../../tests", "../../scripts"],
-  "exclude": ["../../build", "../../dist"],
+  "include": [
+    "../../tests",
+    "../docs",
+    "../quality"
+  ],
+  "exclude": ["../../build", "../../dist", "node_modules"],
   "extraPaths": ["../..", "../../src"],
   "typeCheckingMode": "basic",
   "pythonVersion": "3.11",

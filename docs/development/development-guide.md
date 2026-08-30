@@ -6,7 +6,7 @@
 Node 24，但 Node 不属于 ff 运行时或发布制品。Linux 与 WSL2 均受支持；
 在 WSL2 中优先把仓库放在 Linux 文件系统以获得更稳定的权限语义和性能。
 `.[dev]` 同时安装精确版本的 `setuptools` 和 `wheel`，因为分发
-测试通过 `scripts/build-wheel.sh` 使用 `pip wheel --no-build-isolation`
+测试通过 `tools/packaging/build-wheel.sh` 使用 `pip wheel --no-build-isolation`
 验证当前开发环境的打包 seam。
 这两项仍是开发工具，不进入 esim 的运行依赖或离线 wheelhouse。
 `markdown-it-py` 和 `Pygments` 也是固定版本开发依赖，只用于从 User Guide
@@ -33,11 +33,11 @@ esim 使用 `PyYAML>=6.0,<7` 安全解析 TC/Rules 并生成运行快照；
 
 ```bash
 # 创建 release tag 前的全量本地门禁
-bash scripts/check.sh
+bash tools/quality/check.sh
 
 # 更新或检查 ff/esim 双格式 User Guide
-.venv/bin/python scripts/generate_user_guides.py
-.venv/bin/python scripts/generate_user_guides.py --check
+.venv/bin/python tools/docs/generate_user_guides.py
+.venv/bin/python tools/docs/generate_user_guides.py --check
 
 # 一个稳定能力
 .venv/bin/python -m pytest tests/test_engine_conditions.py
@@ -56,7 +56,7 @@ bash scripts/check.sh
 
 feature 开发期间只执行新增/受影响测试和 Ruff，不要在每次本地交付时运行
 全量回归。commit hook 自动执行 Ruff format 和 Ruff check 安全修复；
-本地 pre-push 不执行 coverage。创建 release tag 前必须通过 `scripts/check.sh`
+本地 pre-push 不执行 coverage。创建 release tag 前必须通过 `tools/quality/check.sh`
 执行 Pyright、文档检查、完整 branch coverage 回归和 `pip check`。
 PR CI 使用同一入口作为远程合入门槛。
 该门禁同时要求两份生成 HTML 与 Markdown 内容源完全同步。
@@ -81,7 +81,7 @@ User Guide Markdown 必须使用固定层级，不能把所有主题平铺为同
 - 章和节均使用显式稳定 ID；调整章节归属时保留既有节 ID。
 
 生成器会拒绝少于两章或存在空章的平铺文档，因此该规范由
-`scripts/check.sh` 和 CI 强制执行，而不只依赖人工审阅。
+`tools/quality/check.sh` 和 CI 强制执行，而不只依赖人工审阅。
 
 ## 离线 wheelhouse
 
@@ -90,14 +90,14 @@ User Guide Markdown 必须使用固定层级，不能把所有主题平铺为同
 
 ```bash
 FF_PYTHON=.venv/bin/python \
-  bash scripts/build-wheel.sh /tmp/esim-wheel
+  bash tools/packaging/build-wheel.sh /tmp/esim-wheel
 ```
 
 输出目录必须为空，避免混入旧 wheel：
 
 ```bash
 FF_PYTHON=.venv/bin/python \
-  bash scripts/build-wheelhouse.sh /tmp/esim-wheelhouse
+  bash tools/packaging/build-wheelhouse.sh /tmp/esim-wheelhouse
 ```
 
 命令从固定 onelog commit 构建 `onelogg` wheel，收集 Rich、PyYAML 及传递依赖，构建 esim 0.2.0，

@@ -17,7 +17,7 @@ def test_docs_check_accepts_existing_markdown_file_and_fragment(
     )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -35,7 +35,7 @@ def test_docs_check_reports_missing_markdown_target(tmp_path: Path) -> None:
     )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -61,7 +61,7 @@ def test_docs_check_reports_missing_markdown_fragment(tmp_path: Path) -> None:
     )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -90,7 +90,7 @@ def test_docs_check_validates_html_href_fragments_and_src_files(
     )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -121,7 +121,7 @@ def test_docs_check_ignores_external_urls_mail_and_template_targets(
     )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -145,7 +145,7 @@ def test_docs_check_reports_all_diagnostics_in_stable_path_order(
     )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -171,7 +171,7 @@ def test_docs_check_ignores_generated_and_runtime_directories(tmp_path: Path) ->
         )
 
     completed = subprocess.run(
-        [sys.executable, str(project_root / "scripts" / "check_docs.py")],
+        [sys.executable, str(project_root / "tools" / "quality" / "check_docs.py")],
         cwd=tmp_path,
         check=False,
         capture_output=True,

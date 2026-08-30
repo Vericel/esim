@@ -24,7 +24,7 @@
 
 ## 验证
 
-- `python3 scripts/check_docs.py`
+- `python3 tools/quality/check_docs.py`
 - `git diff --check`
 - `git status --short`
 

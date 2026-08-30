@@ -660,7 +660,7 @@ def _generated_guides(root: Path) -> dict[Path, str]:
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate standalone user guides")
-    parser.add_argument("--root", type=Path, default=Path(__file__).parents[1])
+    parser.add_argument("--root", type=Path, default=Path(__file__).parents[2])
     parser.add_argument("--check", action="store_true")
     return parser.parse_args(argv)
 
